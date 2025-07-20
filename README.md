@@ -2,6 +2,8 @@
 
 <div align="center">
 
+![HLD Handbook Cover](https://github.com/user-attachments/assets/46685492-2ec1-424d-8c05-04d8b35c072b)
+
 [![GitHub stars](https://img.shields.io/github/stars/yourusername/HLD-Handbook-for-Coding-Interviews?style=social)](https://github.com/yourusername/HLD-Handbook-for-Coding-Interviews/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/yourusername/HLD-Handbook-for-Coding-Interviews?style=social)](https://github.com/yourusername/HLD-Handbook-for-Coding-Interviews/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/yourusername/HLD-Handbook-for-Coding-Interviews)](https://github.com/yourusername/HLD-Handbook-for-Coding-Interviews/issues)
