@@ -1,9 +1,5 @@
 # Service Discovery
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jrUBAF7.jpg" alt="Service Discovery Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Discovery Patterns](#discovery-patterns)

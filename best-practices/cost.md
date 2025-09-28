@@ -1,9 +1,5 @@
 # Cost Optimization
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/3jUwEs4.png" alt="Cost Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Resource Optimization](#resource-optimization)

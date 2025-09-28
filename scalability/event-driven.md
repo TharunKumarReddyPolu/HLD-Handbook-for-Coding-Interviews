@@ -1,9 +1,5 @@
 # Event-Driven Architecture
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/5RPdchh.png" alt="Event Driven Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Core Concepts](#core-concepts)

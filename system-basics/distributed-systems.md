@@ -1,9 +1,5 @@
 # Distributed Systems Fundamentals
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jj3A5N8.png" alt="Distributed Systems Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [What is a Distributed System?](#what-is-a-distributed-system)
 - [Key Characteristics](#key-characteristics)

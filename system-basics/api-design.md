@@ -1,9 +1,5 @@
 # API Design Fundamentals
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/yD9oWk.png" alt="Api Design Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction to APIs](#introduction-to-apis)
 - [API Design Principles](#api-design-principles)

@@ -1,9 +1,5 @@
 # Security Best Practices
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jrUBAF7.jpg" alt="Security Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Authentication & Authorization](#authentication--authorization)

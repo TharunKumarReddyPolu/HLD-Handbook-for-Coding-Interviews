@@ -1,9 +1,5 @@
 # API Gateway
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/yB5SYwm.png" alt="Api Gateway Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Gateway Patterns](#gateway-patterns)

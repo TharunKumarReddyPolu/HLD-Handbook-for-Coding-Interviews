@@ -1,9 +1,5 @@
 # Medium System Design Questions
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/medium-questions.png" alt="Medium System Design Questions Overview" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Question Types](#question-types)

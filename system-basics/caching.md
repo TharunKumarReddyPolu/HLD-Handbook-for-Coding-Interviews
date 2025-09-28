@@ -1,9 +1,5 @@
 # Caching Fundamentals
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/Q6z24La.png" alt="Caching Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction to Caching](#introduction-to-caching)
 - [Caching Strategies](#caching-strategies)

@@ -1,9 +1,5 @@
 # Database Sharding
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/wU8x5Id.png" alt="Database Sharding Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction to Sharding](#introduction-to-sharding)
 - [Sharding Strategies](#sharding-strategies)

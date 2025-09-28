@@ -1,9 +1,5 @@
 # Data Replication
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/C9ioGtn.png" alt="Replication Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Replication Strategies](#replication-strategies)

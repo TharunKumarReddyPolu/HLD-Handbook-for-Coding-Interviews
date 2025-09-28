@@ -1,9 +1,5 @@
 # Horizontal vs Vertical Scaling
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jj3A5N8.png" alt="Scaling Types Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Vertical Scaling (Scale Up)](#vertical-scaling)

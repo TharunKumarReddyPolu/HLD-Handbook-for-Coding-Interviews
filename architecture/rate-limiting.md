@@ -1,9 +1,5 @@
 # Rate Limiting
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/AEkdVeY.png" alt="Rate Limiting Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Rate Limiting Algorithms](#rate-limiting-algorithms)

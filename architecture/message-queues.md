@@ -1,9 +1,5 @@
 # Message Queues
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/5KeocQs.jpg" alt="Message Queues Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Queue Types](#queue-types)

@@ -1,9 +1,5 @@
 # Database Indexing
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/IX892H2.png" alt="Indexing Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction to Indexing](#introduction-to-indexing)
 - [Types of Indexes](#types-of-indexes)

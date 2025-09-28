@@ -1,9 +1,5 @@
 # Circuit Breaker
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/eXPnDie.png" alt="Circuit Breaker Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Circuit States](#circuit-states)

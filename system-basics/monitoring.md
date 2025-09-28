@@ -1,9 +1,5 @@
 # Monitoring & Logging
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/ywNY9i0.png" alt="Monitoring Diagram" width="600"/>
-</div>
-
 ## Table of Contents
 - [Introduction](#introduction)
 - [Monitoring Fundamentals](#monitoring-fundamentals)
