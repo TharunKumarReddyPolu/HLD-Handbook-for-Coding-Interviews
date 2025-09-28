@@ -61,7 +61,7 @@ This handbook is designed to help you master High Level Design concepts for syst
 - [💾 Caching](system-basics/caching.md)
 - [📊 Database Sharding](system-basics/database-sharding.md)
 - [🔍 Indexing](system-basics/indexing.md)
-- [📡 APIs](system-basics/apis.md)
+- [📡 APIs](system-basics/api-design.md)
 - [🔐 Authentication & Authorization](system-basics/auth.md)
 - [📈 Monitoring & Logging](system-basics/monitoring.md)
 
