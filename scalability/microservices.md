@@ -1,7 +1,7 @@
 # Microservices Architecture
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/microservices.png" alt="Microservices Architecture Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/5KeocQs.jpg" alt="Microservices Diagram" width="600"/>
 </div>
 
 ## Table of Contents

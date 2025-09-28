@@ -1,7 +1,7 @@
 # CAP Theorem
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/cap-theorem.png" alt="CAP Theorem Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/bgLtye4.png" alt="Cap Theorem Diagram" width="600"/>
 </div>
 
 ## Table of Contents

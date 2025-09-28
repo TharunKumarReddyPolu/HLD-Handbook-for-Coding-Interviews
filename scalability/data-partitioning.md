@@ -1,7 +1,7 @@
 # Data Partitioning
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/data-partitioning.png" alt="Data Partitioning Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jrUBAF7.jpg" alt="Data Partitioning Diagram" width="600"/>
 </div>
 
 ## Table of Contents

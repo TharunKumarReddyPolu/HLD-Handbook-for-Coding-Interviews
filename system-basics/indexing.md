@@ -1,7 +1,7 @@
 # Database Indexing
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/indexing.png" alt="Database Indexing Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/IX892H2.png" alt="Indexing Diagram" width="600"/>
 </div>
 
 ## Table of Contents

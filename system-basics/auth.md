@@ -1,7 +1,7 @@
 # Authentication & Authorization
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/auth.png" alt="Authentication and Authorization Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jrUBAF7.jpg" alt="Auth Diagram" width="600"/>
 </div>
 
 ## Table of Contents

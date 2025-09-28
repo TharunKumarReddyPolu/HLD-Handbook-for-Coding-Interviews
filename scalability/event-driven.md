@@ -1,7 +1,7 @@
 # Event-Driven Architecture
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/event-driven.png" alt="Event-Driven Architecture Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/5RPdchh.png" alt="Event Driven Diagram" width="600"/>
 </div>
 
 ## Table of Contents

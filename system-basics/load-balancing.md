@@ -1,7 +1,7 @@
 # Load Balancing Fundamentals
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/load-balancing.png" alt="Load Balancing Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/h81n9iK.png" alt="Load Balancing Diagram" width="600"/>
 </div>
 
 ## Table of Contents

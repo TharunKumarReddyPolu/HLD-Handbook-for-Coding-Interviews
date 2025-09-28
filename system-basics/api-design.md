@@ -1,7 +1,7 @@
 # API Design Fundamentals
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/api-design.png" alt="API Design Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/yD9oWk.png" alt="Api Design Diagram" width="600"/>
 </div>
 
 ## Table of Contents

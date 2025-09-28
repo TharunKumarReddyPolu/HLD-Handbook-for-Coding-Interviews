@@ -1,7 +1,7 @@
 # Distributed Systems Fundamentals
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/distributed-systems.png" alt="Distributed Systems Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jj3A5N8.png" alt="Distributed Systems Diagram" width="600"/>
 </div>
 
 ## Table of Contents

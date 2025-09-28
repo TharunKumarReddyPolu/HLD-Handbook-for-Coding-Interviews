@@ -1,7 +1,7 @@
 # Monitoring & Logging
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/monitoring.png" alt="Monitoring and Logging Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/ywNY9i0.png" alt="Monitoring Diagram" width="600"/>
 </div>
 
 ## Table of Contents

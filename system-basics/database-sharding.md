@@ -1,7 +1,7 @@
 # Database Sharding
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/database-sharding.png" alt="Database Sharding Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/wU8x5Id.png" alt="Database Sharding Diagram" width="600"/>
 </div>
 
 ## Table of Contents

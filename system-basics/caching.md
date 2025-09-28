@@ -1,7 +1,7 @@
 # Caching Fundamentals
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/caching.png" alt="Caching Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/Q6z24La.png" alt="Caching Diagram" width="600"/>
 </div>
 
 ## Table of Contents

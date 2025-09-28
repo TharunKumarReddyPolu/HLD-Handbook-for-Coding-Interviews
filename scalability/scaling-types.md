@@ -1,7 +1,7 @@
 # Horizontal vs Vertical Scaling
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/HLD-Handbook-for-Coding-Interviews/main/images/scaling-types.png" alt="Scaling Types Overview" width="600"/>
+  <img src="https://raw.githubusercontent.com/donnemartin/system-design-primer/master/images/jj3A5N8.png" alt="Scaling Types Diagram" width="600"/>
 </div>
 
 ## Table of Contents
