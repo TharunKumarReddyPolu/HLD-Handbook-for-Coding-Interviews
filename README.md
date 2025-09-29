@@ -80,6 +80,43 @@ This handbook is designed to help you master High Level Design concepts for syst
 - [📈 Rate Limiting](architecture/rate-limiting.md)
 - [🔄 Circuit Breaker](architecture/circuit-breaker.md)
 
+### 📊 **Data Engineering**
+- [🏢 Data Warehousing](data-engineering/data-warehousing.md)
+- [🔄 ETL vs ELT](data-engineering/etl-vs-elt.md)
+- [📐 Data Modeling](data-engineering/data-modeling.md)
+
+### ☁️ **Cloud Native**
+- [🎮 Kubernetes Orchestration](cloud-native/kubernetes-orchestration.md)
+- [🏗️ Cloud Design Patterns](cloud-native/design-patterns.md)
+- [⚡ Serverless Patterns](cloud-native/serverless-patterns.md)
+
+### 👁️ **Observability**
+- [📝 Logging Practices](observability/logging-practices.md)
+- [📊 Metrics Collection](observability/metrics.md)
+- [🔍 Distributed Tracing](observability/distributed-tracing.md)
+
+### 🔒 **Security**
+- [🛡️ Zero Trust Architecture](security/zero-trust.md)
+- [🔑 OAuth & OpenID Connect](security/oauth-openid.md)
+- [🔐 API Security](security/api-security.md)
+
+### 🧪 **Testing**
+- [⚡ Load Testing](testing/load-testing.md)
+- [🔀 Chaos Engineering](testing/chaos-engineering.md)
+- [🔄 Integration Testing](testing/integration-testing.md)
+
+### 📚 **Case Studies**
+- [🛍️ E-commerce Platform](case-studies/e-commerce-platform.md)
+- [💬 Real-time Chat](case-studies/real-time-chat.md)
+
+### 🚀 **Modern Architectures**
+- [🤖 AI/ML Systems](modern-architectures/ai-ml-systems.md)
+- [👥 Real-time Collaboration](modern-architectures/real-time-collaboration.md)
+
+### 📜 **Compliance**
+- [🔏 GDPR Compliance](compliance/gdpr-compliance.md)
+- [🔒 Data Privacy](compliance/data-privacy.md)
+
 ### 💻 **Interview Questions**
 - [📝 Easy Problems](interview-questions/easy/README.md)
 - [🔄 Medium Problems](interview-questions/medium/README.md)
@@ -100,18 +137,45 @@ This handbook is designed to help you master High Level Design concepts for syst
 - Scalability principles
 - System components and interactions
 - Performance optimization
+- Cloud-native architectures
+- Data engineering practices
 
 ### 💡 **Problem-Solving Skills**
 - Requirements analysis
 - Capacity planning
 - Design trade-offs
 - Performance considerations
+- Observability strategies
+- Security implementation
+
+### 🔒 **Compliance & Security**
+- GDPR implementation
+- Data privacy patterns
+- Zero Trust Architecture
+- OAuth & OpenID Connect
+- API security
+
+### 🧪 **Testing & Quality**
+- Load testing strategies
+- Chaos engineering
+- Integration testing
+- Real-world case studies
+- Best practices
+
+### 🚀 **Modern Architecture**
+- AI/ML system design
+- Real-time collaboration
+- Event-driven systems
+- Microservices patterns
+- Serverless architectures
 
 ### 🎤 **Interview Strategies**
 - How to approach design problems
 - Communication techniques
 - Handling ambiguity
 - Design documentation
+- System evolution
+- Performance analysis
 
 ---
 
