@@ -4,12 +4,12 @@ This section covers how data moves, is stored, and is transformed at scale — a
 
 ## Topics in This Section
 
-- [Data Warehousing](data-warehousing.md) - OLAP stores, dimensional modeling, and analytics pipelines
+- [Data Warehousing](data-warehousing.md) - Architecture patterns and dimensional modeling
 - [ETL vs ELT](etl-vs-elt.md) - Where transformation happens and why it changes your architecture
 - [Data Modeling](data-modeling.md) - Normalization, denormalization, and choosing schemas for access patterns
 - [OLAP vs OLTP](olap-vs-oltp.md) - Transactional vs analytical workloads and their storage engines
-- [Data Quality & Validation](data-quality.md) - Data contracts, checks, and lineage for trustworthy pipelines
-- [Real-time Analytics](real-time-analytics.md) - Stream processing architectures and lambda/kappa patterns
+- [Data Quality & Validation](data-quality.md) - Quality dimensions, validation strategies, and monitoring
+- [Real-time Analytics](real-time-analytics.md) - Ingestion, stream processing, and windowing for live data
 
 ## Suggested Learning Path
 
@@ -25,4 +25,4 @@ OLAP vs OLTP ──► Data Modeling ──► Data Warehousing
 
 - [System Basics](../system-basics/README.md) - Storage fundamentals these topics build on
 - [Modern Architectures](../modern-architectures/README.md) - AI/ML and IoT systems lean heavily on data engineering
-- [Compliance](../compliance/README.md) - Governance for the data you're pipelines moving
+- [Compliance](../compliance/README.md) - Governance for data in motion and at rest

@@ -7,9 +7,9 @@ This section covers architecture styles that have emerged or matured in the last
 - [AI/ML System Design](ai-ml-systems.md) - Training pipelines, feature stores, and model serving
 - [Real-time Collaboration Systems](real-time-collaboration.md) - CRDTs, operational transforms, and sync engines
 - [Blockchain Systems](blockchain-systems.md) - Distributed ledgers, consensus, and node architecture
-- [Edge Computing](edge-computing.md) - Edge nodes, CDN compute, and latency-driven placement
-- [IoT Architecture](iot-architecture.md) - Device fleets, gateways, and telemetry at scale
-- [Web3 Architecture Patterns](web3-patterns.md) - Decentralized application architecture and trade-offs
+- [Edge Computing](edge-computing.md) - Edge nodes, edge processing, and data synchronization
+- [IoT Architecture](iot-architecture.md) - Device layers, edge processing, and data management
+- [Web3 Architecture Patterns](web3-patterns.md) - Decentralized application architecture
 
 ## Suggested Learning Path
 

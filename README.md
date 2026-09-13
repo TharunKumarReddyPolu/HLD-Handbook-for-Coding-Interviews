@@ -12,7 +12,7 @@
 
 </div>
 
-**_Last-minute HLD notes for system design interviews: core concepts, scalability patterns, architecture diagrams, trade-off tables, real-world case studies, and FAQs across 60+ topics._**
+**_Last-minute HLD notes for system design interviews: core concepts, scalability patterns, architecture diagrams, trade-off analysis, real-world case studies, and interview tips across 60+ topics._**
 
 ---
 
@@ -37,15 +37,15 @@
 This handbook is a curated guide to High Level Design (HLD) / System Design, designed for last-minute interview preparation at top tech companies. Each topic is presented in a concise, high-impact format covering:
 
 - 🏛️ **Key Concepts** - Core terminology and building blocks explained clearly
-- 📊 **Trade-off Tables** - Consistency vs availability, cost vs performance, at a glance
-- 🔗 **Prerequisites & Related Topics** - Learning path and topic connections
-- 🎯 **Pattern Recognition** - When to use each technique, and when NOT to use it
+- 📊 **Trade-off Analysis** - Consistency vs availability, cost vs performance compared side by side
+- 🔗 **Learning Paths** - Suggested reading order and connections between topics
+- 🎯 **Interview Guidance** - When to use each technique and what interviewers probe
 - 🏗️ **Architecture Diagrams** - Mermaid diagrams for components and data flows
-- 📝 **Pseudocode & Reference Implementations** - Logic before code
-- ⚠️ **Edge Cases & Pitfalls** - Common mistakes and how to handle them
-- 💰 **Cost & Operational Considerations** - What your design costs to run
+- 💻 **Reference Implementations** - Working code and configuration examples
+- ⚠️ **Common Challenges** - What to avoid and how to handle failures
+- 💰 **Cost Considerations** - Where cost trade-offs appear in designs
 - 🌐 **Real-World Applications** - How companies actually build these systems
-- ❓ **FAQ Section** - Answers to frequently asked interview questions
+- ❓ **Common Questions** - Frequent interview questions with answers
 - 🔗 **Important Resources** - Further reading and practice materials
 - 💬 **Interview Tips** - Communication and whiteboarding strategies
 
@@ -55,14 +55,12 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 
 | Feature | Description |
 |---------|-------------|
-| 🔗 Prerequisites & Related Topics | Each topic includes learning prerequisites and connections to related topics for structured learning |
-| 📝 Pseudocode First | Step-by-step logic explained before diving into reference implementations |
+| 🔗 Learning Paths | Every category lists its topics with a suggested reading order for structured learning |
+| 💻 Reference Implementations | Python, SQL, and configuration examples in every topic |
 | 🏗️ Mermaid Architecture Diagrams | Component, sequence, and data-flow diagrams rendered directly in GitHub |
-| 🎯 Pattern Recognition Guide | Keywords, indicators, and "when NOT to use" guidance to quickly pick the right technique |
-| 📊 Trade-off Tables | Consistency, availability, latency, and cost trade-offs compared side by side |
-| ❓ FAQ Sections | Common interview questions answered for each topic |
+| 📊 Trade-off Analysis | Consistency, availability, latency, and cost trade-offs compared side by side |
+| ❓ Common Questions | Interview-style questions answered inside each topic |
 | 🏋️ Interview Questions | Curated system design problems organized by difficulty (Easy/Medium/Hard) |
-| ⚠️ Edge Cases & Pitfalls | Comprehensive lists of failure modes and common mistakes to avoid |
 | 🌐 Real-World Case Studies | E-commerce, chat, and other production-grade system walkthroughs |
 | 💬 Interview Tips | Practical advice for communicating and whiteboarding designs |
 
@@ -71,13 +69,13 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 ## ⚡ Quick Start
 
 1. Choose your topic from the list below
-2. Check the prerequisites to ensure you have the foundation
-3. Use the pattern recognition guidance to understand when to apply the technique
-4. Review the key concepts and trade-off tables
+2. Check the category's learning path to see what to read first
+3. Use the when-to-use guidance and interview tips to understand how to apply the technique
+4. Review the key concepts and trade-off analysis
 5. Understand the architecture diagram before diving into implementations
-6. Study the pseudocode and reference implementations
-7. Review edge cases and pitfalls to avoid common mistakes
-8. Read the FAQ section for common interview questions
+6. Study the reference implementations
+7. Review common challenges and pitfalls to avoid mistakes
+8. Read the common questions section for interview-style Q&A
 9. Practice with the interview questions (Easy → Medium → Hard)
 10. Use the resources for deeper understanding
 
@@ -87,11 +85,11 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 
 ### 🔥 System Design Fundamentals
 
-- [📌 Distributed Systems Basics](system-basics/distributed-systems.md) - Core distributed systems concepts and fallacies
+- [📌 Distributed Systems Basics](system-basics/distributed-systems.md) - Core concepts: consistency, replication, latency, and failure handling
 - [🔄 Load Balancing](system-basics/load-balancing.md) - Algorithms, layers, and health checks
 - [💾 Caching](system-basics/caching.md) - Strategies, eviction policies, and distributed caches
 - [📊 Database Sharding](system-basics/database-sharding.md) - Shard keys, rebalancing, and hot spots
-- [🔍 Indexing](system-basics/indexing.md) - B-trees, LSM-trees, and index trade-offs
+- [🔍 Indexing](system-basics/indexing.md) - B-tree, hash, and bitmap indexes, plus how to choose the right one
 - [📡 API Design](system-basics/api-design.md) - REST, GraphQL, gRPC, and versioning
 - [🔐 Authentication & Authorization](system-basics/auth.md) - Sessions, JWT, SSO, and RBAC
 - [📈 Monitoring & Logging](system-basics/monitoring.md) - Metrics, logs, and alerts fundamentals
@@ -99,7 +97,7 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 ### 🌟 Scalability Patterns
 
 - [🔄 Horizontal vs Vertical Scaling](scalability/scaling-types.md) - Scale-out vs scale-up strategies
-- [📦 Microservices](scalability/microservices.md) - Service decomposition and boundaries
+- [📦 Microservices](scalability/microservices.md) - Service decomposition, communication patterns, and trade-offs
 - [🔄 Event-Driven Architecture](scalability/event-driven.md) - Events, pub/sub, and choreography
 - [💾 Data Partitioning](scalability/data-partitioning.md) - Range, hash, and directory partitioning
 - [🔄 Replication](scalability/replication.md) - Leader-follower, multi-leader, and quorums
@@ -111,16 +109,16 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 - [📦 Service Discovery](architecture/service-discovery.md) - Registry patterns and health checking
 - [🔐 API Gateway](architecture/api-gateway.md) - Routing, composition, and cross-cutting concerns
 - [📈 Rate Limiting](architecture/rate-limiting.md) - Token bucket, sliding window, and distributed limits
-- [🔄 Circuit Breaker](architecture/circuit-breaker.md) - Failure isolation and graceful degradation
+- [🔄 Circuit Breaker](architecture/circuit-breaker.md) - Circuit states that stop cascading failures
 
 ### 📊 Data Engineering
 
-- [🏢 Data Warehousing](data-engineering/data-warehousing.md) - OLAP stores and dimensional modeling
+- [🏢 Data Warehousing](data-engineering/data-warehousing.md) - Architecture patterns and dimensional modeling
 - [🔄 ETL vs ELT](data-engineering/etl-vs-elt.md) - Batch pipelines and transformation timing
 - [📐 Data Modeling](data-engineering/data-modeling.md) - Normalization, denormalization, and schemas
 - [🔬 OLAP vs OLTP](data-engineering/olap-vs-oltp.md) - Transactional vs analytical workloads
-- [✅ Data Quality & Validation](data-engineering/data-quality.md) - Contracts, checks, and lineage
-- [⚡ Real-time Analytics](data-engineering/real-time-analytics.md) - Stream processing architectures
+- [✅ Data Quality & Validation](data-engineering/data-quality.md) - Quality dimensions, validation strategies, and monitoring
+- [⚡ Real-time Analytics](data-engineering/real-time-analytics.md) - Ingestion, stream processing, and windowing for live data
 
 ### ☁️ Cloud Native
 
@@ -129,14 +127,14 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 - [⚡ Serverless Patterns](cloud-native/serverless-patterns.md) - Functions, event sources, and limits
 - [🔒 Cloud Security Patterns](cloud-native/cloud-security.md) - IAM, network, and workload security
 - [💰 Cloud Cost Optimization](cloud-native/cost-optimization.md) - FinOps and right-sizing
-- [🌐 Multi-Cloud Strategies](cloud-native/multi-cloud.md) - Portability and vendor trade-offs
+- [🌐 Multi-Cloud Strategies](cloud-native/multi-cloud.md) - Strategy components and provider trade-offs
 
 ### 👁️ Observability
 
 - [📝 Logging Practices](observability/logging-practices.md) - Structured logging and aggregation
-- [📊 Metrics Collection](observability/metrics.md) - Counters, histograms, and cardinality
+- [📊 Metrics Collection](observability/metrics.md) - Counters, gauges, and collection strategies
 - [🔍 Distributed Tracing](observability/distributed-tracing.md) - Spans, context propagation, and sampling
-- [🚨 Alerting Strategies](observability/alerting.md) - SLOs, severity levels, and on-call
+- [🚨 Alerting Strategies](observability/alerting.md) - Alert design, severity levels, and avoiding fatigue
 - [🐛 Debug Strategies](observability/debug-strategies.md) - Debugging distributed failures
 - [⚡ Performance Monitoring](observability/performance-monitoring.md) - Latency, throughput, and profiling
 
@@ -146,29 +144,29 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 - [🔑 OAuth & OpenID Connect](security/oauth-openid.md) - Delegated authorization and identity
 - [🔐 API Security](security/api-security.md) - AuthN/Z, input validation, and abuse prevention
 - [🌊 DDoS Prevention](security/ddos-prevention.md) - Absorption, filtering, and rate limiting
-- [🗝️ Secrets Management](security/secrets-management.md) - Vaults, rotation, and least privilege
+- [🗝️ Secrets Management](security/secrets-management.md) - Credential management strategies and rotation
 - [📜 Security Compliance](security/security-compliance.md) - SOC 2, ISO 27001, and PCI DSS in design
 
 ### 🧪 Testing
 
-- [⚡ Load Testing](testing/load-testing.md) - Traffic modeling and bottleneck hunting
+- [⚡ Load Testing](testing/load-testing.md) - Load types, bottleneck hunting, and capacity validation
 - [🔀 Chaos Engineering](testing/chaos-engineering.md) - Fault injection and steady-state hypotheses
 - [🔄 Integration Testing](testing/integration-testing.md) - Testing services in composition
 - [📄 Contract Testing](testing/contract-testing.md) - Consumer-driven contracts for APIs
-- [⚡ Performance Testing](testing/performance-testing.md) - Benchmarks, soak, and spike tests
+- [⚡ Performance Testing](testing/performance-testing.md) - Stress and endurance testing beyond basic load
 - [🧪 A/B Testing Architecture](testing/ab-testing.md) - Experimentation platforms and feature flags
 
 ### 📚 Case Studies
 
 - [🛍️ E-commerce Platform](case-studies/e-commerce-platform.md) - Catalog, cart, checkout, and inventory at scale
-- [💬 Real-time Chat](case-studies/real-time-chat.md) - Messaging, presence, and delivery guarantees
+- [💬 Real-time Chat](case-studies/real-time-chat.md) - Messaging, presence, and offline delivery
 
 ### 🚀 Modern Architectures
 
 - [🤖 AI/ML Systems](modern-architectures/ai-ml-systems.md) - Training pipelines and model serving
 - [👥 Real-time Collaboration](modern-architectures/real-time-collaboration.md) - CRDTs and operational transforms
 - [⛓️ Blockchain Systems](modern-architectures/blockchain-systems.md) - Distributed ledger architecture
-- [🌐 Edge Computing](modern-architectures/edge-computing.md) - Edge nodes, CDN compute, and latency
+- [🌐 Edge Computing](modern-architectures/edge-computing.md) - Edge nodes, edge processing, and data synchronization
 - [📡 IoT Architecture](modern-architectures/iot-architecture.md) - Device fleets, gateways, and telemetry
 - [🔗 Web3 Patterns](modern-architectures/web3-patterns.md) - Decentralized application architecture
 
@@ -180,14 +178,14 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 ### 💻 Interview Questions
 
 - [📝 Easy Problems](interview-questions/easy/README.md) - URL shortener, rate limiter, key-value store
-- [🔄 Medium Problems](interview-questions/medium/README.md) - Feed, chat, and notification systems
-- [🚀 Hard Problems](interview-questions/hard/README.md) - Search, rideshare, and web crawler at scale
+- [🔄 Medium Problems](interview-questions/medium/README.md) - Chat, news feed, and distributed cache designs
+- [🚀 Hard Problems](interview-questions/hard/README.md) - Search engine, distributed database, video streaming
 
 ### ✨ Best Practices
 
 - [📋 System Design Guidelines](best-practices/design-guidelines.md) - End-to-end design principles
-- [🔍 Performance Optimization](best-practices/performance.md) - Finding and fixing bottlenecks
-- [🔐 Security Best Practices](best-practices/security.md) - Defense in depth for interviews
+- [🔍 Performance Optimization](best-practices/performance.md) - Optimization strategies for caching, database, and code
+- [🔐 Security Best Practices](best-practices/security.md) - Best practices across identity, data, network, and monitoring
 - [💰 Cost Optimization](best-practices/cost.md) - Efficient systems without over-provisioning
 
 ---
@@ -251,7 +249,7 @@ Topics are being progressively upgraded to this template. New contributions shou
 - How to approach an open-ended design problem
 - Communication and whiteboarding techniques
 - Structuring a 45-minute design discussion
-- FAQ-driven preparation
+- Common-question drills and success strategies
 - Common mistakes to avoid
 
 ---

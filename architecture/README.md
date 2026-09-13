@@ -6,9 +6,9 @@ This section covers proven building blocks used inside large-scale systems. Each
 
 - [Message Queues](message-queues.md) - Decouple producers from consumers with async, durable delivery
 - [Service Discovery](service-discovery.md) - How services find each other: registries, health checks, client vs server-side
-- [API Gateway](api-gateway.md) - Single entry point for routing, composition, auth, and cross-cutting concerns
+- [API Gateway](api-gateway.md) - Single entry point for routing, auth, and cross-cutting concerns
 - [Rate Limiting](rate-limiting.md) - Token bucket, sliding window, and distributed rate limiting at the edge
-- [Circuit Breaker](circuit-breaker.md) - Stop cascading failures with fail-fast isolation and graceful degradation
+- [Circuit Breaker](circuit-breaker.md) - Circuit states that stop cascading failures
 
 ## Suggested Learning Path
 

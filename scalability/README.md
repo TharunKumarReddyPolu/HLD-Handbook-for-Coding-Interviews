@@ -5,8 +5,8 @@ This section covers how systems grow from serving hundreds of users to serving m
 ## Topics in This Section
 
 - [Horizontal vs Vertical Scaling](scaling-types.md) - Scale-out vs scale-up: costs, limits, and when each wins
-- [Microservices](microservices.md) - Decomposing monoliths, service boundaries, and the operational price
-- [Event-Driven Architecture](event-driven.md) - Events, pub/sub, and loosely coupled producers and consumers
+- [Microservices](microservices.md) - Service decomposition, communication patterns, and trade-offs
+- [Event-Driven Architecture](event-driven.md) - Events, publish-subscribe, and loosely coupled producers and consumers
 - [Data Partitioning](data-partitioning.md) - Range, hash, and directory partitioning of large datasets
 - [Replication](replication.md) - Leader-follower, multi-leader, and quorum-based data copies
 - [CAP Theorem](cap-theorem.md) - Why consistency, availability, and partition tolerance trade off

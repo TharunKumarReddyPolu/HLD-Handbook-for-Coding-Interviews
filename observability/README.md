@@ -5,9 +5,9 @@ This section covers the three pillars — logs, metrics, and traces — plus the
 ## Topics in This Section
 
 - [Logging Best Practices](logging-practices.md) - Structured logs, aggregation, and retention
-- [Metrics Collection and Analysis](metrics.md) - Counters, gauges, histograms, and cardinality
+- [Metrics Collection and Analysis](metrics.md) - Counters, gauges, and collection strategies
 - [Distributed Tracing](distributed-tracing.md) - Spans, context propagation, and sampling strategies
-- [Alerting Strategies](alerting.md) - SLOs, severity levels, and paging that respects on-call health
+- [Alerting Strategies](alerting.md) - Alert design, severity levels, and avoiding fatigue
 - [Performance Monitoring](performance-monitoring.md) - Latency, throughput, and utilization in production
 - [Debug Strategies for Distributed Systems](debug-strategies.md) - Systematic debugging across service boundaries
 

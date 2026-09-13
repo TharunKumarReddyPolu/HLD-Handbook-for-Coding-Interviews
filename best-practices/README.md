@@ -5,8 +5,8 @@ This section distills cross-cutting guidance that applies to almost any system d
 ## Topics in This Section
 
 - [System Design Guidelines](design-guidelines.md) - End-to-end principles for structuring any design
-- [Performance Optimization](performance.md) - Finding and fixing bottlenecks: latency, throughput, and resources
-- [Security Best Practices](security.md) - Defense in depth across identity, data, network, and monitoring
+- [Performance Optimization](performance.md) - Optimization strategies for response time, throughput, and resources
+- [Security Best Practices](security.md) - Best practices across identity, data, network, and monitoring
 - [Cost Optimization](cost.md) - Efficient systems without over-provisioning
 
 ## How to Use This Section

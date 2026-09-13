@@ -4,11 +4,11 @@ This section covers the core building blocks every system design answer relies o
 
 ## Topics in This Section
 
-- [Distributed Systems Basics](distributed-systems.md) - Core concepts: nodes, latency, failures, and the fallacies of distributed computing
+- [Distributed Systems Basics](distributed-systems.md) - Core concepts: consistency, replication, latency, and failure handling
 - [Load Balancing](load-balancing.md) - Distributing traffic across servers with algorithms, layers, and health checks
 - [Caching](caching.md) - Cache-aside, write-through, eviction policies, and distributed caches
 - [Database Sharding](database-sharding.md) - Splitting data across nodes: shard keys, rebalancing, and hot spots
-- [Indexing](indexing.md) - B-trees, LSM-trees, and how indexes shape read/write trade-offs
+- [Indexing](indexing.md) - B-tree, hash, and bitmap indexes, plus how to choose the right one
 - [API Design](api-design.md) - REST, GraphQL, gRPC, pagination, and versioning
 - [Authentication & Authorization](auth.md) - Sessions, JWT, SSO, RBAC, and OAuth basics
 - [Monitoring & Logging](monitoring.md) - Metrics, logs, and alerts every production system needs

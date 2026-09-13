@@ -4,9 +4,9 @@ This section covers testing distributed systems — where unit tests end and the
 
 ## Topics in This Section
 
-- [Load Testing Strategies](load-testing.md) - Traffic modeling, bottleneck hunting, and capacity validation
-- [Performance Testing](performance-testing.md) - Benchmarks, soak, and spike tests beyond basic load testing
-- [Chaos Engineering](chaos-engineering.md) - Fault injection and steady-state hypotheses for resilience
+- [Load Testing Strategies](load-testing.md) - Load types, bottleneck hunting, and capacity validation
+- [Performance Testing](performance-testing.md) - Stress and endurance testing beyond basic load testing
+- [Chaos Engineering](chaos-engineering.md) - Steady-state hypotheses and real-world failure scenarios
 - [Integration Testing in Microservices](integration-testing.md) - Testing services in composition without full environments
 - [Contract Testing](contract-testing.md) - Consumer-driven contracts that keep APIs compatible
 - [A/B Testing Architecture](ab-testing.md) - Experimentation platforms, feature flags, and assignment consistency

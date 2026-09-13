@@ -4,11 +4,11 @@ This section covers security as a design concern, not an afterthought — senior
 
 ## Topics in This Section
 
-- [Zero Trust Architecture](zero-trust.md) - Never trust, always verify: identity-centric perimeters
+- [Zero Trust Architecture](zero-trust.md) - Never trust, always verify
 - [OAuth 2.0 and OpenID Connect](oauth-openid.md) - Delegated authorization and federated identity
-- [API Security Patterns](api-security.md) - AuthN/Z, input validation, and abuse prevention for APIs
-- [Secrets Management](secrets-management.md) - Vaults, rotation, and least-privilege access to credentials
-- [DDoS Prevention Strategies](ddos-prevention.md) - Absorption, filtering, and graceful degradation under attack
+- [API Security Patterns](api-security.md) - Authentication, authorization, and input validation for APIs
+- [Secrets Management](secrets-management.md) - Credential management strategies and rotation
+- [DDoS Prevention Strategies](ddos-prevention.md) - Absorption, filtering, and mitigation techniques
 - [Security Compliance in Design](security-compliance.md) - SOC 2, ISO 27001, and PCI DSS as architecture inputs
 
 ## Suggested Learning Path

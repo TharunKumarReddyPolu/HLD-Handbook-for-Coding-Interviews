@@ -9,7 +9,7 @@ This section covers building and running systems on modern cloud platforms — t
 - [Serverless Design Patterns](serverless-patterns.md) - Functions, event sources, cold starts, and limits
 - [Cloud Security Patterns](cloud-security.md) - IAM, network segmentation, and workload security
 - [Cloud Cost Optimization](cost-optimization.md) - Right-sizing, autoscaling economics, and FinOps
-- [Multi-Cloud Strategies](multi-cloud.md) - Portability, abstraction costs, and vendor trade-offs
+- [Multi-Cloud Strategies](multi-cloud.md) - Strategy components and provider trade-offs
 
 ## Suggested Learning Path
 

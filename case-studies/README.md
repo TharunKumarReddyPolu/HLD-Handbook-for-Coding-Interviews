@@ -5,7 +5,7 @@ This section walks through complete system designs end to end — the closest an
 ## Case Studies
 
 - [E-commerce Platform](e-commerce-platform.md) - Catalog, cart, checkout, payments, and inventory at scale
-- [Real-time Chat System](real-time-chat.md) - Messaging, presence, delivery guarantees, and group chat
+- [Real-time Chat System](real-time-chat.md) - Messaging, presence, and offline delivery
 
 ## How to Use These
 
