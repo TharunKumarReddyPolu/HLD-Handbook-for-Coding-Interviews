@@ -4,13 +4,14 @@ First off, thank you for considering contributing to the HLD Handbook! Your cont
 
 ## 📋 Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [How Can I Contribute?](#how-can-i-contribute)
-- [Style Guidelines](#style-guidelines)
-- [Commit Messages](#commit-messages)
-- [Pull Request Process](#pull-request-process)
-- [Topic Guidelines](#topic-guidelines)
-- [File Structure](#file-structure)
+- [Code of Conduct](#-code-of-conduct)
+- [How Can I Contribute?](#-how-can-i-contribute)
+- [Style Guidelines](#-style-guidelines)
+- [Commit Messages](#-commit-messages)
+- [Pull Request Process](#-pull-request-process)
+- [Topic Guidelines](#-topic-guidelines)
+- [File Structure](#-file-structure)
+- [Recognition](#-recognition)
 
 ## 📜 Code of Conduct
 
@@ -54,6 +55,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 - Use code blocks with language specification
 - Include architecture diagrams using Mermaid
 - Keep line length under 120 characters
+- Start every topic file with a Table of Contents linking to all H2 sections
 
 ### Architecture Diagrams
 ```markdown
@@ -67,7 +69,7 @@ graph TD
 
 ### Code Examples
 ```python
-# Clear, focused examples
+# Clear, focused examples that illustrate the concept
 class LoadBalancer:
     def __init__(self):
         self.servers = []
@@ -133,66 +135,116 @@ diag(caching): add distributed cache diagram
 
 ### When Adding New Topics
 
-1. **Structure**
-   ```markdown
-   # System Component/Pattern
-   
-   ## Introduction
-   Overview and context
-   
-   ## Architecture
-   System design and components
-   
-   ## Implementation Strategies
-   Different approaches
-   
-   ## Scaling Considerations
-   How to scale the system
-   
-   ## Trade-offs
-   Pros and cons
-   
-   ## Best Practices
-   Recommended approaches
-   
-   ## Common Issues
-   Problems to watch for
-   
-   ## Interview Questions
-   System design scenarios
-   
-   ## Additional Resources
-   Further reading
-   ```
+1. **Structure** — every topic file follows this template:
+
+```markdown
+# Topic Name
+
+## Table of Contents
+
+## Introduction
+Overview, context, and why this matters in interviews
+
+## Core Concepts
+Key terminology, components, and architecture diagrams (Mermaid)
+
+## Patterns / Techniques
+The main approaches, each with:
+- How it works (diagram + pseudocode or reference implementation)
+- When to use it (keywords and indicators)
+- When NOT to use it
+
+## Trade-offs
+Comparison tables: consistency vs availability, cost vs performance, etc.
+
+## Implementation Strategies
+Reference implementations and configuration examples
+
+## Scalability Considerations
+How the technique behaves as load grows
+
+## Real-World Examples
+How real companies apply this, with concrete numbers where possible
+
+## Common Pitfalls & Edge Cases
+Frequent mistakes and failure modes to avoid
+
+## Interview Tips
+Key considerations, common questions, and decision frameworks
+
+## Further Reading
+Links to primary sources, docs, and deep dives
+```
 
 2. **Content Requirements**
-   - Clear architecture diagrams
+   - Clear architecture diagrams (Mermaid, rendered in GitHub)
+   - Trade-off analysis — system design interviews reward defending choices
    - Scalability considerations
    - Performance implications
-   - Security aspects
-   - Monitoring strategies
-   - Cost considerations
+   - Security aspects where relevant
    - Real-world examples
+   - Interview-focused summary
+
+3. **Before You Open a PR**
+   - Verify all internal links resolve
+   - Verify the topic is listed in the category README and the main README
+   - Check that diagrams render correctly in the GitHub preview
 
 ## 📁 File Structure
 
-Follow this structure for new content:
+The handbook uses a **flat structure**: one file per topic, grouped into category folders.
 
 ```
-category/
-├── README.md (category overview)
-├── pattern-name/
-│   ├── README.md (main content)
-│   ├── diagrams/
-│   │   ├── architecture.md
-│   │   └── components.md
-│   ├── examples/
-│   │   ├── implementation.md
-│   │   └── configurations.md
-│   └── images/
-│       └── diagrams.png
-└── ...
+HLD-Handbook-for-Coding-Interviews/
+├── README.md                       # Main handbook entry point (all topics listed here)
+├── CONTRIBUTING.md                 # This file
+├── LICENSE
+├── system-basics/                  # Fundamentals: caching, load balancing, APIs...
+│   ├── README.md                   # Category overview + learning path
+│   └── topic-name.md               # One file per topic
+├── scalability/                    # Scaling, microservices, CAP theorem...
+│   ├── README.md
+│   └── topic-name.md
+├── architecture/                   # Message queues, gateways, rate limiting...
+│   ├── README.md
+│   └── topic-name.md
+├── data-engineering/               # Warehousing, ETL/ELT, modeling...
+│   ├── README.md
+│   └── topic-name.md
+├── cloud-native/                   # Kubernetes, serverless, multi-cloud...
+│   ├── README.md
+│   └── topic-name.md
+├── observability/                  # Logging, metrics, tracing, alerting...
+│   ├── README.md
+│   └── topic-name.md
+├── security/                       # Zero trust, OAuth, API security...
+│   ├── README.md
+│   └── topic-name.md
+├── testing/                        # Load, chaos, contract testing...
+│   ├── README.md
+│   └── topic-name.md
+├── modern-architectures/           # AI/ML, edge, IoT, blockchain...
+│   ├── README.md
+│   └── topic-name.md
+├── compliance/                     # GDPR, data privacy...
+│   ├── README.md
+│   └── topic-name.md
+├── case-studies/                   # End-to-end system walkthroughs
+│   ├── README.md
+│   └── topic-name.md
+├── best-practices/                 # Cross-cutting guidance
+│   └── topic-name.md
+└── interview-questions/            # Practice problems by difficulty
+    ├── easy/README.md
+    ├── medium/README.md
+    └── hard/README.md
 ```
+
+**When adding a new topic:**
+1. Create `category/topic-name.md` following the topic template above
+2. Add it to the category's `README.md` (topics list + learning path if applicable)
+3. Add it to the **Topics Covered** section of the main `README.md`
+4. Keep all links relative so the handbook works on GitHub and in local previews
 
 ## 🎨 Diagram Guidelines
 
