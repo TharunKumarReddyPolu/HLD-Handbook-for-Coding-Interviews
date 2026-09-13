@@ -8,7 +8,7 @@
 [![GitHub forks](https://img.shields.io/github/forks/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews?style=social)](https://github.com/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews)](https://github.com/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews/issues)
 [![GitHub license](https://img.shields.io/github/license/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews)](https://github.com/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews/blob/main/LICENSE)
-[![Last Updated](https://img.shields.io/badge/last%20updated-September%202026-blue)](https://github.com/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews)
+[![Last Updated](https://img.shields.io/github/last-commit/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews?label=last%20updated)](https://github.com/TharunKumarReddyPolu/HLD-Handbook-for-Coding-Interviews/commits/main)
 
 </div>
 
