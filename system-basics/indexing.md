@@ -6,6 +6,7 @@
 - [Index Data Structures](#index-data-structures)
 - [Indexing Strategies](#indexing-strategies)
 - [Performance Considerations](#performance-considerations)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction to Indexing
@@ -208,6 +209,21 @@ SELECT * FROM users
 FORCE INDEX (idx_user_email)
 WHERE email = 'user@example.com';
 ```
+
+## Trade-offs
+
+| Index Type | Pros | Cons | Best For |
+|------------|------|------|----------|
+| B-Tree | Balanced reads/writes, range and equality queries, ordered scans | Extra write cost, page splits under heavy insert | General-purpose OLTP queries |
+| Hash | O(1) equality lookups | No range scans, no ordering | Key-value style equality only |
+| Bitmap | Very fast on low-cardinality columns | Expensive updates, poor for high-cardinality | Analytics on few distinct values |
+| Composite | Serves multi-column filters | Only leading columns used; wider rows | Known multi-column query patterns |
+
+**Read speed vs write cost:** Every index speeds reads but slows writes and consumes storage — index selection is a bet on query patterns.
+
+**Coverage vs maintenance:** Covering indexes avoid table lookups entirely but are expensive to maintain as data changes.
+
+**Many indexes vs few:** More indexes cover more queries but multiply write amplification; measure query patterns before adding.
 
 ## Interview Tips
 

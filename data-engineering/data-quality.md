@@ -6,6 +6,7 @@
 - [Validation Strategies](#validation-strategies)
 - [Implementation Patterns](#implementation-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -225,6 +226,21 @@ class PipelineQuality:
         except Exception as e:
             await self.handle_quality_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Validate at ingestion | Catch errors early, clean downstream | Ingest latency, pipeline coupling | Structured critical feeds |
+| Validate at consumption | Flexible, per-use-case rules | Bad data spreads before detection | Exploratory/analytics data |
+| Strict blocking rules | Guarantees quality | Data loss on false positives | Financial/regulated data |
+| Quarantine + alerting | No data loss, human review | Delayed availability, triage cost | Most production pipelines |
+
+**Accuracy vs completeness:** Rejecting suspicious rows raises accuracy but loses volume; quarantine preserves data but delays it.
+
+**Detection cost vs incident cost:** Heavy validation spends compute continuously; skipping it spends incident time episodically — rare but expensive.
+
+**Manual review vs automation:** Human-in-the-loop handles edge cases well but does not scale; automate the common, escalate the rare.
 
 ## Interview Tips
 

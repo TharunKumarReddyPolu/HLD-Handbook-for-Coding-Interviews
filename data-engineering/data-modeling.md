@@ -6,6 +6,7 @@
 - [Schema Patterns](#schema-patterns)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -194,6 +195,21 @@ SELECT
 FROM events
 GROUP BY 1, 2;
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Normalization | No anomalies, cheap writes | Joins cost reads | OLTP, changing entities |
+| Denormalization | Fast reads, simple queries | Update anomalies, storage bloat | Read-heavy analytics, caches |
+| Wide tables | One-stop queries | Sparse columns, schema sprawl | Event/attribute-heavy domains |
+| Star schema | Fast aggregations, BI-friendly | Predefined grains | Warehouses and reporting |
+
+**Read optimization vs write optimization:** Every denormalization trades write complexity and consistency risk for read speed — decide per access pattern.
+
+**Flexibility vs enforceability:** Flexible schema-on-read ingests fast but pushes quality checks downstream; strict schemas cost upfront design but catch errors early.
+
+**Query-first vs source-first modeling:** Modeling for known queries is fast but brittle to new questions; source-faithful models age better.
 
 ## Interview Tips
 

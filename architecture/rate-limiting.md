@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Distributed Rate Limiting](#distributed-rate-limiting)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -384,6 +385,22 @@ class DynamicRateLimiter:
         else:
             return base_limit
 ```
+
+## Trade-offs
+
+| Algorithm | Pros | Cons | Best For |
+|-----------|------|------|----------|
+| Token Bucket | Allows controlled bursts, simple | Tuning rate/burst needs care | APIs with natural bursts |
+| Leaky Bucket | Smooth, constant outflow | Queues add latency; bursts lost | Shaping traffic to fixed capacity |
+| Fixed Window | Trivially simple, cheap | Boundary spikes (2x at window edges) | Coarse, low-stakes limits |
+| Sliding Window Log | Accurate | Memory per key | Strict precision |
+| Sliding Window Counter | Accurate enough, memory-efficient | Approximation | Most distributed limits |
+
+**Precision vs cost:** Exact sliding-window logs cost memory per key; windowed counters approximate accuracy cheaply — usually the right trade.
+
+**Reject vs throttle:** Hard rejects are simple and honest; queuing/throttling smooths experience but adds latency and state.
+
+**Local vs distributed limits:** Local limits are fast but drift per node; centralized counters (Redis) are accurate but add a round trip and a dependency.
 
 ## Interview Tips
 

@@ -7,6 +7,7 @@
 - [Cache Eviction Policies](#cache-eviction-policies)
 - [Distributed Caching](#distributed-caching)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction to Caching
@@ -224,6 +225,21 @@ location / {
     proxy_cache_valid 200 60m;
 }
 ```
+
+## Trade-offs
+
+| Strategy | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Cache-aside | Simple, only requested data cached, resilient to cache loss | First-request latency (miss), stale data risk | General read-heavy workloads |
+| Read-through | Cache stays warm, app code simplified | Added cache-layer complexity | Predictable read patterns |
+| Write-through | Cache and DB always consistent | Write latency, caching data never read | Read-heavy data with strict consistency |
+| Write-behind | Lowest write latency, write batching | Data loss risk on crash, complexity | Write-heavy, loss-tolerant data |
+
+**Freshness vs hit rate:** Shorter TTLs serve fresher data but lower hit rates; longer TTLs boost performance but risk staleness.
+
+**Performance vs consistency:** Caching fundamentally trades consistency guarantees for latency and load reduction — invalidation strategy determines where you land.
+
+**Memory vs cost:** Larger caches raise hit rates with diminishing returns; monitor hit rate to size the cache economically.
 
 ## Interview Tips
 

@@ -6,6 +6,7 @@
 - [Core Concepts](#core-concepts)
 - [Common Challenges](#common-challenges)
 - [Design Principles](#design-principles)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## What is a Distributed System?
@@ -114,6 +115,21 @@ graph LR
 - Safe retry operations
 - Consistent results
 - Error handling
+
+## Trade-offs
+
+| Property | Strong Guarantee | Weaker Alternative | Cost of the Guarantee |
+|----------|------------------|--------------------|-----------------------|
+| Consistency | Strong (linearizability) | Eventual consistency | Higher latency, lower availability under partitions |
+| Availability | Always responsive | Degrade during failures | Requires replication and failover machinery |
+| Latency | Low, predictable | Variable | Limits replication distance and synchronous work |
+| Fault tolerance | No data loss | Possible loss window | Durability costs (sync replication, WAL) |
+
+**CAP in practice:** Under a network partition you must choose consistency or availability; systems decide per operation (quorum reads/writes tune where you land).
+
+**Performance vs durability:** Synchronous replication protects every write but adds latency; asynchronous replication is fast but can lose recent writes on failure.
+
+**Coordination vs autonomy:** Consensus and distributed locks give correctness but serialize work; coordination-free designs scale better but need conflict resolution.
 
 ## Interview Tips
 

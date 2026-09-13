@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -239,6 +240,21 @@ class DatabaseTracer:
                 span.set_status(Status(StatusCode.ERROR, str(e)))
                 raise
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| 100% tracing | Complete visibility | Cost and cardinality explosion | Tiny traffic or debugging bursts |
+| Head-based sampling | Constant overhead, cheap | May drop the interesting traces | High-volume healthy paths |
+| Tail-based sampling | Keeps slow/error traces | Buffering cost, complexity | User-facing request paths |
+| Always trace errors | Never miss failures | Requires dynamic sampling logic | All production systems |
+
+**Coverage vs cost:** Trace data is among the most expensive telemetry; sampling policy decides your bill more than your vendor does.
+
+**Latency attribution vs overhead:** Span-per-hop precision finds bottlenecks but each span costs CPU and network — instrument boundaries first.
+
+**Context propagation coupling:** Full tracing requires consistent context headers across every service; retrofitting partial coverage yields confusing partial traces.
 
 ## Interview Tips
 

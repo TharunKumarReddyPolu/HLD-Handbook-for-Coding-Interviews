@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Data Management](#data-management)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -216,6 +217,21 @@ class IndustrialEdge:
         except Exception as e:
             await self.handle_monitoring_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Processing at edge | Millisecond latency, bandwidth savings | Constrained compute, device management fleet | Real-time control, filtering |
+| Central cloud processing | Full compute, single source of truth | Latency, egress bandwidth cost | Heavy analytics, training |
+| Edge caching/data | Local speed, offline capability | Consistency and sync complexity | Content, read-heavy data |
+| Hybrid (edge filter + cloud) | Bandwidth cut, cloud depth | Two-tier complexity | IoT at scale |
+
+**Latency vs capability:** Edge devices trade compute power for proximity; partition work so latency-critical logic runs local and heavy jobs ship upward.
+
+**Autonomy vs consistency:** Edge nodes operating during disconnection stay responsive and diverge; reconciliation adds sync complexity.
+
+**Fleet management:** Thousands of edge nodes turn deployment, security patching, and monitoring into a first-class design problem.
 
 ## Interview Tips
 

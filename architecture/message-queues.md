@@ -7,6 +7,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Reliability & Durability](#reliability--durability)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -420,6 +421,22 @@ class QueueOptimizer:
                 logger.error(f"Batch production failed: {e}")
                 await self.handle_batch_failure(batch)
 ```
+
+## Trade-offs
+
+| Pattern | Pros | Cons | Best For |
+|---------|------|------|----------|
+| Point-to-point queue | Simple load leveling, one consumer per message | No fan-out | Task distribution |
+| Publish-subscribe | Fan-out to many consumers | Consumer management complexity | Event broadcast |
+| At-least-once delivery | No message loss | Duplicates require idempotent consumers | Default reliable choice |
+| At-most-once delivery | No duplicates, lowest overhead | Messages can be lost | Metrics, telemetry |
+| FIFO / ordered | Predictable processing | Throughput limits, head-of-line blocking | Per-entity state machines |
+
+**Throughput vs durability:** Persistent, replicated queues survive broker crashes but pay fsync/replication latency; in-memory queues are fast and fragile.
+
+**Pull vs push:** Pull-based consumers self-pace and simplify backpressure; push-based reduces latency but needs flow control.
+
+**Queue depth vs latency:** Buffering smooths spikes but adds delay and hides capacity problems; monitor depth and consumer lag as health signals.
 
 ## Interview Tips
 

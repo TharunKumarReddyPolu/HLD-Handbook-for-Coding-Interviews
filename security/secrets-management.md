@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Security Controls](#security-controls)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -220,6 +221,21 @@ class InfraSecrets:
         except Exception as e:
             await self.handle_infra_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Central vault (Vault/KMS) | Audited access, rotation, lease semantics | Extra dependency, availability criticality | Production systems |
+| Environment variables | Zero setup | Leak via logs, dumps, child processes | Local dev only |
+| Encrypted config in repo | Versioned, reviewable | Key management still needed | Small teams, config secrets |
+| Cloud-native secret stores | IAM-integrated, managed | Provider coupling | Cloud-centric stacks |
+
+**Rotation frequency vs operational risk:** Frequent rotation shrinks exposure windows and breaks services on schedule slips; automate rotation or it will not happen.
+
+**Availability vs security:** A vault that is down stops deployments and startups — plan cached leases and break-glass access.
+
+**Centralization vs blast radius:** One vault is a high-value target with strong controls; scattered secrets are weaker targets with no audit trail.
 
 ## Interview Tips
 

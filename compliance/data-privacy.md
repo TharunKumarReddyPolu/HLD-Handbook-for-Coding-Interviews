@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Technical Controls](#technical-controls)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -246,6 +247,22 @@ class DataSubjectRights:
         except Exception as e:
             await self.handle_request_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Collect minimal data | Smallest compliance surface, lowest breach impact | Feature limitations, weaker analytics | Privacy-first products |
+| Collect broadly | Rich features and ML | Regulatory exposure, retention burden | Data-centric products (with governance) |
+| Pseudonymization | Analytics with reduced risk | Re-identification risk remains | Internal analytics |
+| Encryption everywhere | Strong protection | Key management, query complexity | Sensitive PII |
+| Tokenization | Safe downstream processing | Token vault to operate | Payments, identifiers |
+
+**Utility vs privacy:** Every anonymization step reduces data utility; match de-identification depth to actual sensitivity and regulation.
+
+**Retention vs risk:** Long retention powers historical analysis and grows liability; automated deletion turns policy into architecture.
+
+**Compliance by design vs retrofit:** Embedding privacy controls early costs less than bolting them on after a regulator (or breach) forces the issue.
 
 ## Interview Tips
 

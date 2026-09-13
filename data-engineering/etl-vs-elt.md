@@ -6,6 +6,7 @@
 - [ELT Process](#elt-process)
 - [Comparison](#comparison)
 - [Implementation Strategies](#implementation-strategies)
+- [Trade-offs](#trade-offs)
 - [Common Use Cases](#common-use-cases)
 - [Interview Tips](#interview-tips)
 
@@ -153,6 +154,22 @@ def stream_processor(event):
         # ELT approach for batch
         load_to_lake(event)
 ```
+
+## Trade-offs
+
+| Aspect | ETL | ELT |
+|--------|-----|-----|
+| Transformation timing | Before load, in pipeline engine | After load, inside warehouse |
+| Compute cost | Pipeline infra at transform time | Warehouse compute (elastic, pay-per-use) |
+| Data availability | Only transformed, curated data lands | Raw data lands immediately |
+| Flexibility | Schema fixed at design time | Re-process raw data as needs change |
+| Complexity | External transformation systems | SQL-centric, simpler tooling |
+
+**Curated vs raw:** ETL lands clean, ready-to-use data; ELT keeps raw history so transformations can be re-run when requirements change.
+
+**Where to spend compute:** ELT shifts transformation into the warehouse, leveraging elastic scaling and avoiding a separate processing tier.
+
+**Governance:** Loading raw data first (ELT) demands access controls and quality checks downstream; ETL can enforce policy before data lands.
 
 ## Common Use Cases
 

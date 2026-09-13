@@ -7,6 +7,7 @@
 - [Network Security](#network-security)
 - [Security Monitoring](#security-monitoring)
 - [Common Vulnerabilities](#common-vulnerabilities)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -389,6 +390,22 @@ class CSRFProtection:
             return False
         return secrets.compare_digest(stored_token, token)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Least privilege | Minimal blast radius | Policy management overhead | All production access |
+| Broad access | Operational speed | Large attack surface, audit pain | Never (except sandboxes) |
+| Encryption everywhere | Strong data protection | Key management complexity | Sensitive data |
+| MFA everywhere | Blocks credential attacks | User friction | At minimum: admin, prod, PII |
+| Fail-closed checks | No bypass on error | Availability coupling | AuthZ decisions |
+
+**Security vs usability:** Every control adds friction; place it where risk concentrates (prod access, sensitive data) and automate away the rest.
+
+**Prevention vs detection:** Prevention reduces incidents; detection (monitoring, audit trails) bounds them — mature security needs both.
+
+**Defense in depth:** No single control holds; layered controls assume each one fails eventually.
 
 ## Interview Tips
 

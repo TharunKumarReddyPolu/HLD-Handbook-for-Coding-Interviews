@@ -6,6 +6,7 @@
 - [Architecture Patterns](#architecture-patterns)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -251,6 +252,23 @@ class VisionPipeline:
             }
         }
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Online inference | Fresh predictions, interactivity | Serving cost, latency budget | Personalization, search |
+| Batch inference | Cheap at scale, simple | Stale predictions | Recommendations, scoring |
+| Frequent retraining | Captures drift quickly | Compute cost, version churn | Fast-changing patterns |
+| Long training cycles | Stable, cheaper | Model staleness | Slow-moving domains |
+| Complex models | Higher accuracy | Latency, cost, explainability loss | Offline ranking |
+| Simple models | Fast, interpretable, cheap | Accuracy ceiling | Real-time, regulated decisions |
+
+**Freshness vs cost:** Model and feature staleness degrades accuracy silently; pipelines to refresh them cost real money — measure decay to set cadence.
+
+**Accuracy vs latency:** Bigger models win offline benchmarks and lose serving budgets; distill or cascade (cheap gate, expensive model on demand).
+
+**Training/serving skew:** Divergent pipelines cause silent quality drops; share feature logic where possible.
 
 ## Interview Tips
 

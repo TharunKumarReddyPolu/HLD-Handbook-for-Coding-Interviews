@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Technical Controls](#technical-controls)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -266,6 +267,22 @@ class PrivacyByDesign:
             }
         }
 ```
+
+## Trade-offs
+
+| Requirement | Design Impact | Cost of Compliance |
+|-------------|---------------|--------------------|
+| Right to erasure | Deletion must reach backups, caches, and analytics | Impossible with naive immutable logs; needs crypto-shredding or TTL design |
+| Data minimization | Fewer fields collected | Less ML fuel, weaker features |
+| Consent management | Consent state per user per purpose | Complexity in every pipeline |
+| Data portability | Clean export formats | Export infrastructure |
+| Residency requirements | Region-pinned storage | Limits global replication and failover |
+
+**Privacy vs functionality:** GDPR pushes designs toward minimal collection, which can constrain personalization and analytics — a product trade-off, not just a legal one.
+
+**Immutability vs erasure:** Event-sourced and append-only architectures need crypto-shredding or targeted deletion paths designed in from day one.
+
+**Global systems vs regional law:** Residency and transfer rules fragment otherwise-global architectures; plan data domains per jurisdiction.
 
 ## Interview Tips
 

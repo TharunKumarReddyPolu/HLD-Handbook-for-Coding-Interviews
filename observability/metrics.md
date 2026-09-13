@@ -6,6 +6,7 @@
 - [Collection Strategies](#collection-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -184,6 +185,21 @@ class ResourceMonitor:
         # Check thresholds
         self.check_thresholds(metrics)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| High-resolution metrics | Sharp dashboards, tight detection | Storage and query cost | Critical service SLOs |
+| Coarse aggregation | Cheap at scale | Hides spikes and percentiles | Non-critical background jobs |
+| Pre-aggregated metrics | Fast dashboards | Loses per-instance drill-down | Executive/summary views |
+| Raw event metrics | Full flexibility (histograms) | Highest cardinality cost | LATENCY analysis, SLO math |
+
+**Cardinality vs insight:** Every label multiplies series count; unbounded labels (user IDs, URLs) can take down a metrics backend.
+
+**Push vs pull:** Pull (scrape) self-regulates and health-checks; push reaches short-lived jobs and firewalled hosts but needs careful backpressure.
+
+**Latency vs durability in collection:** In-memory agent buffers are fast and lossy; durable queues survive restarts at a cost.
 
 ## Interview Tips
 

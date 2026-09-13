@@ -7,6 +7,7 @@
 - [Caching Techniques](#caching-techniques)
 - [Database Optimization](#database-optimization)
 - [Code Optimization](#code-optimization)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -340,6 +341,22 @@ class MemoryOptimizer:
         
         return self.combine_results(results)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Caching | Largest read-latency win | Invalidation, staleness | Repeated reads |
+| Async processing | Frees request path | Eventual consistency | Non-critical work |
+| Denormalization | Fewer joins, faster reads | Write complexity | Read-heavy paths |
+| More hardware (vertical) | Immediate relief | Cost curve, ceiling | Quick fixes |
+| Optimization-first | No architecture change | Diminishing returns, local optima | After measuring |
+
+**Latency vs consistency:** Faster paths (caches, replicas, denormalized reads) serve stale or eventually consistent data — match staleness tolerance per feature.
+
+**Local vs global optimization:** Component-level wins can degrade system performance (over-caching, thread tuning); profile the whole path.
+
+**Premature optimization vs measured optimization:** Measure first, optimize the top of the profile, and re-measure — intuition about bottlenecks is usually wrong.
 
 ## Interview Tips
 

@@ -6,6 +6,7 @@
 - [Architecture Patterns](#architecture-patterns)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -228,6 +229,21 @@ class Whiteboard:
             }
         }
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Operational Transform (OT) | Mature (Google Docs lineage), ordered ops | Central transform server, algorithmic subtlety | Centralized text editing |
+| CRDTs | Decentralized merge, offline-first | Metadata growth, harder semantics | Offline-capable, P2P-ish apps |
+| Server-authoritative | Simple correctness, easy permissions | Latency for distant users, server cost | Games, collaborative canvases |
+| Client-optimistic + sync | Instant local response | Conflict UX, rollback handling | Editors, whiteboards |
+
+**Consistency vs latency:** Accepting local edits instantly feels great and creates conflicts; serializing through a server simplifies correctness and adds round trips.
+
+**Central vs decentralized:** Centralized sync eases permissions and history; CRDTs remove the server from the correctness path at the cost of metadata and merging complexity.
+
+**Richness of types:** Text CRDTs are mature; arbitrary rich objects (canvases, tables) push algorithm frontiers — budget research time.
 
 ## Interview Tips
 

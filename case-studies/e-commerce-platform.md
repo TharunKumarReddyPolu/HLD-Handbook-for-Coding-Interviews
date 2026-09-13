@@ -7,6 +7,7 @@
 - [Implementation Details](#implementation-details)
 - [Scaling Strategy](#scaling-strategy)
 - [Lessons Learned](#lessons-learned)
+- [Trade-offs](#trade-offs)
 
 ## Introduction
 
@@ -280,6 +281,21 @@ class ArchitectureEvolution:
             }
         }
 ```
+
+## Trade-offs
+
+| Decision | Options | Why One Wins Here |
+|----------|---------|-------------------|
+| Catalog reads | Cache-heavy vs DB-heavy | Read-heavy traffic makes aggressive caching pay for its invalidation complexity |
+| Inventory checks | Synchronous vs reservation-based | Overselling risk forces reservations with expiry over live checks |
+| Checkout consistency | Strong vs eventual | Payments demand strong consistency; reviews tolerate eventual |
+| Search | Managed engine vs DB queries | Faceting and relevance outgrow SQL quickly |
+
+**Consistency vs availability by domain:** Cart and payment prioritize correctness; recommendations and reviews prioritize availability — a per-domain CAP choice inside one system.
+
+**Build vs buy:** Payments, search, and fraud are commodity (buy); catalog and checkout logic differentiate (build).
+
+**Scale path:** Start relational, add caches, then CQRS for reads — each step defers complexity until traffic justifies it.
 
 ## Interview Tips
 

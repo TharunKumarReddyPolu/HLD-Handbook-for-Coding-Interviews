@@ -7,6 +7,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Security Aspects](#security-aspects)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -445,6 +446,20 @@ class GatewayMonitor:
             'duration': response.duration
         })
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Centralized gateway | One place for auth, rate limiting, routing | Potential bottleneck and SPOF, team contention | Consistent cross-cutting policy |
+| Per-domain gateways (BFF) | Team autonomy, client-optimized APIs | Duplicated infrastructure and policy | Multiple client types, large orgs |
+| Thick gateway (aggregation) | Fewer client round trips | Business logic creeps into gateway | Read-heavy client views |
+
+**Centralization vs flexibility:** A shared gateway enforces consistency but every team's change funnels through it; decentralized gateways trade duplication for autonomy.
+
+**Gateway depth vs latency:** More processing in the gateway (auth, transformation) means more latency and coupling; push work to services when policy allows.
+
+**Availability:** The gateway is on every request path — it must scale horizontally, health-check backends, and degrade gracefully.
 
 ## Interview Tips
 

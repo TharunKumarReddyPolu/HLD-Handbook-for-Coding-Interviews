@@ -6,6 +6,7 @@
 - [Design Considerations](#design-considerations)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction to Data Warehousing
@@ -164,6 +165,21 @@ SELECT
 FROM customer_segments
 GROUP BY customer_segment;
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Star schema | Fast joins, BI-friendly | Requires stable grain design | Reporting and dashboards |
+| Snowflake schema | Less redundancy, easier maintenance | More joins, slower queries | Large, complex dimensions |
+| Data vault | Auditability, agile loading | Complexity, more joins | Regulated, evolving sources |
+| Denormalized wide tables | Simplest queries | Redundancy, update anomalies | Serving layers, caches |
+
+**Normalized vs dimensional:** Normalized warehouses save storage and ease loading; dimensional models sacrifice redundancy for query speed — warehouses almost always choose query speed.
+
+**Freshness vs cost:** Near-real-time loads raise infrastructure and pipeline complexity; nightly batches are cheap and predictable.
+
+**Precompute vs compute-on-read:** Materialized aggregates accelerate dashboards but must be maintained; on-the-fly aggregation stays flexible.
 
 ## Interview Tips
 

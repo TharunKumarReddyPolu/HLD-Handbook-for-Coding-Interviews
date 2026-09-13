@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -262,6 +263,21 @@ class DatabaseLoadTest:
             results = await asyncio.gather(*tasks)
             return self.analyze_database_results(results)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Production-like load tests | Realistic bottlenecks | Costly, risks real users | Pre-launch, capacity planning |
+| Reduced-scale tests | Cheap, frequent | Extrapolation uncertainty | Regular regression checks |
+| Open-model load (arrival rate) | Realistic user pacing | Harder tooling, can overload | Spikes, queueing behavior |
+| Closed-model (fixed VUs) | Simple, stable | Hides queueing collapse | Steady-state comparisons |
+
+**Realism vs safety:** Testing against production finds the truth and risks it; mirrored/staging environments are safer and drift.
+
+**Peak vs average testing:** Sizing for peaks wastes money at average; testing only averages misses collapse points — know both.
+
+**Test frequency vs confidence:** Infrequent big tests validate launches; frequent small tests catch regressions as they land.
 
 ## Interview Tips
 

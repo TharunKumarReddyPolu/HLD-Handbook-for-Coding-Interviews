@@ -6,6 +6,7 @@
 - [Partitioning Methods](#partitioning-methods)
 - [Sharding Challenges](#sharding-challenges)
 - [Implementation Examples](#implementation-examples)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction to Sharding
@@ -210,6 +211,20 @@ CREATE TABLE users (
     shard_id INT
 );
 ```
+
+## Trade-offs
+
+| Strategy | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Range sharding | Simple, efficient range queries | Hot spots on sequential keys, uneven load | Time-series, ordered access |
+| Hash sharding | Even data distribution | Range queries scatter across shards | Uniform key access (user data) |
+| Directory sharding | Flexible placement, easy rebalancing | Lookup service is an extra hop and SPOF | Multi-tenant platforms |
+
+**Scale vs complexity:** Sharding removes a single-node ceiling but adds cross-shard queries, distributed transactions, and operational burden.
+
+**Flexibility vs predictability:** A flexible shard key supports future access patterns but makes today's queries harder to reason about; choose from measured access patterns.
+
+**Rebalancing now vs later:** Resharding early (before data grows) is cheap; virtual buckets/slots make later rebalancing far less painful.
 
 ## Interview Tips
 

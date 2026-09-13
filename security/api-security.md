@@ -6,6 +6,7 @@
 - [Authorization Patterns](#authorization-patterns)
 - [Data Protection](#data-protection)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -225,6 +226,22 @@ class GraphQLSecurity:
         # Validate operations
         self.validate_operations(query)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Strict input validation | Blocks injection classes early | Rigid schemas, maintenance | All public endpoints |
+| Permissive validation | Flexible integrations | Injection and abuse risk | Trusted internal only |
+| Aggressive rate limits | Strong abuse protection | Blocks legitimate power users | Public, unauthenticated endpoints |
+| Token-based auth (JWT) | Stateless, scalable | Revocation complexity | Service APIs |
+| Opaque tokens + introspection | Instant revocation | Per-request lookup cost | High-security APIs |
+
+**Usability vs security:** Tight limits and validation reduce attack surface and frustrate legitimate clients; use tiered limits by trust level.
+
+**Stateless vs revocable:** JWTs scale horizontally but live until expiry; introspected tokens revoke instantly at latency cost.
+
+**Security through obscurity vs standards:** Standard schemes (OAuth2) are audited and well-tooled; custom schemes are predictable only to their authors.
 
 ## Interview Tips
 

@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Processing Patterns](#processing-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -217,6 +218,21 @@ class AnomalyDetector:
         except Exception as e:
             await self.handle_detection_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| True streaming | Lowest latency, continuous insight | Highest complexity and cost | Fraud detection, alerting |
+| Micro-batching | Simpler, efficient, near-real-time | Latency floor (seconds-minutes) | Dashboards, most analytics |
+| Event-time processing | Correct results for late/out-of-order data | Watermark tuning, delayed results | Accurate time-based analytics |
+| Processing-time | Simple, immediate | Wrong answers for late events | Rough operational counters |
+
+**Latency vs cost/complexity:** Every reduction in latency multiplies infrastructure sophistication — pay only where the business decision is time-critical.
+
+**Correctness vs immediacy:** Waiting for watermarks yields complete windows; skipping them gives instant but approximate results.
+
+**State size vs query speed:** Keeping more state (windows, joins) speeds answers but increases recovery time and memory cost.
 
 ## Interview Tips
 

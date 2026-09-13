@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -214,6 +215,21 @@ class DatabaseMonitor:
         except Exception as e:
             await self.handle_db_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Continuous profiling | Always-on optimization evidence | CPU overhead (low but nonzero) | Hot paths, capacity planning |
+| On-demand profiling | Zero baseline cost | Misses intermittent issues | Chase specific regressions |
+| Real-user monitoring (RUM) | True user experience | Privacy, sampling, client overhead | Customer-facing apps |
+| Synthetic monitoring | Prober-controlled, comparable over time | Misses real-user diversity | Availability and journey checks |
+
+**Resolution vs overhead:** Finer measurement intervals catch brief spikes but cost more to store and query.
+
+**RUM vs synthetic:** Real users give truth with noise; synthetics give controlled comparability without real-world diversity — mature setups use both.
+
+**Alert sensitivity:** Tight monitoring thresholds catch regressions early but page more; tune against SLO error budgets.
 
 ## Interview Tips
 

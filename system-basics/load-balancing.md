@@ -7,6 +7,7 @@
 - [Health Checking](#health-checking)
 - [Session Persistence](#session-persistence)
 - [Common Configurations](#common-configurations)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction to Load Balancing
@@ -192,6 +193,22 @@ http {
     }
 }
 ```
+
+## Trade-offs
+
+| Algorithm | Pros | Cons | Best For |
+|-----------|------|------|----------|
+| Round Robin | Simple, fair distribution | Ignores server load and request cost | Homogeneous servers, similar requests |
+| Least Connections | Adapts to long-lived requests | Needs connection tracking | Variable request durations |
+| Weighted | Matches heterogeneous capacity | Weights need maintenance | Mixed server sizes |
+| IP Hash | Session affinity without a store | Uneven distribution, breaks when servers change | Sticky sessions (simple needs) |
+| Least Response Time | Adapts to actual performance | More measurement overhead | Latency-sensitive services |
+
+**L4 vs L7:** Layer 4 balancing is faster and simpler but cannot route on content; Layer 7 enables path-based routing, TLS termination, and smarter policies at higher CPU cost.
+
+**Statelessness vs affinity:** Sticky sessions simplify stateful apps but hurt availability and balance; keeping servers stateless lets any node serve any request.
+
+**Health checking sensitivity:** Aggressive checks remove flaky servers quickly but can thrash the pool; passive checks add no probing load but react slowly.
 
 ## Interview Tips
 

@@ -7,6 +7,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Message Brokers](#message-brokers)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -331,6 +332,21 @@ class EventMonitor:
         self.metrics['events_processed'].inc()
         self.metrics['processing_time'].observe(duration)
 ```
+
+## Trade-offs
+
+| Aspect | Benefit | Cost |
+|--------|---------|------|
+| Decoupling | Independent deploys, failure isolation, easy consumers | Harder to reason about end-to-end flows |
+| Async processing | High throughput, resilience to spikes | Eventual consistency, complex debugging |
+| Event replay | Recovery, auditing, new consumers on history | Storage cost, schema evolution discipline |
+| At-least-once delivery | No lost events | Duplicate handling (idempotency required) |
+
+**Consistency vs availability:** Async event flows give high availability but consumers see stale state; business flows needing immediate consistency need synchronous paths.
+
+**Flexibility vs complexity:** Loose coupling enables team autonomy but makes failures indirect — a broken consumer surfaces far from its cause.
+
+**Ordering vs throughput:** Strict per-key ordering limits parallelism; many designs relax ordering and make consumers idempotent instead.
 
 ## Interview Tips
 

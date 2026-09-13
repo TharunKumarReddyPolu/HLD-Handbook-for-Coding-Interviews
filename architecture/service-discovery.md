@@ -7,6 +7,7 @@
 - [Health Checking](#health-checking)
 - [Implementation Strategies](#implementation-strategies)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -372,6 +373,21 @@ class FailureHandler:
             logger.error(f"Discovery failure: {e}")
             raise
 ```
+
+## Trade-offs
+
+| Approach | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Client-side discovery | No extra hop, rich client logic | Client library coupling per language | Polyglot-tolerant stacks |
+| Server-side discovery (LB/DNS) | Language-agnostic clients | Extra hop, LB to scale | Heterogeneous clients |
+| Self-registration | Simple, no third party | Service code polluted, trust issue | Small systems |
+| Third-party registration (registrar) | Clean separation, centralized health | Extra component to run | Production microservices |
+
+**Freshness vs cost:** Aggressive health checks and short TTLs converge fast but multiply registry traffic; relax them and accept brief staleness.
+
+**Consistency of the registry vs its availability:** During partitions, serving possibly-stale instance lists usually beats serving none (AP tendency).
+
+**DNS simplicity vs rich routing:** DNS is universal but slow to converge and coarse; dedicated registries add tooling for real-time health and metadata.
 
 ## Interview Tips
 

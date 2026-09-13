@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Alert Management](#alert-management)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -213,6 +214,21 @@ class InfrastructureAlerts:
         except Exception as e:
             await self.handle_infra_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| More alerts | Fewer missed incidents | Fatigue, missed real signals | Narrow, high-severity gaps |
+| Fewer, SLO-based alerts | Pages only on user impact | Needs error budgets and buy-in | Production services |
+| Low thresholds | Early warning | Noise, false positives | Critical canaries |
+| High thresholds | Quiet on-call | Late detection | Well-understood, recoverable issues |
+
+**Precision vs recall:** Every alert policy balances catching real incidents against paging people for noise; track page-to-action ratio as the health metric.
+
+**Symptom vs cause alerts:** Paging on user-facing symptoms (latency, errors) aligns with impact; cause-based alerts (CPU, disk) belong as tickets, not pages.
+
+**Escalation depth vs response speed:** Deep escalation chains protect sleep but delay response; tune with real incident data, not policy defaults.
 
 ## Interview Tips
 

@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Cloud Integration](#cloud-integration)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -211,6 +212,21 @@ class GlobalLoadBalancer:
         except Exception as e:
             await self.handle_balancing_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Single cloud, deep integration | Best services, lowest cost, simplest ops | Vendor lock-in, pricing power against you | Most startups and mid-size firms |
+| Multi-cloud (active-active) | No single provider outage, negotiating leverage | 2x operational complexity, weakest-common-denominator services | Specific regulatory or resilience mandates |
+| Cloud-agnostic abstractions (K8s, Terraform) | Portable core workloads | You own more of the stack; deepest services unused | Portability-critical core |
+| Best-of-breed per cloud | Each workload gets ideal services | Team skills split, duplicated tooling | Post-merger or acquired landscapes |
+
+**Portability vs productivity:** Abstraction layers keep you portable but forgo each provider's deepest managed services.
+
+**Resilience vs complexity:** Multi-cloud survives a provider outage but doubles the failure modes you must operate and test (often trading one rare risk for many common ones).
+
+**Cost:** Egress fees and duplicated platforms usually make multi-cloud more expensive, not less.
 
 ## Interview Tips
 

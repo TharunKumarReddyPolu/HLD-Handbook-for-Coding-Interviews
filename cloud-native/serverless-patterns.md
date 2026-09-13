@@ -6,6 +6,7 @@
 - [Integration Patterns](#integration-patterns)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -185,6 +186,21 @@ class EventProcessor:
             except Exception as e:
                 handle_error(e, bucket, key)
 ```
+
+## Trade-offs
+
+| Aspect | Benefit | Cost |
+|--------|---------|------|
+| Pay-per-use | Zero cost at zero traffic | Cost surprises at sustained high load |
+| Auto-scaling to zero | No idle spend | Cold-start latency spikes |
+| Managed operations | No server patching | Runtime/timeout/memory limits |
+| Event-driven glue | Fast composition | Vendor-specific triggers, lock-in |
+
+**Latency vs cost:** Provisioned concurrency removes cold starts but reintroduces idle cost — pay for the tail latencies you cannot tolerate.
+
+**Granularity vs overhead:** Many small functions maximize reuse and independent scaling but multiply deployment, tracing, and cold-start surfaces.
+
+**Statelessness:** Functions force externalized state (better architecture) at the price of extra round trips to databases and caches.
 
 ## Interview Tips
 

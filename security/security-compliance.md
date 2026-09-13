@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Control Implementation](#control-implementation)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -230,6 +231,21 @@ class HealthcareCompliance:
         except Exception as e:
             await self.handle_hipaa_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Early compliance-by-design | Cheaper than retrofit, audit-ready | Slower initial development | Regulated products |
+| Compliance as afterthought | Fast start | Expensive rework, launch blockers | Rarely defensible |
+| Broad framework certification (SOC 2, ISO) | Unlocks enterprise sales | Continuous audit cost | B2B platforms |
+| Narrow, targeted compliance | Cheaper, focused | Re-scoping as product grows | Single regulated feature |
+
+**Controls vs velocity:** Every mandatory control (approvals, segregation of duties, encryption gates) adds latency to delivery — automate evidence collection to reduce friction.
+
+**Documentation depth vs usefulness:** Auditors want exhaustive evidence; engineers want lean docs — automated, code-generated evidence serves both.
+
+**Data minimization vs feature richness:** Collecting less data simplifies compliance more than any tool; product decisions are compliance decisions.
 
 ## Interview Tips
 

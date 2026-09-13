@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Consensus Mechanisms](#consensus-mechanisms)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -216,6 +217,21 @@ class NFTMarketplace:
         except Exception as e:
             await self.handle_nft_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Public permissionless | Trustless, censorship-resistant | Throughput limits, latency, cost | Open-value transfer |
+| Private/permissioned | High throughput, known validators | Trust assumptions return | Enterprise consortia |
+| On-chain data | Verifiability, permanence | Expensive storage, privacy exposure | Proofs, anchors |
+| Off-chain data + hashes | Cheap, private | Requires off-chain availability | Documents, media |
+
+**Decentralization vs performance:** Every consensus strengthening (more validators, more replication) costs throughput — the scalability trilemma in practice.
+
+**Immutability vs correction:** Immutable ledgers guarantee history and make bug-fixing migrations painful; design upgradability carefully.
+
+**Finality vs availability:** Probabilistic finality stays available under partitions; absolute finality stalls rather than forks.
 
 ## Interview Tips
 

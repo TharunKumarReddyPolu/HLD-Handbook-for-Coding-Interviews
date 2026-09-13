@@ -6,6 +6,7 @@
 - [Architecture Components](#architecture-components)
 - [Implementation Patterns](#implementation-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -258,6 +259,21 @@ spec:
       restartPolicy: Never
   backoffLimit: 4
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Kubernetes | Portable, rich ecosystem, autoscaling | Steep learning curve, operational weight | Multi-service platforms |
+| Managed K8s (EKS/GKE/AKS) | Control plane offloaded | Cost, provider coupling | Most production teams |
+| Autoscaling (HPA/cluster) | Pay for load, self-healing | Needs solid metrics, scaling flapping | Variable traffic |
+| Static provisioning | Predictable, simple | Waste at low traffic, manual scaling | Stable, well-known load |
+
+**Control vs operational burden:** Self-managing Kubernetes gives full control and consumes engineering time; managed control planes trade some flexibility for operability.
+
+**Density vs blast radius:** Packing many workloads per cluster saves money but couples failures and upgrades; more clusters isolate but multiply overhead.
+
+**Fast autoscaling vs stability:** Aggressive scale-up handles spikes quickly but thrashes; stabilize windows smooth it at the cost of brief over/under-provisioning.
 
 ## Interview Tips
 

@@ -6,6 +6,7 @@
 - [Architecture Patterns](#architecture-patterns)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -218,6 +219,22 @@ class OLAPUseCase:
         except Exception as e:
             await self.handle_analysis_error(e)
 ```
+
+## Trade-offs
+
+| Aspect | OLTP | OLAP |
+|--------|------|------|
+| Workload | Many short read/write transactions | Complex reads over historical data |
+| Schema | Highly normalized | Denormalized, dimensional |
+| Latency | Milliseconds, row-level ops | Seconds-minutes, scans |
+| Throughput pattern | High concurrency, small queries | Lower concurrency, large scans |
+| Storage | Row-oriented, current state | Columnar, historical breadth |
+
+**One system vs two:** Running analytics on the OLTP database avoids ETL but degrades transactional performance; separating them adds a sync pipeline but isolates workloads.
+
+**Normalization vs scan speed:** OLTP normalizes for write integrity; OLAP denormalizes for scan speed — the same data optimizes differently per workload.
+
+**Freshness vs isolation:** Tighter sync means fresher analytics but more load coupling; looser sync protects the transactional system.
 
 ## Interview Tips
 

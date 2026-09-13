@@ -7,6 +7,7 @@
 - [Metrics Collection](#metrics-collection)
 - [Alerting Strategies](#alerting-strategies)
 - [Implementation Examples](#implementation-examples)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -282,6 +283,21 @@ class LogAnalyzer:
         }
         return elasticsearch.search(query)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| High-granularity metrics | Rich debugging detail | Storage cost, query load, cardinality explosion | Critical paths, incident investigation |
+| Sampled logging | Cheap at high volume | May miss rare events | High-throughput services |
+| More alert rules | Catches niche failures | Alert fatigue, on-call burnout | Post-incident targeted additions |
+| SLO-based alerting | Aligns alerts with user impact | Requires error budgets and buy-in | Production services at scale |
+
+**Visibility vs overhead:** Instrumentation consumes CPU, memory, and network — measure the cost of monitoring, especially at high request volume.
+
+**Signal volume vs actionability:** More data is not more insight; over-alerting trains teams to ignore alerts.
+
+**Centralization vs autonomy:** Central metrics/logging gives one place to look but creates a scaling bottleneck of its own.
 
 ## Interview Tips
 

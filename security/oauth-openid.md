@@ -6,6 +6,7 @@
 - [OpenID Connect](#openid-connect)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -222,6 +223,21 @@ class APISecurityMiddleware:
         except Exception as e:
             raise SecurityError(str(e))
 ```
+
+## Trade-offs
+
+| Flow | Pros | Cons | Best For |
+|------|------|------|----------|
+| Authorization Code + PKCE | No secrets in client, standard | Redirect complexity | SPAs, mobile, web apps |
+| Client Credentials | Simple machine-to-machine | No user context | Service-to-service |
+| Implicit | No client secret historically | Tokens in URL, deprecated | Legacy only |
+| Resource Owner Password | Simple to implement | Exposes credentials to client, anti-pattern | Migration only |
+
+**Token lifetime vs risk:** Short-lived access tokens limit stolen-token damage and increase refresh traffic; long-lived tokens do the opposite.
+
+**Central IdP vs per-app auth:** A central identity provider gives SSO, MFA, and audit in one place and becomes a critical dependency; per-app auth is isolated but duplicates security logic.
+
+**Scope granularity:** Fine-grained scopes enforce least privilege but complicate consent screens and token management.
 
 ## Interview Tips
 

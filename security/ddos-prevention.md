@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Mitigation Techniques](#mitigation-techniques)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -217,6 +218,22 @@ class APIProtection:
         except Exception as e:
             await self.handle_api_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| CDN/edge absorption | Massive scale, DDoS offload | Cost, origin exposure if misconfigured | All public services |
+| Always-on scrubbing | Immediate mitigation | Continuous cost | High-value targets |
+| On-demand scrubbing | Cheap when idle | Activation lag during attack | Lower-risk targets |
+| Strict geo/ASN blocking | Cuts attack surface | Blocks legitimate users | Region-specific services |
+| Aggressive rate limiting | Cheap and effective | False positives under legitimate spikes | Auth and expensive endpoints |
+
+**Overprovision vs absorb:** Massive headroom rides out attacks but idles cost; edge absorption outscales headroom economically.
+
+**Filtering aggressiveness vs false positives:** Tighter rules stop more attack traffic and more customers; tune with real traffic distributions.
+
+**Secrecy vs resilience:** Hiding origin infrastructure reduces direct-attack surface but is not a control — expect discovery and design for it.
 
 ## Interview Tips
 

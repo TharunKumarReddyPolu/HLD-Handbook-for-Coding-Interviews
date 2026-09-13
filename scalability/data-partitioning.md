@@ -7,6 +7,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Challenges and Solutions](#challenges-and-solutions)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -316,6 +317,20 @@ class PartitionMonitor:
                 partition=partition.id
             ).set(partition.record_count)
 ```
+
+## Trade-offs
+
+| Method | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Range partitioning | Efficient range scans, easy to reason about | Hot spots on sequential keys | Time-series, ordered data |
+| Hash partitioning | Even distribution | Range queries scatter; resharding pain without consistent hashing | Uniform key access |
+| Directory partitioning | Flexible placement, easy migration | Lookup service adds latency and is a SPOF | Multi-tenancy, heterogeneous tenants |
+
+**Rebalancing cost vs idle capacity:** Keeping partitions/headroom ready for growth wastes resources now but avoids painful resharding later.
+
+**Query flexibility vs partition discipline:** Cross-partition queries are slow; choosing partition keys from real access patterns beats generic keys.
+
+**Physical vs logical partitioning:** Logical buckets (many per node) make future moves cheap at the cost of routing indirection.
 
 ## Interview Tips
 

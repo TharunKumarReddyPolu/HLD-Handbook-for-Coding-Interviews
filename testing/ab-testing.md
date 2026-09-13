@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -232,6 +233,21 @@ class FeatureRollout:
         except Exception as e:
             await self.handle_rollout_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| More experiments | Faster learning | Statistical power dilution, metric conflicts | High-traffic surfaces |
+| Fewer experiments | Clean attribution | Slower iteration | Low-traffic products |
+| Longer runtimes | Reliable significance | Slower decisions, cookie churn | Subtle metric changes |
+| Short runtimes | Quick iteration | Peek-ahead bias, false positives | Obvious, large effects |
+
+**Statistical rigor vs speed:** Stopping at significance early (peeking) inflates false positives; sequential testing fixes the math at the cost of complexity.
+
+**Consistency vs freshness of assignment:** Sticky user assignment gives coherent experiences but complicates ramp-downs and logging out.
+
+**Guardrail metrics vs velocity:** Extra guardrail checks catch collateral damage but add analysis overhead — pick a few globally, add locally.
 
 ## Interview Tips
 

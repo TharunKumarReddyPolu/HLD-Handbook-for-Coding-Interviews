@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Monitoring & Recovery](#monitoring--recovery)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -372,6 +373,21 @@ class ErrorClassifier:
                 return category
         return 'unknown'
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Fail fast (open circuit) | Protects caller, saves resources | Callers see errors instead of waiting | Non-critical dependencies |
+| Fallback response | User-facing resilience | Stale/degraded data semantics | Recommendations, secondary data |
+| Conservative thresholds | Fewer false trips | Slower protection during real incidents | Stable, well-understood dependencies |
+| Aggressive thresholds | Fast failure isolation | False positives under load spikes | Volatile dependencies |
+
+**Availability vs correctness:** Tripping the circuit keeps the caller alive but serves fallbacks — acceptable for recommendations, not for payment status.
+
+**Recovery speed vs stability:** Half-open probes recover capacity quickly but can re-overwhelm a struggling dependency; tune probe rate deliberately.
+
+**Where to place breakers:** Per-dependency breakers isolate precisely but multiply configuration; coarse breakers are simpler but blunt.
 
 ## Interview Tips
 

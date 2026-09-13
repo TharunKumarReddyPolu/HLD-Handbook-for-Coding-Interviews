@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Tool Integration](#tool-integration)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -232,6 +233,21 @@ class ErrorAnalyzer:
         except Exception as e:
             await self.handle_analysis_error(e)
 ```
+
+## Trade-offs
+
+| Approach | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Deep instrumentation everywhere | Rich evidence during incidents | Constant overhead and cardinality cost | Complex critical paths |
+| On-demand debugging | Near-zero baseline cost | Missing data exactly when needed | Cost-sensitive services |
+| Correlated logs + traces | Fast cross-service reasoning | Requires propagated context | Distributed systems |
+| Retry-and-reproduce locally | No production risk | Time-consuming, environment drift | Deterministic bugs |
+
+**Evidence vs overhead:** Traces and payloads on every request cost CPU, network, and storage; sample smartly and keep full fidelity for errors.
+
+**Speed vs safety:** Reproducing in production finds truth fastest but risks user impact; staging is safe but drifts from reality.
+
+**Tool sprawl vs gaps:** One unified platform eases correlation but couples teams; too many specialized tools slow the hunt.
 
 ## Interview Tips
 

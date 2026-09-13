@@ -7,6 +7,7 @@
 - [Implementation Details](#implementation-details)
 - [Scaling Strategy](#scaling-strategy)
 - [Lessons Learned](#lessons-learned)
+- [Trade-offs](#trade-offs)
 
 ## Introduction
 
@@ -275,6 +276,21 @@ class ReliabilityLessons:
             }
         }
 ```
+
+## Trade-offs
+
+| Decision | Options | Why One Wins Here |
+|----------|---------|-------------------|
+| Delivery model | WebSocket push vs polling | Push gives real-time UX; polling wastes requests at scale |
+| Message queueing | Per-user queues vs shared log | Per-user ordering simplifies delivery; shared logs scale fan-out better |
+| Offline delivery | Store-and-forward vs drop | Messaging demands store-and-forward with acks |
+| Group fan-out | Write-fan-out vs read-fan-out | Write-fan-out wins for celebrity-scale recipients |
+
+**Consistency vs latency:** Message ordering across devices trades global ordering guarantees for delivery speed; per-conversation ordering is the practical compromise.
+
+**Storage vs retrieval cost:** Keep hot messages in a fast store and archive cold history — retention policy is a performance decision.
+
+**Presence at scale:** Tracking presence for millions of connections requires heartbeat batching and accepting staleness.
 
 ## Interview Tips
 

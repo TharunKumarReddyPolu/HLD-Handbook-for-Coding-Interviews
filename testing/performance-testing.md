@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -231,6 +232,21 @@ class APITester:
         except Exception as e:
             await self.handle_api_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Stress testing (beyond capacity) | Finds breaking points, failure behavior | Risks environments, interpretation cost | Capacity planning |
+| Soak/endurance testing | Finds leaks, degradation | Long runtimes, slow feedback | Memory leaks, connection exhaustion |
+| Spike testing | Validates elastic scaling | Needs autoscaling to test meaningfully | Pre-marketing/launch events |
+| Benchmark-only | Quick comparable numbers | Micro-optimization tunnel vision | Component comparisons |
+
+**Depth vs breadth:** Deep soak tests find slow-burn issues; broad test matrices find integration regressions — schedule by risk.
+
+**Environment parity vs cost:** Production-identical hardware gives transferable numbers and doubles your bill; document deltas when downsizing.
+
+**Automation vs one-offs:** Continuous performance tests catch regressions when cheap; one-off studies answer launch questions.
 
 ## Interview Tips
 

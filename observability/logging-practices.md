@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Log Management](#log-management)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -212,6 +213,22 @@ class ErrorTracker:
             extra=error_entry
         )
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Verbose logging | Rich debugging detail | Cost, noise, PII risk | Critical paths, new features |
+| Sparse logging | Cheap and quiet | Missing evidence in incidents | Stable high-volume services |
+| Structured (JSON) logs | Queryable, parseable | Verbosity, schema discipline | Any aggregated environment |
+| Unstructured text | Human-friendly, zero setup | Grep-only analysis | Local dev, tiny systems |
+| Sampled logging | Bounded cost | May drop rare but critical events | Very high throughput |
+
+**Debuggability vs cost:** Log volume is a continuous tax; retention tiers (hot/warm/cold) and sampling keep it payable.
+
+**Detail vs PII:** Payload-level logging finds bugs fast and creates compliance exposure; redaction must be systematic, not per-log-line heroics.
+
+**Write path impact:** Synchronous remote logging adds latency; async buffers risk losing recent logs on crash — choose per criticality.
 
 ## Interview Tips
 

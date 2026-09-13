@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Security Controls](#security-controls)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -228,6 +229,21 @@ class DataSecurity:
         except Exception as e:
             await self.handle_security_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Tight IAM policies | Minimal blast radius | Policy sprawl, operational friction | Production, regulated data |
+| Broad IAM policies | Easy onboarding, fewer blocks | Large blast radius, audit pain | Sandboxes, experiments |
+| Private networking | Reduced exposure | Access complexity (bastions, peering) | Data stores, internal services |
+| Public endpoints with auth | Simple access, CDN-friendly | Larger attack surface | Public APIs behind WAF |
+
+**Security vs operability:** Every hardening step (least privilege, private subnets, encryption keys) adds friction; automate policy to keep both.
+
+**Shared responsibility:** Cloud providers secure the infrastructure; you secure identity, configuration, and data — misconfiguration, not the provider, is the usual breach cause.
+
+**Key management depth:** Customer-managed keys add control and auditability at the cost of rotation, recovery, and availability responsibilities.
 
 ## Interview Tips
 

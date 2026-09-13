@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Data Management](#data-management)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -232,6 +233,21 @@ class SmartBuilding:
         except Exception as e:
             await self.handle_building_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Direct device-to-cloud | Simple architecture | Connectivity dependence, security surface | Simple, reliable networks |
+| Edge gateway layer | Protocol translation, buffering, security boundary | Extra tier to manage | Industrial, mixed protocols |
+| Telemetry at high frequency | Rich insight | Cost, storage, noise | Critical equipment |
+| Batched/throttled telemetry | Cheap, battery-friendly | Blind spots between sends | Consumer devices |
+
+**Cloud processing vs edge autonomy:** Central processing simplifies logic; edge autonomy keeps sites running when connectivity drops.
+
+**Security posture:** Devices are unattended and long-lived — credential rotation and firmware updates are design requirements, not features.
+
+**Data volume vs insight:** Sample and aggregate aggressively; only data you can act on justifies its pipeline cost.
 
 ## Interview Tips
 

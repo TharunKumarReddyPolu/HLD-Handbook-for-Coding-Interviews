@@ -7,6 +7,7 @@
 - [Performance vs Cost](#performance-vs-cost)
 - [Monitoring and Analysis](#monitoring-and-analysis)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -378,6 +379,21 @@ class CostAllocator:
         
         return allocations
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Reserved/committed capacity | Deep discounts | Lock-in, stranded commitment | Steady baselines |
+| Spot/preemptible | Largest discounts | Interruptions | Batch and fault-tolerant work |
+| Aggressive right-sizing | Immediate savings | Performance risk | Steady-state services |
+| Over-provisioning | Performance headroom | Paying for idle | Hard latency SLOs |
+
+**Cost vs performance:** The cheapest system that meets its SLO is the target — below that, savings become incidents; above it, money becomes waste.
+
+**Optimization effort vs return:** A few high-leverage levers (rightsizing, storage tiering, idle cleanup, commitment coverage) beat exhaustive micro-optimization.
+
+**Visibility before control:** Tagging and cost allocation are prerequisites — you cannot optimize what you cannot attribute.
 
 ## Interview Tips
 

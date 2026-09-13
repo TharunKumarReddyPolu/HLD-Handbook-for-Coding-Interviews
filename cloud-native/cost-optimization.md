@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Monitoring and Analysis](#monitoring-and-analysis)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -222,6 +223,21 @@ class ProductionOptimizer:
         except Exception as e:
             await self.handle_production_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|--------|------|------|----------|
+| Reserved/committed capacity | Big discounts (30-70%) | Lock-in, wasted if usage shifts | Steady baseline workloads |
+| Spot/preemptible | Up to 90% off | Interruptions at any time | Batch, fault-tolerant jobs |
+| Right-sizing | Direct savings | Under-provisioning risk | Steady-state services |
+| Aggressive autoscaling | Pay for actual usage | Cold-start latency, scaling flapping | Spiky traffic |
+
+**Cost vs performance:** Aggressively trimmed resources save money until they cause latency incidents; use SLOs, not vibes, to set the floor.
+
+**Commitment vs flexibility:** Longer commitments buy bigger discounts but freeze architecture; balance by committing only to the stable baseline.
+
+**Optimization effort vs savings:** FinOps effort follows Pareto — a few levers (rightsizing, storage tiering, idle cleanup) capture most savings.
 
 ## Interview Tips
 

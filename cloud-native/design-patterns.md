@@ -6,6 +6,7 @@
 - [Availability Patterns](#availability-patterns)
 - [Data Management Patterns](#data-management-patterns)
 - [Security Patterns](#security-patterns)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -239,6 +240,22 @@ def handler(event, context):
             'body': str(e)
         }
 ```
+
+## Trade-offs
+
+| Pattern | Pros | Cons | Best For |
+|---------|------|------|----------|
+| Retry with backoff | Survives transient failures | Can amplify load (retry storms) | All remote calls (with jitter + budgets) |
+| Circuit Breaker | Stops cascading failures | Fallbacks may degrade behavior | Dependency-heavy services |
+| Bulkhead | Isolates resource pools | Partitioned capacity, more config | Multi-tenant or multi-dependency systems |
+| Saga (choreography) | No central coordinator | Flow logic scattered across services | Distributed transactions |
+| Saga (orchestration) | Explicit, observable flow | Orchestrator is central logic + SPOF risk | Multi-step business processes |
+
+**Resilience vs complexity:** Each pattern adds failure-handling power and its own failure modes; adopt per measured need, not wholesale.
+
+**Eventual consistency vs simplicity:** Sagas avoid distributed locks but push compensation and idempotency into every step.
+
+**Isolation vs utilization:** Bulkheads cap blast radius by sacrificing shared-capacity efficiency.
 
 ## Interview Tips
 

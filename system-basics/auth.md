@@ -6,6 +6,7 @@
 - [Authorization Strategies](#authorization-strategies)
 - [Security Best Practices](#security-best-practices)
 - [Implementation Examples](#implementation-examples)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -275,6 +276,18 @@ def require_role(role):
 def admin_route():
     return jsonify({'message': 'Admin access granted'})
 ```
+
+## Trade-offs
+
+| Approach | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Server-side sessions | Instant revocation, small tokens, simple mental model | Session store becomes shared state; scaling and cross-service auth harder | Traditional monoliths, high-security apps |
+| JWT (stateless) | No lookup per request, easy horizontal scaling | Hard revocation, token size, clock/skew issues | Microservices, API-to-API auth |
+| SSO / OAuth delegation | One login across products, centralized policy | Added complexity, dependency on identity provider | Multi-product platforms, B2B apps |
+
+**Security vs convenience:** Longer session lifetimes improve UX but widen the window for stolen credentials; MFA and short refresh windows trade convenience for safety.
+
+**Centralization vs autonomy:** A central authorization service gives consistent policy but adds a dependency; service-level checks are resilient but drift over time.
 
 ## Interview Tips
 

@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Integration Strategies](#integration-strategies)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -228,6 +229,21 @@ class NFTMarketplace:
         except Exception as e:
             await self.handle_marketplace_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Fully on-chain | Maximum verifiability, composability | Cost, latency, privacy exposure | Core value logic, small state |
+| Off-chain compute + on-chain proofs (L2/rollups) | Scale with security anchors | Exit/bridge complexity, tooling maturity | High-throughput dApps |
+| Centralized indexing/APIs (The Graph, Infura) | Fast queries, easy dev | Trust and availability dependencies | Read-heavy frontends |
+| Self-hosted nodes | Full sovereignty | Operational burden | Infrastructure-sensitive products |
+
+**Decentralization vs usability:** Key management and gas costs are UX taxes; custody abstractions improve onboarding and reintroduce trusted parties.
+
+**Immutability vs iteration:** Upgradable contracts enable bug fixes and centralization concerns; immutable contracts are trustworthy and stuck with their bugs.
+
+**Cost models:** Every on-chain operation costs users; push computation off-chain and anchor results on-chain.
 
 ## Interview Tips
 

@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Security Controls](#security-controls)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -199,6 +200,21 @@ class ApplicationGateway:
         # Apply policy
         return self.apply_policy(identity, request)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Per-request verification | Breach containment, no implicit trust | Latency and complexity on every hop | High-value internal services |
+| Network-perimeter trust | Simple, fast | Lateral movement after one breach | Legacy only |
+| Strict device posture checks | Strong identity + device binding | User friction, device management cost | Regulated/remote workforces |
+| Broad service mesh policies | Uniform enforcement | Mesh operational overhead | Large microservice fleets |
+
+**Security vs friction:** Every verification step (mTLS, token checks, posture) protects and slows; prioritize verification depth by data sensitivity.
+
+**Implicit trust vs explicit policy:** Zero trust turns invisible network assumptions into explicit, testable policy — more secure, far more to operate.
+
+**Blast radius:** Zero trust's core win is containment: a stolen credential unlocks less because every call re-verifies.
 
 ## Interview Tips
 

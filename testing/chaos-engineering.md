@@ -6,6 +6,7 @@
 - [Implementation Strategies](#implementation-strategies)
 - [Experiment Types](#experiment-types)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -242,6 +243,21 @@ class ResourceChaos:
             # Release pressure
             await self.pressure_controller.release()
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Production experiments | Real traffic, real findings | Blast radius if runcarelessly | Mature systems with rollback |
+| Staging chaos | Safer, freer to explore | Environment drift weakens conclusions | Early adoption of chaos practice |
+| Broad blast radius | Finds systemic weaknesses | Bigger user impact on surprise | GameDays with war rooms |
+| Small blast radius | Minimal user risk | May miss compound failure modes | Routine automated experiments |
+
+**Realism vs risk:** Chaos in production finds truth that staging cannot, but demands abort switches, steady-state metrics, and clear ownership.
+
+**Automation vs control:** Scheduled automated experiments build resilience muscle; manual GameDays build human muscle — both matter.
+
+**Frequency vs fatigue:** Regular small experiments normalize failure handling; excessive chaos breeds alarm fatigue.
 
 ## Interview Tips
 

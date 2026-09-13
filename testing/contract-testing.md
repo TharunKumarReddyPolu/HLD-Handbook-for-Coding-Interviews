@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Contract Validation](#contract-validation)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -243,6 +244,21 @@ class APIEvolution:
         except Exception as e:
             await self.handle_evolution_error(e)
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Consumer-driven contracts | Consumers define needs; provider gets exact expectations | Requires broker/workflow discipline | Microservice ecosystems |
+| Provider-generated contracts | Provider controls its promise | Consumers untested against real needs | Public APIs |
+| Strict contract verification | Catches every breaking change | Contract churn slows independent deploys | Stable, long-lived APIs |
+| Loose/spot checks | Fast, low maintenance | Subtle breaking changes slip through | Early-stage, fast-moving APIs |
+
+**Compatibility enforcement vs deploy independence:** Strict contracts protect consumers but couple release timing; versioned contracts with a compatibility window preserve independence.
+
+**Broker infrastructure vs ad-hoc sharing:** A contract broker automates verification flows; shared files are free but drift.
+
+**Contract breadth vs maintenance:** Exhaustive contracts catch more but require updating for every intentional change.
 
 ## Interview Tips
 

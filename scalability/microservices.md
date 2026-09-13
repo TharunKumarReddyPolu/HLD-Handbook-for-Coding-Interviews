@@ -7,6 +7,7 @@
 - [Communication Patterns](#communication-patterns)
 - [Implementation Strategies](#implementation-strategies)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -270,6 +271,21 @@ class ServiceTest:
         finally:
             self.cleanup_containers()
 ```
+
+## Trade-offs
+
+| Aspect | Benefit | Cost |
+|--------|---------|------|
+| Independent deploys | Faster teams, smaller blast radius | Version compatibility, contract management |
+| Independent scaling | Scale only hot services | Operational overhead per service |
+| Technology freedom | Right tool per problem | Polyglot maintenance, on-call breadth |
+| Fault isolation | One failing service need not sink all | Cascading failure risk without circuit breakers |
+
+**Microservices vs modular monolith:** Microservices buy organizational scale at the price of distributed-systems complexity — network failures, data consistency, observability. Below a certain team/service ratio, a modular monolith delivers the same modularity cheaply.
+
+**Autonomy vs standardization:** Free technology choices boost team morale but fragment tooling; golden paths trade some freedom for operability.
+
+**Data ownership vs cross-service queries:** Per-service databases remove coupling but force sagas/API composition where joins used to be free.
 
 ## Interview Tips
 

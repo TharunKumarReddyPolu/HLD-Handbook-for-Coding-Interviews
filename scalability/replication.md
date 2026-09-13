@@ -7,6 +7,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Conflict Resolution](#conflict-resolution)
 - [Best Practices](#best-practices)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -400,6 +401,20 @@ class FailureDetector:
             
             await asyncio.sleep(self.heartbeat_interval)
 ```
+
+## Trade-offs
+
+| Strategy | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Single-leader | Simple, no conflict resolution | Write bottleneck, failover complexity | Most read-heavy workloads |
+| Multi-leader | Writes anywhere, tolerates datacenter loss | Conflict resolution required | Multi-datacenter, offline-tolerant apps |
+| Leaderless (quorum) | High availability, tunable consistency | Read-repair overhead, subtle conflict semantics | Always-write systems (e.g., shopping carts) |
+
+**Consistency vs latency:** Synchronous replication guarantees durability but each write waits for followers; asynchronous is fast but can lose the latest writes on leader failure.
+
+**Read scaling vs staleness:** Adding read replicas scales reads but serves stale data; quorum reads (R + W > N) bound staleness at latency cost.
+
+**Failover safety vs availability:** Automatic failover keeps you available but risks split-brain and data loss without careful fencing/quorum.
 
 ## Interview Tips
 

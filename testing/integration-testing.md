@@ -6,6 +6,7 @@
 - [Implementation Patterns](#implementation-patterns)
 - [Test Infrastructure](#test-infrastructure)
 - [Common Use Cases](#common-use-cases)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction
@@ -240,6 +241,21 @@ class ServiceCommunicationTest:
         events = await self.test_event_broadcast()
         assert len(events) == 3  # All services received
 ```
+
+## Trade-offs
+
+| Choice | Pros | Cons | Best For |
+|----------|------|------|----------|
+| Real dependencies | Highest fidelity | Slow, flaky, environment cost | Critical paths, release gates |
+| Test doubles (stubs/mocks) | Fast, deterministic | Drift from real behavior | Unit-adjacent and edge-case tests |
+| Shared long-lived environment | Cheap per-run | Cross-test interference, 'who broke it' | Small teams |
+| Ephemeral per-run environments | Isolation, reproducibility | Provisioning cost/time | CI at scale |
+
+**Fidelity vs speed:** Every real dependency raises confidence and runtime; the pyramid exists because that cost compounds.
+
+**Isolation vs resource cost:** Fresh environments per pipeline kill flakiness at provisioning price; optimize with containers and reuse where safe.
+
+**Mock maintenance:** Doubles are code that rots — generate from contracts/schemas rather than hand-writing.
 
 ## Interview Tips
 

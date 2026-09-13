@@ -134,6 +134,18 @@ class CASystem:
 
 ## Trade-offs
 
+| System Choice | Guarantees Kept | Sacrificed During Partitions | Best For |
+|---------------|-----------------|------------------------------|----------|
+| CP | Consistency + Partition Tolerance | Availability (rejects writes/reads rather than serve stale) | Banking, inventory, coordination services |
+| AP | Availability + Partition Tolerance | Consistency (serves possibly-stale data) | Social feeds, caching, content delivery |
+| CA (no partitions) | Consistency + Availability | Partition tolerance — only valid on a single node or perfect network | Legacy single-node systems |
+
+**Consistency vs Availability**: Under a partition you must pick one — CP systems refuse requests to avoid serving stale data; AP systems keep answering and reconcile later.
+
+**Latency vs Consistency**: Synchronous replication keeps every read consistent but adds latency; asynchronous replication responds fast and accepts temporary divergence.
+
+**Partition Handling**: Networks split; the design question is whether the system stops (CP), continues degraded (AP), or tunes the response per operation with quorums.
+
 ### 1. Consistency vs Availability
 ```python
 class ConsistencyLevel:

@@ -7,6 +7,7 @@
 - [GraphQL APIs](#graphql-apis)
 - [API Security](#api-security)
 - [API Documentation](#api-documentation)
+- [Trade-offs](#trade-offs)
 - [Interview Tips](#interview-tips)
 
 ## Introduction to APIs
@@ -240,6 +241,18 @@ components:
 - Document error responses
 - Provide authentication details
 - Include rate limiting info
+
+## Trade-offs
+
+| Approach | Pros | Cons | Best For |
+|----------|------|------|----------|
+| REST | Simple, cacheable, wide tooling support | Over/under-fetching, multiple round trips | Public APIs, CRUD services |
+| GraphQL | Flexible queries, single endpoint, no over-fetching | Caching complexity, N+1 query risk | Aggregated client-driven data |
+| gRPC | Fast binary protocol, strong contracts, streaming | Browser support limited, harder debugging | Internal service-to-service calls |
+
+**Consistency vs speed:** Strict versioning (URI-based) is explicit but adds endpoint sprawl; loose versioning keeps URIs stable but risks breaking clients.
+
+**Flexibility vs safety:** Rich query capabilities (GraphQL, filters) improve client experience but increase backend cost and abuse surface.
 
 ## Interview Tips
 
