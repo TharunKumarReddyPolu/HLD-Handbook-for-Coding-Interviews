@@ -247,6 +247,8 @@ class HealthcareCompliance:
 
 **Data minimization vs feature richness:** Collecting less data simplifies compliance more than any tool; product decisions are compliance decisions.
 
+> **⚠️ When NOT to chase certification:** pre-product-market-fit startups selling to consumers, and teams that would bolt controls on instead of building them in — target the specific commitments your customers actually ask for first.
+
 ## Interview Tips
 
 ### 1. Key Considerations

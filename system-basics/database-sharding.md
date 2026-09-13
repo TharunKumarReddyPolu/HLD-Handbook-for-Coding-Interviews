@@ -226,6 +226,8 @@ CREATE TABLE users (
 
 **Rebalancing now vs later:** Resharding early (before data grows) is cheap; virtual buckets/slots make later rebalancing far less painful.
 
+> **⚠️ When NOT to shard:** until a single well-tuned node (indexes, caching, read replicas) is genuinely at its ceiling — premature sharding multiplies operational complexity, kills cross-shard joins and transactions, and is painful to undo.
+
 ## Interview Tips
 
 ### 1. Key Considerations

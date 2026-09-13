@@ -249,6 +249,8 @@ class SmartBuilding:
 
 **Data volume vs insight:** Sample and aggregate aggressively; only data you can act on justifies its pipeline cost.
 
+> **⚠️ When NOT to stream all telemetry:** high-frequency sensors whose readings nobody acts on — aggregate and filter at the gateway, and store full fidelity only for signals with known consumers.
+
 ## Interview Tips
 
 ### 1. Key Considerations

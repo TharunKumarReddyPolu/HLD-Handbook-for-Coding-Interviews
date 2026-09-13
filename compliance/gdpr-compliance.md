@@ -284,6 +284,8 @@ class PrivacyByDesign:
 
 **Global systems vs regional law:** Residency and transfer rules fragment otherwise-global architectures; plan data domains per jurisdiction.
 
+> **⚠️ When NOT to rely on crypto-shredding alone:** data already copied into analytics derivatives and third-party systems — erasure design must cover every downstream copy, or the right-to-erasure flow is fiction.
+
 ## Interview Tips
 
 ### 1. Key Considerations

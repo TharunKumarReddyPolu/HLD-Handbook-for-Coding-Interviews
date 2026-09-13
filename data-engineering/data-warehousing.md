@@ -181,6 +181,8 @@ GROUP BY customer_segment;
 
 **Precompute vs compute-on-read:** Materialized aggregates accelerate dashboards but must be maintained; on-the-fly aggregation stays flexible.
 
+> **⚠️ When NOT to build a dimensional warehouse:** pre-product startups (a well-organized lakehouse may suffice), and operational lookups that belong in OLTP stores — warehouses answer analytical questions, not row-level reads.
+
 ## Interview Tips
 
 ### 1. Key Considerations

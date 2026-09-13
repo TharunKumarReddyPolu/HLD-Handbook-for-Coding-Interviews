@@ -395,6 +395,8 @@ class CostAllocator:
 
 **Visibility before control:** Tagging and cost allocation are prerequisites — you cannot optimize what you cannot attribute.
 
+> **⚠️ When NOT to commit:** volatile workloads, architectures mid-migration, and spend you can't attribute — commitments convert forecasting error into stranded cost; commit only the stable baseline.
+
 ## Interview Tips
 
 ### 1. Key Considerations

@@ -239,6 +239,8 @@ class APISecurityMiddleware:
 
 **Scope granularity:** Fine-grained scopes enforce least privilege but complicate consent screens and token management.
 
+> **⚠️ When NOT to centralize identity:** a single small app with few users, air-gapped or embedded systems, and flows where IdP downtime must not take the product down (cache token validation locally).
+
 ## Interview Tips
 
 ### 1. Key Considerations

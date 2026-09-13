@@ -228,6 +228,8 @@ class GlobalLoadBalancer:
 
 **Cost:** Egress fees and duplicated platforms usually make multi-cloud more expensive, not less.
 
+> **⚠️ When NOT to go multi-cloud:** absent a regulatory mandate or hard provider-outage requirement — duplicated tooling, split expertise, and egress costs usually outweigh negotiating leverage; portable IaC is the cheaper hedge.
+
 ## Interview Tips
 
 ### 1. Key Considerations

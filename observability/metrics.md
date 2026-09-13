@@ -201,6 +201,8 @@ class ResourceMonitor:
 
 **Latency vs durability in collection:** In-memory agent buffers are fast and lossy; durable queues survive restarts at a cost.
 
+> **⚠️ When NOT to increase resolution:** metrics that vary slowly (queue depth, config), non-critical jobs, and labels with unbounded cardinality (user IDs, URLs) — aggregate or histogram them before they take down the metrics store.
+
 ## Interview Tips
 
 ### 1. Key Considerations

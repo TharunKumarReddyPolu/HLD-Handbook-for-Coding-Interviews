@@ -4,7 +4,7 @@
 - [Introduction](#introduction)
 - [Vertical Scaling (Scale Up)](#vertical-scaling)
 - [Horizontal Scaling (Scale Out)](#horizontal-scaling)
-- [Comparison](#comparison)
+- [Trade-offs](#trade-offs)
 - [Implementation Strategies](#implementation-strategies)
 - [Real-World Examples](#real-world-examples)
 - [Interview Tips](#interview-tips)
@@ -101,7 +101,7 @@ graph LR
    - CAP theorem trade-offs
    - Complex deployment
 
-## Comparison
+## Trade-offs
 
 ### Feature Comparison
 | Feature | Vertical Scaling | Horizontal Scaling |
@@ -126,6 +126,8 @@ graph LR
 - Microservices architecture
 - High availability requirements
 - Cloud-native applications
+
+> **⚠️ When NOT to scale out:** stateful components that haven't been refactored for distribution (scaling out just spreads the problem), load well within current headroom (scale up first), and license-bound or single-threaded software.
 
 ## Implementation Strategies
 

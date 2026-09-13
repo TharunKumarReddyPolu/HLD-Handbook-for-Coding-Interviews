@@ -242,6 +242,8 @@ class PipelineQuality:
 
 **Manual review vs automation:** Human-in-the-loop handles edge cases well but does not scale; automate the common, escalate the rare.
 
+> **⚠️ When NOT to validate at ingestion:** exploratory pipelines where schema rigidity blocks new sources, and late-arriving reference data unavailable upstream — move checks downstream, but add contracts before data feeds billing.
+
 ## Interview Tips
 
 ### 1. Key Considerations

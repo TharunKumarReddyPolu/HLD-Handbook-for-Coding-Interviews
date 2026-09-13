@@ -257,6 +257,8 @@ def handler(event, context):
 
 **Isolation vs utilization:** Bulkheads cap blast radius by sacrificing shared-capacity efficiency.
 
+> **⚠️ When NOT to retry:** non-idempotent operations without idempotency keys (double charges), permanent failures (validation errors), and paths already inside a retry budget — blind retries turn a blip into a self-inflicted outage.
+
 ## Interview Tips
 
 ### 1. Key Considerations

@@ -260,6 +260,8 @@ class APIEvolution:
 
 **Contract breadth vs maintenance:** Exhaustive contracts catch more but require updating for every intentional change.
 
+> **⚠️ When NOT to adopt contract testing:** single-team services where integration tests are cheap, stable public APIs with rare changes, and early prototypes where contracts would churn daily.
+
 ## Interview Tips
 
 ### 1. Key Considerations

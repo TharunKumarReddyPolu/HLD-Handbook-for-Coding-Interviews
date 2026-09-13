@@ -210,6 +210,8 @@ http {
 
 **Health checking sensitivity:** Aggressive checks remove flaky servers quickly but can thrash the pool; passive checks add no probing load but react slowly.
 
+> **⚠️ When NOT to use round robin:** heterogeneous server capacities (use weighted), long-lived uneven requests (least connections), and stateful apps that need session affinity without external session storage.
+
 ## Interview Tips
 
 ### 1. Design Considerations

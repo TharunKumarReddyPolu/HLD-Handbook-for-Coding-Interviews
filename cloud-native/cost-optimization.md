@@ -239,6 +239,8 @@ class ProductionOptimizer:
 
 **Optimization effort vs savings:** FinOps effort follows Pareto — a few levers (rightsizing, storage tiering, idle cleanup) capture most savings.
 
+> **⚠️ When NOT to commit capacity:** volatile or experimental workloads, architectures likely to migrate, and spend you can't forecast — spot and on-demand absorb uncertainty that commitments turn into stranded spend.
+
 ## Interview Tips
 
 ### 1. Key Considerations

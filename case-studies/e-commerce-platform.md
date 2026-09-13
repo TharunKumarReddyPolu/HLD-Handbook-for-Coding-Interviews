@@ -297,6 +297,8 @@ class ArchitectureEvolution:
 
 **Scale path:** Start relational, add caches, then CQRS for reads — each step defers complexity until traffic justifies it.
 
+> **⚠️ When NOT to copy this architecture day one:** early-stage stores can run a modular monolith with caches — adopt this shape when traffic and team count justify the seams (the scaling path above does exactly that).
+
 ## Interview Tips
 
 ### 1. Key Discussion Points

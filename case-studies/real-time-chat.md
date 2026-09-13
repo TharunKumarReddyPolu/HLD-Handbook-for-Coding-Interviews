@@ -292,6 +292,8 @@ class ReliabilityLessons:
 
 **Presence at scale:** Tracking presence for millions of connections requires heartbeat batching and accepting staleness.
 
+> **⚠️ When NOT to use write-fan-out:** celebrity accounts with millions of followers — pushing to all followers at write time stalls the write; read-fan-out or a hybrid wins there.
+
 ## Interview Tips
 
 ### 1. Key Discussion Points

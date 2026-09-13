@@ -279,6 +279,8 @@ class DatabaseLoadTest:
 
 **Test frequency vs confidence:** Infrequent big tests validate launches; frequent small tests catch regressions as they land.
 
+> **⚠️ When NOT to use fixed-VU load tests:** spike and queueing scenarios where arrival rate matters — closed models hide collapse because virtual users wait politely instead of piling up like real traffic.
+
 ## Interview Tips
 
 ### 1. Key Considerations

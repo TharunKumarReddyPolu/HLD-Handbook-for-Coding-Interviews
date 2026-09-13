@@ -234,6 +234,8 @@ class AnomalyDetector:
 
 **State size vs query speed:** Keeping more state (windows, joins) speeds answers but increases recovery time and memory cost.
 
+> **⚠️ When NOT to stream:** dashboards tolerating minutes of delay (micro-batching is cheaper and simpler), low-volume data where a scheduled query suffices, and metrics computable at query time — reserve true streaming for decisions that lose value in seconds.
+
 ## Interview Tips
 
 ### 1. Key Considerations

@@ -407,6 +407,8 @@ class CSRFProtection:
 
 **Defense in depth:** No single control holds; layered controls assume each one fails eventually.
 
+> **⚠️ When NOT to stop at encryption:** encrypted data behind over-broad access is one credential away from breach — pair encryption with least privilege and audit trails, and skip heavy key management for genuinely public data.
+
 ## Interview Tips
 
 ### 1. Key Considerations

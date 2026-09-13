@@ -461,6 +461,8 @@ class GatewayMonitor:
 
 **Availability:** The gateway is on every request path — it must scale horizontally, health-check backends, and degrade gracefully.
 
+> **⚠️ When NOT to add a gateway:** a single service behind one client (a reverse proxy suffices), latency-critical paths that never cross the boundary, and teams that would turn it into a custom-logic dump — gateways hold policy, not business logic.
+
 ## Interview Tips
 
 ### 1. Key Considerations

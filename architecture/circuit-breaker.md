@@ -389,6 +389,8 @@ class ErrorClassifier:
 
 **Where to place breakers:** Per-dependency breakers isolate precisely but multiply configuration; coarse breakers are simpler but blunt.
 
+> **⚠️ When NOT to use a circuit breaker:** dependencies that must succeed for the request to be meaningful (auth checks on a money transfer — fail loudly instead), and low-traffic paths that never accumulate enough samples to trip reliably.
+
 ## Interview Tips
 
 ### 1. Key Considerations

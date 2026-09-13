@@ -270,6 +270,8 @@ class VisionPipeline:
 
 **Training/serving skew:** Divergent pipelines cause silent quality drops; share feature logic where possible.
 
+> **⚠️ When NOT to serve online:** predictions consumed in bulk (batch scoring is 10-100x cheaper), features that change slowly (precompute them), and traffic too low to amortize GPU serving.
+
 ## Interview Tips
 
 ### 1. Key Considerations

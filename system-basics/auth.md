@@ -289,6 +289,8 @@ def admin_route():
 
 **Centralization vs autonomy:** A central authorization service gives consistent policy but adds a dependency; service-level checks are resilient but drift over time.
 
+> **⚠️ When NOT to use JWTs:** when you need instant revocation (stolen token, banned user, logout-everywhere), strict per-session audit, or sessions shorter than a token's natural lifetime — a server-side session store serves these better despite the lookup cost.
+
 ## Interview Tips
 
 ### 1. Key Considerations

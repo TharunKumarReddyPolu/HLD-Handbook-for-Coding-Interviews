@@ -243,6 +243,8 @@ class GraphQLSecurity:
 
 **Security through obscurity vs standards:** Standard schemes (OAuth2) are audited and well-tooled; custom schemes are predictable only to their authors.
 
+> **⚠️ When NOT to rely on JWTs alone:** admin and high-value operations needing instant revocation, and zero-trust service meshes where per-request token checks pair with mTLS — a stolen long-lived JWT is a skeleton key.
+
 ## Interview Tips
 
 ### 1. Key Considerations

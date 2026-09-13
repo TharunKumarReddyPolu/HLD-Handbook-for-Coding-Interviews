@@ -254,6 +254,8 @@ components:
 
 **Flexibility vs safety:** Rich query capabilities (GraphQL, filters) improve client experience but increase backend cost and abuse surface.
 
+> **⚠️ When NOT to use REST:** high-frequency internal service-to-service calls where latency dominates (gRPC), or clients that need to slice and dice large nested graphs (GraphQL). Also avoid deep resource hierarchies when clients always need cross-entity views.
+
 ## Interview Tips
 
 ### 1. Common Interview Questions

@@ -230,6 +230,8 @@ class ErrorTracker:
 
 **Write path impact:** Synchronous remote logging adds latency; async buffers risk losing recent logs on crash — choose per criticality.
 
+> **⚠️ When NOT to log more:** PII-heavy payloads (compliance exposure), hot loops at high QPS (cost and I/O contention), and stable services whose logs nobody has opened in months — raise levels, sample, and let traces carry flow context.
+
 ## Interview Tips
 
 ### 1. Key Considerations

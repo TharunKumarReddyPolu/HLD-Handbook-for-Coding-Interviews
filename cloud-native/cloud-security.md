@@ -245,6 +245,8 @@ class DataSecurity:
 
 **Key management depth:** Customer-managed keys add control and auditability at the cost of rotation, recovery, and availability responsibilities.
 
+> **⚠️ When NOT to over-restrict IAM:** sandbox and experiment accounts where velocity matters more than blast radius — apply least privilege in production, and automate guardrails instead of routing everything through manual tickets.
+
 ## Interview Tips
 
 ### 1. Key Considerations

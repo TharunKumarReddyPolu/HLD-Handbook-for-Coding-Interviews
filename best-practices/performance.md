@@ -358,6 +358,8 @@ class MemoryOptimizer:
 
 **Premature optimization vs measured optimization:** Measure first, optimize the top of the profile, and re-measure — intuition about bottlenecks is usually wrong.
 
+> **⚠️ When NOT to cache first:** unmeasured paths (profile first — the bottleneck is rarely where you think), write-heavy data with low reuse, and correctness-critical reads — caching is the most popular optimization and the most often premature.
+
 ## Interview Tips
 
 ### 1. Key Considerations

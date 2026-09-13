@@ -245,6 +245,8 @@ class Whiteboard:
 
 **Richness of types:** Text CRDTs are mature; arbitrary rich objects (canvases, tables) push algorithm frontiers — budget research time.
 
+> **⚠️ When NOT to use CRDTs:** when a single authoritative server is acceptable (server-serialized ops or OT are simpler), documents are small-team and short-lived, and metadata growth bloats storage for rarely-offline users.
+
 ## Interview Tips
 
 ### 1. Key Considerations

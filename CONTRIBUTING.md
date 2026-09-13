@@ -189,6 +189,7 @@ Links to primary sources, docs, and deep dives
    - Verify all internal links resolve
    - Verify the topic is listed in the category README and the main README
    - Check that diagrams render correctly in the GitHub preview
+   - CI runs `scripts/docs-lint.sh` — every topic file must contain the required sections (**Table of Contents**, **Trade-offs**, **Interview Tips**), so follow the topic template above
 
 ## 📁 File Structure
 

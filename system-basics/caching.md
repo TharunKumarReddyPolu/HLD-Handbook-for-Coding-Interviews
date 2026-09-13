@@ -241,6 +241,8 @@ location / {
 
 **Memory vs cost:** Larger caches raise hit rates with diminishing returns; monitor hit rate to size the cache economically.
 
+> **⚠️ When NOT to cache:** write-heavy data with low hit rates, data that must be strongly consistent (balances, inventory commitments), and query patterns with poor key locality — invalidation cost then exceeds the read savings.
+
 ## Interview Tips
 
 ### 1. System Design Considerations

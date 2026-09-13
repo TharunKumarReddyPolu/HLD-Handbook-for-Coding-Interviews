@@ -171,6 +171,8 @@ def stream_processor(event):
 
 **Governance:** Loading raw data first (ELT) demands access controls and quality checks downstream; ETL can enforce policy before data lands.
 
+> **⚠️ When NOT to use ELT:** compliance regimes that forbid raw sensitive data landing in the warehouse, and transformations requiring compute the warehouse can't cheaply provide (heavy ML, media processing) — transform before load.
+
 ## Common Use Cases
 
 ### 1. Real-time Analytics

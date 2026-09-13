@@ -275,6 +275,8 @@ spec:
 
 **Fast autoscaling vs stability:** Aggressive scale-up handles spikes quickly but thrashes; stabilize windows smooth it at the cost of brief over/under-provisioning.
 
+> **⚠️ When NOT to use Kubernetes:** a few stateless services that fit managed platforms (Cloud Run, ECS), small teams without ops capacity, and single-region apps where the control plane's flexibility buys nothing — managed PaaS is cheaper to run and to staff.
+
 ## Interview Tips
 
 ### 1. Key Considerations

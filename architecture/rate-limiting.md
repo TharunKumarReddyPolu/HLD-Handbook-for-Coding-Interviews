@@ -402,6 +402,8 @@ class DynamicRateLimiter:
 
 **Local vs distributed limits:** Local limits are fast but drift per node; centralized counters (Redis) are accurate but add a round trip and a dependency.
 
+> **⚠️ When NOT to rate limit at the app layer:** volumetric L3/L4 floods (edge scrubbing handles those before requests arrive), and fully trusted internal meshes where a simple per-dependency concurrency limiter beats full token-bucket machinery.
+
 ## Interview Tips
 
 ### 1. Key Considerations

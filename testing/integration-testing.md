@@ -257,6 +257,8 @@ class ServiceCommunicationTest:
 
 **Mock maintenance:** Doubles are code that rots — generate from contracts/schemas rather than hand-writing.
 
+> **⚠️ When NOT to mock:** auth, payment, and persistence flows where mock drift hides real breakage — run those against real dependencies in a scheduled, gated suite.
+
 ## Interview Tips
 
 ### 1. Key Considerations

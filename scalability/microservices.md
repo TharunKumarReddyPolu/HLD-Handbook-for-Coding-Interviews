@@ -287,6 +287,8 @@ class ServiceTest:
 
 **Data ownership vs cross-service queries:** Per-service databases remove coupling but force sagas/API composition where joins used to be free.
 
+> **⚠️ When NOT to use microservices:** small teams, unclear domain boundaries, and early products still searching for their shape — a modular monolith gives you the boundaries without the network tax, and services can be extracted later.
+
 ## Interview Tips
 
 ### 1. Key Considerations

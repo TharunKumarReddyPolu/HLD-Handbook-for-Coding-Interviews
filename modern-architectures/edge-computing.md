@@ -233,6 +233,8 @@ class IndustrialEdge:
 
 **Fleet management:** Thousands of edge nodes turn deployment, security patching, and monitoring into a first-class design problem.
 
+> **⚠️ When NOT to compute at the edge:** latency-insensitive workloads (centralize for operability), stateful logic needing strong consistency with the core, and fleets too small to justify management overhead.
+
 ## Interview Tips
 
 ### 1. Key Considerations

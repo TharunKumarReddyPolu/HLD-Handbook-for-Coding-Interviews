@@ -233,6 +233,8 @@ class NFTMarketplace:
 
 **Finality vs availability:** Probabilistic finality stays available under partitions; absolute finality stalls rather than forks.
 
+> **⚠️ When NOT to use a blockchain:** when participants trust one party or a consortium coordinates easily (a database is faster and cheaper), data must stay private, and tamper-evidence isn't required — most proposed use cases fail this test.
+
 ## Interview Tips
 
 ### 1. Key Considerations

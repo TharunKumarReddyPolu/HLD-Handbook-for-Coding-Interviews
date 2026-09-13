@@ -131,6 +131,8 @@ graph LR
 
 **Coordination vs autonomy:** Consensus and distributed locks give correctness but serialize work; coordination-free designs scale better but need conflict resolution.
 
+> **⚠️ When NOT to use eventual consistency:** flows where a stale read causes real damage — payments, inventory commitments, permission checks. And never use it as an excuse to skip conflict-resolution design.
+
 ## Interview Tips
 
 ### 1. System Design Questions

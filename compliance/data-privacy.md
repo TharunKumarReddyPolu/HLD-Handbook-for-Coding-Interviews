@@ -264,6 +264,8 @@ class DataSubjectRights:
 
 **Compliance by design vs retrofit:** Embedding privacy controls early costs less than bolting them on after a regulator (or breach) forces the issue.
 
+> **⚠️ When NOT to encrypt-and-call-it-private:** encryption without key discipline is theater — for public data it adds cost without risk reduction, and for PII it must pair with access controls and minimization, not replace them.
+
 ## Interview Tips
 
 ### 1. Key Considerations

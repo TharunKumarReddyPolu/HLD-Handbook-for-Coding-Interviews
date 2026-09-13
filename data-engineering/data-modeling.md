@@ -211,6 +211,8 @@ GROUP BY 1, 2;
 
 **Query-first vs source-first modeling:** Modeling for known queries is fast but brittle to new questions; source-faithful models age better.
 
+> **⚠️ When NOT to denormalize:** write-heavy entities with many update paths (anomalies multiply), fields that change together, and ad hoc analytics — denormalize hot read paths only, derived from a normalized source of truth.
+
 ## Interview Tips
 
 ### 1. Key Considerations

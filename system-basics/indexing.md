@@ -225,6 +225,8 @@ WHERE email = 'user@example.com';
 
 **Many indexes vs few:** More indexes cover more queries but multiply write amplification; measure query patterns before adding.
 
+> **⚠️ When NOT to add an index:** low-selectivity columns (few distinct values), tiny tables where full scans are faster, and write-heavy tables already paying too much index maintenance — every index is a tax on writes.
+
 ## Interview Tips
 
 ### 1. Key Considerations

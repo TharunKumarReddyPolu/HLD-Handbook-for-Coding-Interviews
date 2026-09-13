@@ -348,6 +348,8 @@ class EventMonitor:
 
 **Ordering vs throughput:** Strict per-key ordering limits parallelism; many designs relax ordering and make consumers idempotent instead.
 
+> **⚠️ When NOT to go event-driven:** simple request/response flows, strict read-after-write requirements, and small teams that must debug synchronous traces — an event mesh multiplies indirection faster than it buys decoupling.
+
 ## Interview Tips
 
 ### 1. Key Considerations

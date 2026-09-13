@@ -237,6 +237,8 @@ class InfraSecrets:
 
 **Centralization vs blast radius:** One vault is a high-value target with strong controls; scattered secrets are weaker targets with no audit trail.
 
+> **⚠️ When NOT to use environment variables:** anything past local development — env vars leak through logs, crash dumps, child processes, and CI artifacts; a vault or platform secret store with rotation is the production floor.
+
 ## Interview Tips
 
 ### 1. Key Considerations

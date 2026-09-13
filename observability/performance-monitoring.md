@@ -231,6 +231,8 @@ class DatabaseMonitor:
 
 **Alert sensitivity:** Tight monitoring thresholds catch regressions early but page more; tune against SLO error budgets.
 
+> **⚠️ When NOT to profile continuously:** environments where the overhead outweighs the insight, and short-lived jobs where sampling never converges — trigger profiling on SLO regression instead.
+
 ## Interview Tips
 
 ### 1. Key Considerations

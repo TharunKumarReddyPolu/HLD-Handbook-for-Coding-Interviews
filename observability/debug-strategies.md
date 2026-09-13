@@ -249,6 +249,8 @@ class ErrorAnalyzer:
 
 **Tool sprawl vs gaps:** One unified platform eases correlation but couples teams; too many specialized tools slow the hunt.
 
+> **⚠️ When NOT to instrument deeper:** before reproducing the issue and forming a hypothesis — adding telemetry to a not-yet-understood problem measures everything and explains nothing. Reproduce, hypothesize, then instrument the suspect path.
+
 ## Interview Tips
 
 ### 1. Key Considerations

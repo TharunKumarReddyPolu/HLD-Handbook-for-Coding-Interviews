@@ -332,6 +332,8 @@ class PartitionMonitor:
 
 **Physical vs logical partitioning:** Logical buckets (many per node) make future moves cheap at the cost of routing indirection.
 
+> **⚠️ When NOT to use hash partitioning:** workloads dominated by range scans or time-ordered queries — hashing scatters them across every partition; range or time-bucketed composite schemes fit better.
+
 ## Interview Tips
 
 ### 1. Key Considerations

@@ -259,6 +259,8 @@ class ResourceChaos:
 
 **Frequency vs fatigue:** Regular small experiments normalize failure handling; excessive chaos breeds alarm fatigue.
 
+> **⚠️ When NOT to run production chaos:** systems without steady-state metrics, automated rollback, and clear abort ownership — injecting failure into an unobservable system is just an outage with extra steps. Start in staging.
+
 ## Interview Tips
 
 ### 1. Key Considerations

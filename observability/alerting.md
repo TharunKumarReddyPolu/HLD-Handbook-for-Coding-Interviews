@@ -230,6 +230,8 @@ class InfrastructureAlerts:
 
 **Escalation depth vs response speed:** Deep escalation chains protect sleep but delay response; tune with real incident data, not policy defaults.
 
+> **⚠️ When NOT to alert on causes:** CPU, memory, and disk alerts that page humans for symptoms users never feel — demote them to tickets or dashboards, and page only on user-facing SLO burn.
+
 ## Interview Tips
 
 ### 1. Key Considerations

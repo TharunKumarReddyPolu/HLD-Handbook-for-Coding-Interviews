@@ -188,6 +188,8 @@ class PartitionHandler:
             self.handle_degraded_operation()
 ```
 
+> **⚠️ When NOT to default to CP:** domains that tolerate brief staleness (feeds, recommendations, caches) — paying availability for consistency you don't need hurts users. Choose per data domain, not per company.
+
 ## Implementation Strategies
 
 ### 1. Eventual Consistency

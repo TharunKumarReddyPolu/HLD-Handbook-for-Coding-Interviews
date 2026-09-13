@@ -5,7 +5,7 @@
 - [The Interview Design Framework](#the-interview-design-framework)
 - [Core Design Principles](#core-design-principles)
 - [Component Selection Guidelines](#component-selection-guidelines)
-- [Trade-off Analysis](#trade-off-analysis)
+- [Trade-offs](#trade-offs)
 - [Design Review Checklist](#design-review-checklist)
 - [Common Pitfalls](#common-pitfalls)
 - [Interview Tips](#interview-tips)
@@ -111,7 +111,7 @@ Reads usually outnumber writes 10:1 to 100:1 — replicas, caches, and CDNs solv
 - **No multi-region until required:** it multiplies cost and consistency complexity
 - **No event-driven everywhere:** debuggability drops; use it where decoupling pays
 
-## Trade-off Analysis
+## Trade-offs
 
 Every design decision is a trade-off — saying so explicitly is what separates strong candidates.
 
@@ -139,6 +139,8 @@ def justify_choice(option, alternatives):
         "revisit_when": "<trigger condition>",
     }
 ```
+
+> **⚠️ When NOT to follow the upgrade paths:** when requirements don't demand them — the "first choice" column is a floor, not a checklist; every component you add must trace back to a stated requirement.
 
 ## Design Review Checklist
 

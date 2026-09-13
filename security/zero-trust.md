@@ -216,6 +216,8 @@ class ApplicationGateway:
 
 **Blast radius:** Zero trust's core win is containment: a stolen credential unlocks less because every call re-verifies.
 
+> **⚠️ When NOT to enforce zero trust everywhere:** legacy systems that can't speak mTLS (wrap them in a gateway instead), low-sensitivity internal tooling, and teams without the operational maturity to run a mesh — stage it by data sensitivity.
+
 ## Interview Tips
 
 ### 1. Key Considerations

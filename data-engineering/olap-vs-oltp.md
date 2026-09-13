@@ -236,6 +236,8 @@ class OLAPUseCase:
 
 **Freshness vs isolation:** Tighter sync means fresher analytics but more load coupling; looser sync protects the transactional system.
 
+> **⚠️ When NOT to reach for an OLAP store:** transactional workloads needing low-latency row-level writes, and datasets small enough that the OLTP database already answers the queries — columnar engines pay off only at scan scale.
+
 ## Interview Tips
 
 ### 1. Key Considerations

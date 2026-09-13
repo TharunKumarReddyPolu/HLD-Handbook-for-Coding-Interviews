@@ -248,6 +248,8 @@ class APITester:
 
 **Automation vs one-offs:** Continuous performance tests catch regressions when cheap; one-off studies answer launch questions.
 
+> **⚠️ When NOT to optimize from micro-benchmarks:** before profiling the full request path — component-level wins routinely vanish at system level (cache effects, contention); benchmark what users actually wait on.
+
 ## Interview Tips
 
 ### 1. Key Considerations

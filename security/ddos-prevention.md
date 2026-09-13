@@ -235,6 +235,8 @@ class APIProtection:
 
 **Secrecy vs resilience:** Hiding origin infrastructure reduces direct-attack surface but is not a control — expect discovery and design for it.
 
+> **⚠️ When NOT to lean on rate limiting alone:** volumetric attacks that exhaust bandwidth before traffic reaches your limiter — edge absorption and upstream scrubbing are the first line; app-layer limits only finish the job.
+
 ## Interview Tips
 
 ### 1. Key Considerations

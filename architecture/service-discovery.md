@@ -389,6 +389,8 @@ class FailureHandler:
 
 **DNS simplicity vs rich routing:** DNS is universal but slow to converge and coarse; dedicated registries add tooling for real-time health and metadata.
 
+> **⚠️ When NOT to run a registry:** a handful of stable services behind DNS or a cloud load balancer, and container platforms (Kubernetes, ECS) that already embed discovery — a separate registry duplicates what the platform provides.
+
 ## Interview Tips
 
 ### 1. Key Considerations

@@ -245,6 +245,8 @@ class NFTMarketplace:
 
 **Cost models:** Every on-chain operation costs users; push computation off-chain and anchor results on-chain.
 
+> **⚠️ When NOT to put logic on-chain:** high-frequency or user-facing computations (gas and latency), private data, and anything needing frequent upgrades — anchor proofs on-chain, compute off-chain.
+
 ## Interview Tips
 
 ### 1. Key Considerations

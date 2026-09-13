@@ -416,6 +416,8 @@ class FailureDetector:
 
 **Failover safety vs availability:** Automatic failover keeps you available but risks split-brain and data loss without careful fencing/quorum.
 
+> **⚠️ When NOT to use async single-leader replication:** writes that cannot survive leader loss (financial ledgers) and geo-distributed workloads needing local writes — use synchronous/quorum replication or multi-leader instead.
+
 ## Interview Tips
 
 ### 1. Key Considerations

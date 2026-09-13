@@ -256,6 +256,8 @@ class DatabaseTracer:
 
 **Context propagation coupling:** Full tracing requires consistent context headers across every service; retrofitting partial coverage yields confusing partial traces.
 
+> **⚠️ When NOT to trace every request:** high-volume healthy paths where head-based sampling captures the shape at 1% of the cost, and systems that can't propagate context consistently — partial tracing yields misleading partial pictures.
+
 ## Interview Tips
 
 ### 1. Key Considerations

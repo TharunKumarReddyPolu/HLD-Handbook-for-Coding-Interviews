@@ -249,6 +249,8 @@ class FeatureRollout:
 
 **Guardrail metrics vs velocity:** Extra guardrail checks catch collateral damage but add analysis overhead — pick a few globally, add locally.
 
+> **⚠️ When NOT to A/B test:** traffic too small to reach significance (tests that run for months rot), obviously reversible fixes (crashes, typos), and safety-critical releases — use holdbacks or staged rollouts instead.
+
 ## Interview Tips
 
 ### 1. Key Considerations

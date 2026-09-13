@@ -438,6 +438,8 @@ class QueueOptimizer:
 
 **Queue depth vs latency:** Buffering smooths spikes but adds delay and hides capacity problems; monitor depth and consumer lag as health signals.
 
+> **⚠️ When NOT to queue:** operations where the user needs the result now (search, checkout pricing), strict end-to-end ordering that fights partitioning, and one-shot CRUD where a queue adds infrastructure without adding decoupling.
+
 ## Interview Tips
 
 ### 1. Key Considerations

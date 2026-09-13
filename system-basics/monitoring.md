@@ -299,6 +299,8 @@ class LogAnalyzer:
 
 **Centralization vs autonomy:** Central metrics/logging gives one place to look but creates a scaling bottleneck of its own.
 
+> **⚠️ When NOT to monitor everything:** unbounded labels and per-request metrics explode cardinality and cost — instrument user-visible symptoms and business-critical paths first; you cannot alert your way out of a bad metric design.
+
 ## Interview Tips
 
 ### 1. Key Considerations

@@ -202,6 +202,8 @@ class EventProcessor:
 
 **Statelessness:** Functions force externalized state (better architecture) at the price of extra round trips to databases and caches.
 
+> **⚠️ When NOT to go serverless:** sustained high-volume compute (provisioned is cheaper), long-running or stateful processes (timeouts, externalized state), hard latency floors (cold starts), and exotic runtimes or kernel access.
+
 ## Interview Tips
 
 ### 1. Key Considerations
