@@ -44,81 +44,24 @@ graph TD
 
 #### Key Components
 1. **WebSocket Handler**
-```python
-class WebSocketHandler:
-    def __init__(self):
-        self.connections = {}
-        self.message_queue = MessageQueue()
-    
-    async def handle_connection(self, user_id, websocket):
-        """Handle new WebSocket connection."""
-        self.connections[user_id] = websocket
-        
-        try:
-            while True:
-                message = await websocket.receive_json()
-                await self.handle_message(user_id, message)
-        except Exception as e:
-            await self.handle_disconnect(user_id)
-    
-    async def handle_message(self, sender_id, message):
-        """Handle incoming message."""
-        # Store message
-        stored_message = await self.store_message(message)
-        
-        # Get recipient connection
-        recipient_socket = self.connections.get(
-            message['recipient_id']
-        )
-        
-        if recipient_socket:
-            # Send directly if online
-            await recipient_socket.send_json(stored_message)
-        else:
-            # Queue for offline delivery
-            await self.message_queue.enqueue(stored_message)
-```
+
+**How it works — Real time delivery:** each server holds a map of `user_id → open socket`. When a message arrives: persist it first, then look up the recipient's socket — deliver directly if the recipient is connected to *this* server, otherwise publish to the message queue so whichever server holds their socket can deliver. On disconnect, remove the mapping. Connections are sticky per server; a routing layer (Redis pub/sub or a dedicated connection registry) bridges users on different servers.
+
+**Back-of-envelope:** 100M daily users × 20 messages/day ≈ 23K messages/sec write throughput; with 1M concurrent sockets per server you need connection-heavy (not CPU-heavy) instances and ~100 servers at peak.
 
 2. **Message Store**
-```python
-class MessageStore:
-    def __init__(self):
-        self.db = Database()
-    
-    async def store_message(self, message):
-        """Store message in database."""
-        message_data = {
-            'id': str(uuid.uuid4()),
-            'sender_id': message['sender_id'],
-            'recipient_id': message['recipient_id'],
-            'content': message['content'],
-            'timestamp': datetime.utcnow(),
-            'status': 'sent'
-        }
-        
-        # Store in database
-        await self.db.messages.insert_one(message_data)
-        
-        # Update conversation
-        await self.update_conversation(message_data)
-        
-        return message_data
-    
-    async def get_conversation(self, user1_id, user2_id):
-        """Get conversation history."""
-        return await self.db.messages.find({
-            '$or': [
-                {
-                    'sender_id': user1_id,
-                    'recipient_id': user2_id
-                },
-                {
-                    'sender_id': user2_id,
-                    'recipient_id': user1_id
-                }
-            ]
-        }).sort('timestamp', -1).limit(50)
-```
+
+**`messages` table:**
+
+| Field | Purpose |
+|-------|---------|
+| `id` | unique message ID (UUID or snowflake) |
+| `sender_id` / `recipient_id` | conversation participants |
+| `content` | message body |
+| `timestamp` | ordering key |
+| `status` | sent → delivered → read |
+
+Conversation history is always queried by participant pair, sorted by `timestamp`, newest first — so partition by conversation (or by one user ID) and index the time column. Say the access pattern before the schema.
 
 ### 2. News Feed System
 Design a news feed system like Facebook
@@ -143,71 +86,18 @@ graph TD
 
 #### Key Components
 1. **Feed Generator**
-```python
-class FeedGenerator:
-    def __init__(self):
-        self.post_service = PostService()
-        self.user_graph = UserGraphService()
-        self.ranking = ContentRanking()
-    
-    async def generate_feed(self, user_id):
-        """Generate user's news feed."""
-        # Get user's connections
-        connections = await self.user_graph.get_connections(
-            user_id
-        )
-        
-        # Get recent posts
-        posts = await self.get_recent_posts(connections)
-        
-        # Rank posts
-        ranked_posts = self.ranking.rank_posts(
-            posts,
-            user_id
-        )
-        
-        return ranked_posts
-    
-    async def get_recent_posts(self, user_ids):
-        """Get recent posts from connections."""
-        tasks = [
-            self.post_service.get_user_posts(user_id)
-            for user_id in user_ids
-        ]
-        
-        posts = await asyncio.gather(*tasks)
-        return self.merge_posts(posts)
-```
+
+**How it works — Pull based feed:** on request, fetch the user's connections from the graph service, gather recent posts from all of them in parallel, merge, and rank. Simple and always fresh, but reads are expensive for users following many accounts.
+
+**Push-based alternative (fan-out on write):** when a user posts, insert the post into every follower's pre-computed feed list — reads become a single sorted fetch. Choose by follower counts: celebrities (millions of followers) use pull, normal users use push; hybrid is what real systems ship.
+
+**Back-of-envelope:** 300M active users × 10 feed refreshes/day × ~50 posts per feed = heavy read amplification — this is why pre-computed feeds live in cache-backed stores rather than being queried per request.
 
 2. **Content Ranking**
-```python
-class ContentRanking:
-    def rank_posts(self, posts, user_id):
-        """Rank posts for user's feed."""
-        scored_posts = []
-        
-        for post in posts:
-            score = self.calculate_score(post, user_id)
-            scored_posts.append((post, score))
-        
-        # Sort by score
-        scored_posts.sort(key=lambda x: x[1], reverse=True)
-        
-        return [post for post, _ in scored_posts]
-    
-    def calculate_score(self, post, user_id):
-        """Calculate post score."""
-        # Factors to consider
-        time_decay = self.get_time_decay(post['timestamp'])
-        relevance = self.get_relevance(post, user_id)
-        engagement = self.get_engagement_score(post)
-        
-        return (
-            0.4 * time_decay +
-            0.4 * relevance +
-            0.2 * engagement
-        )
-```
+
+**How it works — Feed ranking:** score each candidate post as a weighted blend of signals — recency (time decay), relevance to the user (affinity, past interactions), and engagement (likes/comments/reshares). Sort by score, truncate to the first page.
+
+**Worked example:** with weights 0.4 recency + 0.4 relevance + 0.2 engagement, a 1-hour-old post from a close friend (relevance 0.9) scores 0.4×0.8 + 0.4×0.9 + 0.2×0.4 = 0.76 and outranks a viral post (engagement 1.0) from an unfollowed page scoring lower on relevance. State the weights are illustrative — the interview point is *which signals and why*.
 
 ### 3. Distributed Cache
 Design a distributed caching system
@@ -233,144 +123,51 @@ graph TD
 
 #### Key Components
 1. **Cache Router**
-```python
-class CacheRouter:
-    def __init__(self):
-        self.nodes = []
-        self.hash_ring = ConsistentHashRing()
-    
-    async def set(self, key, value, ttl=None):
-        """Set value in cache."""
-        # Get responsible node
-        node = self.hash_ring.get_node(key)
-        
-        try:
-            # Set value in node
-            await node.set(key, value, ttl)
-            
-            # Replicate to backup nodes
-            await self.replicate(key, value, ttl)
-            
-        except NodeError:
-            # Handle node failure
-            await self.handle_node_failure(node)
-            
-            # Retry with new node
-            node = self.hash_ring.get_node(key)
-            await node.set(key, value, ttl)
-    
-    async def get(self, key):
-        """Get value from cache."""
-        # Try primary node
-        node = self.hash_ring.get_node(key)
-        try:
-            return await node.get(key)
-        except NodeError:
-            # Try backup nodes
-            return await self.get_from_backup(key)
-```
+
+**How it works — Routing layer:** map each key to a node with consistent hashing — each key falls between positions on the hash ring, and only K/N keys move when a node joins or leaves. Writes go to the primary node and replicate to the next node on the ring; on node failure the ring is updated and keys re-home to their successor, losing only that node's keys.
+
+**Worked example:** with 3 nodes, losing one makes only ~1/3 of keys miss — a brief cache-penetration spike at the database, which is exactly why you warm the cache and throttle the refill after recovery.
 
 2. **Cache Node**
-```python
-class CacheNode:
-    def __init__(self):
-        self.store = {}
-        self.locks = {}
-    
-    async def set(self, key, value, ttl=None):
-        """Set value with optional TTL."""
-        async with self.get_lock(key):
-            self.store[key] = {
-                'value': value,
-                'expires_at': time.time() + ttl if ttl else None
-            }
-    
-    async def get(self, key):
-        """Get value for key."""
-        entry = self.store.get(key)
-        if not entry:
-            return None
-        
-        # Check expiration
-        if self.is_expired(entry):
-            await self.delete(key)
-            return None
-        
-        return entry['value']
-    
-    def is_expired(self, entry):
-        """Check if entry is expired."""
-        if not entry['expires_at']:
-            return False
-        return time.time() > entry['expires_at']
-```
 
-## Solution Strategies
+**How it works — A single cache node:** an in-memory hash map where every entry carries an optional `expires_at`. Reads check expiry first — expired entries are deleted lazily and return a miss; a background sweeper reclaims memory for keys nobody reads. LRU eviction keeps the working set within the memory budget. Keep nodes dumb; intelligence lives in the routing layer.
 
-### 1. System Components
-```python
-class SystemDesigner:
-    def design_system(self, requirements):
-        """Design system components."""
-        components = {
-            'frontend': self.design_frontend(),
-            'backend': self.design_backend(),
-            'database': self.design_database(),
-            'cache': self.design_cache(),
-            'queue': self.design_queue()
-        }
-        
-        # Add optional components
-        if 'realtime' in requirements:
-            components['websocket'] = self.design_websocket()
-        
-        if 'analytics' in requirements:
-            components['analytics'] = self.design_analytics()
-        
-        return components
-```
+**Interview framing:** a node is Redis in miniature — hash map + TTL + LRU eviction. Name that, then move on to the interesting parts: routing, replication, and failure handling.
+
+## Solution Strategies### 1. System Components
+
+Start with the core five and add components only when a requirement forces them:
+
+| Component | Include when... |
+|----------|-----------------|
+| Load balancer | more than one server behind an API |
+| Database | data must survive restarts |
+| Cache | reads outnumber writes and some keys are hot |
+| Queue | work can be done asynchronously or traffic is spiky |
+| CDN | global audience fetching static assets |
+| WebSocket servers | real-time push is a hard requirement |
+| Analytics pipeline | product decisions depend on event data |
 
 ### 2. Data Flow Design
-```python
-class DataFlowDesigner:
-    def design_data_flow(self, components):
-        """Design system data flow."""
-        flows = []
-        
-        # Add data flows
-        flows.extend(self.design_read_flow(components))
-        flows.extend(self.design_write_flow(components))
-        
-        if 'realtime' in components:
-            flows.extend(
-                self.design_realtime_flow(components)
-            )
-        
-        return flows
-```
+
+Trace two flows explicitly on your diagram before adding anything else:
+
+- **Write path** — client → validation → primary store → (fan-out: cache invalidation, queue events, search indexing)
+- **Read path** — client → cache (hit returns immediately) → database on miss → populate cache
+- **Real-time path** (if required) — event → queue → fan-out workers → persistent connections
+
+Interviewers follow your arrows; label them with the data that moves, not just "calls".
 
 ### 3. Scalability Planning
-```python
-class ScalabilityPlanner:
-    def plan_scalability(self, components):
-        """Plan system scalability."""
-        plans = {
-            'horizontal_scaling': {
-                'strategy': 'add_nodes',
-                'triggers': ['cpu_usage > 70%', 'memory_usage > 80%']
-            },
-            'data_partitioning': {
-                'strategy': 'hash_based',
-                'key': 'user_id'
-            },
-            'caching': {
-                'strategy': 'distributed_cache',
-                'policy': 'lru'
-            }
-        }
-        
-        return plans
-```
+
+Have a growth story ready for each layer:
+
+- **Compute** — horizontal scaling behind a load balancer; add nodes when CPU passes ~70% or memory ~80%
+- **Data** — partition by a high-cardinality key (`user_id` is the usual answer); range-based only if queries need it
+- **Cache** — consistent-hash ring so scaling doesn't flush the cache
+- **Hot spots** — celebrity/fan-out problems get dedicated handling (hybrid feed fan-out, per-key throttling)
+
+State the trigger for each action — interviewers want to hear *when* you scale, not just *that* you can.
 
 ## Best Practices
 

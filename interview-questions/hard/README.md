@@ -44,106 +44,16 @@ graph TD
 
 #### Key Components
 1. **Web Crawler**
-```python
-class WebCrawler:
-    def __init__(self):
-        self.url_queue = asyncio.Queue()
-        self.seen_urls = BloomFilter()
-        self.robots_cache = {}
-    
-    async def crawl(self, start_urls):
-        """Start crawling process."""
-        # Add initial URLs
-        for url in start_urls:
-            await self.url_queue.put(url)
-        
-        # Start crawler workers
-        workers = [
-            asyncio.create_task(self.crawler_worker())
-            for _ in range(self.num_workers)
-        ]
-        
-        await asyncio.gather(*workers)
-    
-    async def crawler_worker(self):
-        """Crawler worker process."""
-        while True:
-            url = await self.url_queue.get()
-            
-            try:
-                # Check robots.txt
-                if not await self.check_robots(url):
-                    continue
-                
-                # Fetch and parse page
-                content = await self.fetch_page(url)
-                parsed = await self.parse_page(content)
-                
-                # Store document
-                await self.store_document(url, parsed)
-                
-                # Extract and queue new URLs
-                new_urls = self.extract_urls(parsed)
-                await self.queue_urls(new_urls)
-                
-            except Exception as e:
-                logger.error(f"Crawl error: {e}")
-            
-            finally:
-                self.url_queue.task_done()
-```
+
+**How it works — Crawl loop:** a distributed URL frontier (queue) feeds worker pools. Each worker: check politeness rules (robots.txt, per-domain rate limits) → fetch → parse and extract links → filter through a deduplication set (a Bloom filter: ~10 bits/URL at 1% false-positive rate, so 100B seen URLs ≈ 125 GB) → push new URLs back to the frontier. Failures re-enqueue with backoff.
+
+**Back-of-envelope:** 10B pages at ~100 KB average ≈ 1 PB of raw content; a 4-week refresh cycle means ~400 pages/sec sustained fetch rate — that drives the worker fleet size and storage layering (hot index in memory/SSD, cold content in object storage).
 
 2. **Search Index**
-```python
-class SearchIndex:
-    def __init__(self):
-        self.index = defaultdict(list)
-        self.document_store = DocumentStore()
-    
-    async def build_index(self, documents):
-        """Build search index."""
-        for doc in documents:
-            # Extract terms
-            terms = self.extract_terms(doc.content)
-            
-            # Calculate term frequencies
-            term_freq = self.calculate_term_freq(terms)
-            
-            # Update index
-            for term, freq in term_freq.items():
-                self.index[term].append({
-                    'doc_id': doc.id,
-                    'frequency': freq,
-                    'position': self.get_positions(term, doc)
-                })
-    
-    async def search(self, query):
-        """Search index for query."""
-        # Parse query
-        terms = self.parse_query(query)
-        
-        # Get matching documents
-        doc_scores = defaultdict(float)
-        
-        for term in terms:
-            postings = self.index.get(term, [])
-            idf = self.calculate_idf(term)
-            
-            for posting in postings:
-                score = self.calculate_score(
-                    posting,
-                    idf,
-                    query
-                )
-                doc_scores[posting['doc_id']] += score
-        
-        # Sort by score
-        return sorted(
-            doc_scores.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )
-```
+
+**How it works — Inverted index:** documents are tokenized into terms; the index maps each term → sorted posting list of (doc ID, term frequency, positions). A query parses into terms, intersects/merges the posting lists, and ranks surviving documents by TF-IDF-style scoring (rare terms are worth more; term frequency boosts; position data enables phrase queries).
+
+**Worked example:** query "distributed systems" → intersect the `distributed` and `systems` posting lists → score matches by combined term weight and proximity → return the top-k by score. Index is sharded across machines (by doc ID), queries fan out to all shards, and a coordinator merges top-k results.
 
 ### 2. Distributed Database
 Design a distributed database system
@@ -169,89 +79,16 @@ graph TD
 
 #### Key Components
 1. **Distributed Transaction Manager**
-```python
-class TransactionManager:
-    def __init__(self):
-        self.transactions = {}
-        self.locks = LockManager()
-    
-    async def begin_transaction(self):
-        """Start new transaction."""
-        txn_id = str(uuid.uuid4())
-        self.transactions[txn_id] = {
-            'status': 'active',
-            'operations': [],
-            'locks': set()
-        }
-        return txn_id
-    
-    async def commit(self, txn_id):
-        """Commit transaction."""
-        txn = self.transactions[txn_id]
-        
-        try:
-            # Prepare phase
-            prepared = await self.prepare_transaction(txn)
-            if not prepared:
-                await self.rollback(txn_id)
-                return False
-            
-            # Commit phase
-            await self.commit_transaction(txn)
-            
-            # Cleanup
-            await self.cleanup_transaction(txn)
-            
-            return True
-            
-        except Exception as e:
-            await self.rollback(txn_id)
-            raise TransactionError(str(e))
-```
+
+**How it works — Two phase commit:** the coordinator collects participating partitions, then runs **prepare** (each participant locks the affected rows and votes yes/no — durable, but not yet visible) followed by **commit** (all yes votes → write the commit record and release locks; any no or timeout → rollback everywhere). The commit point is the instant every participant has agreed to commit.
+
+**Trade-off to state:** 2PC blocks if the coordinator dies mid-prepare — participants hold locks until recovery. Discuss the alternatives: asynchronous compensation (sagas) when you can invert operations, or single-shard transactions when the schema allows routing a transaction to one partition.
 
 2. **Consensus Manager**
-```python
-class ConsensusManager:
-    def __init__(self):
-        self.nodes = []
-        self.leader = None
-        self.term = 0
-    
-    async def propose_value(self, value):
-        """Propose value to cluster."""
-        if not self.is_leader():
-            raise NotLeaderError()
-        
-        # Create proposal
-        proposal = {
-            'term': self.term,
-            'value': value,
-            'leader': self.leader
-        }
-        
-        # Get quorum
-        responses = await self.request_votes(proposal)
-        if not self.has_quorum(responses):
-            raise QuorumError()
-        
-        # Commit value
-        await self.commit_value(proposal)
-        
-        return True
-    
-    async def request_votes(self, proposal):
-        """Request votes from nodes."""
-        futures = [
-            node.vote(proposal)
-            for node in self.nodes
-            if node != self.leader
-        ]
-        
-        return await asyncio.gather(
-            *futures,
-            return_exceptions=True
-        )
-```
+
+**How it works — Raft style consensus:** all writes route to the leader for the current term. The leader appends the proposal to its log and requests votes (AppendEntries) from followers; once a majority acknowledges, the entry is committed and applied. Leaders heart-beat periodically; missed heartbeats trigger an election with randomized timeouts to avoid split votes.
+
+**Why majority matters:** with N nodes you tolerate ⌊(N−1)/2⌋ failures — a 5-node cluster survives 2. State the read-options trade-off: linearizable reads go through the leader/quorum, stale-but-fast reads go to any follower.
 
 ### 3. Video Streaming Platform
 Design a video streaming platform like YouTube
@@ -276,174 +113,52 @@ graph TD
 
 #### Key Components
 1. **Video Processing Pipeline**
-```python
-class VideoProcessor:
-    def __init__(self):
-        self.storage = StorageService()
-        self.transcoder = TranscodingService()
-        self.cdn = CDNService()
-    
-    async def process_video(self, video_id, file_path):
-        """Process uploaded video."""
-        try:
-            # Store original
-            original_url = await self.storage.store(
-                video_id,
-                file_path
-            )
-            
-            # Create transcoding jobs
-            jobs = await self.create_transcode_jobs(
-                video_id,
-                original_url
-            )
-            
-            # Wait for transcoding
-            results = await self.wait_for_transcoding(jobs)
-            
-            # Upload to CDN
-            cdn_urls = await self.upload_to_cdn(
-                video_id,
-                results
-            )
-            
-            return cdn_urls
-            
-        except Exception as e:
-            await self.handle_processing_error(
-                video_id,
-                e
-            )
-```
+
+**How it works — Upload to playback:** upload lands in object storage → the storage event enqueues transcoding jobs → a worker fleet encodes the original into a bitrate ladder (e.g., 1080p/720p/480p/240p), splitting each rendition into small segments → renditions publish to the CDN → metadata (title, duration, thumbnail, availability) writes to the metadata store only after all renditions succeed.
+
+**Back-of-envelope:** 500 hours uploaded/minute ≈ 8 videos/sec; a 10-minute video transcodes into ~6 renditions, so the fleet must sustain ~50 concurrent encode jobs per upload rate — sized from video duration distribution, not guesswork. Failures retry with the job queue; unprocessable videos dead-letter after N attempts.
 
 2. **Recommendation Engine**
-```python
-class RecommendationEngine:
-    def __init__(self):
-        self.user_model = UserModel()
-        self.content_model = ContentModel()
-        self.ranking = RankingModel()
-    
-    async def get_recommendations(self, user_id):
-        """Get video recommendations."""
-        # Get user features
-        user_features = await self.user_model.get_features(
-            user_id
-        )
-        
-        # Get candidate videos
-        candidates = await self.get_candidates(user_id)
-        
-        # Score candidates
-        scored_videos = []
-        for video in candidates:
-            score = await self.score_video(
-                video,
-                user_features
-            )
-            scored_videos.append((video, score))
-        
-        # Rank and diversify
-        recommendations = self.ranking.rank_videos(
-            scored_videos
-        )
-        
-        return recommendations
-    
-    async def score_video(self, video, user_features):
-        """Score video for user."""
-        # Get video features
-        video_features = await self.content_model.get_features(
-            video.id
-        )
-        
-        # Calculate relevance score
-        relevance = self.calculate_relevance(
-            user_features,
-            video_features
-        )
-        
-        # Get engagement signals
-        engagement = await self.get_engagement_signals(
-            video.id
-        )
-        
-        # Calculate final score
-        return self.combine_scores(
-            relevance,
-            engagement
-        )
-```
+
+**How it works — Two stage retrieval:** stage 1 (candidate generation) cheaply narrows millions of videos to a few hundred using user features (watch history, subscriptions) and candidate sources (trending, similar-to-watched); stage 2 (ranking) scores those candidates with an expensive model blending predicted watch probability, engagement, and freshness, then diversifies the final list.
+
+**Interview framing:** the system-design content is the architecture around the models — feature stores, offline batch training vs online serving, A/B testing hooks, and keeping recommendation latency under ~200 ms by precomputing candidate pools. You are not asked to derive the model itself.
 
 ## Solution Strategies
 
 ### 1. System Architecture
-```python
-class SystemArchitect:
-    def design_system(self, requirements):
-        """Design large-scale system."""
-        architecture = {
-            'frontend': self.design_frontend(),
-            'backend': self.design_backend(),
-            'storage': self.design_storage(),
-            'processing': self.design_processing(),
-            'delivery': self.design_delivery()
-        }
-        
-        # Add specialized components
-        if 'ml' in requirements:
-            architecture['ml'] = self.design_ml_system()
-        
-        if 'analytics' in requirements:
-            architecture['analytics'] = self.design_analytics()
-        
-        return architecture
-```
+
+Anchor every hard-question architecture in five planes, then justify additions:
+
+| Plane | Components |
+|-------|-----------|
+| Ingress | CDN, API gateway, load balancers |
+| Stateless services | the business logic, horizontally scalable |
+| State / storage | primary store, cache tier, object storage, search index |
+| Async processing | queues, workers, batch pipelines |
+| Cross-cutting | config, service discovery, observability |
+
+Add specialized subsystems (ML serving, analytics, real-time stream processing) only when a requirement names them — and say why.
 
 ### 2. Scalability Design
-```python
-class ScalabilityDesigner:
-    def design_scalability(self, components):
-        """Design system scalability."""
-        strategies = {
-            'data_partitioning': {
-                'strategy': 'consistent_hashing',
-                'replication_factor': 3
-            },
-            'load_balancing': {
-                'strategy': 'consistent_hashing',
-                'health_checking': True
-            },
-            'caching': {
-                'strategy': 'multilevel_cache',
-                'layers': ['client', 'cdn', 'application']
-            }
-        }
-        
-        return strategies
-```
+
+The hard questions expect a scaling story per layer:
+
+- **Data partitioning** — consistent hashing with a replication factor of 3; call out hot-partition handling
+- **Load balancing** — L4 for connection scale, L7 for content-aware routing, health-checked
+- **Caching** — multilevel: client → CDN → application cache → database buffers; state the invalidation strategy for each layer
+- **Backpressure** — queues absorb spikes; drop or degrade gracefully past a saturation point instead of collapsing
 
 ### 3. Performance Optimization
-```python
-class PerformanceOptimizer:
-    def optimize_system(self, components):
-        """Design performance optimizations."""
-        optimizations = {
-            'caching': self.design_caching(),
-            'indexing': self.design_indexing(),
-            'queuing': self.design_queuing(),
-            'batching': self.design_batching()
-        }
-        
-        # Add monitoring
-        optimizations['monitoring'] = {
-            'metrics': self.define_metrics(),
-            'alerts': self.define_alerts(),
-            'dashboards': self.define_dashboards()
-        }
-        
-        return optimizations
-```
+
+Pull optimizations from a standard checklist, each with the symptom it fixes:
+
+- **Latency** — cache hot paths, parallelize fan-out calls, move work async
+- **Throughput** — batch writes, connection pooling, index the real access patterns
+- **Tail latency (p99)** — hedged requests, timeouts + retries with jitter, isolate noisy neighbors (bulkheads)
+- **Feedback loop** — metrics for the paths above, alerts on SLO burn rate, dashboards that show user-facing latency rather than machine stats
+
+Name the metric you optimize and the target — "p99 under 200 ms" beats "make it fast".
 
 ## Best Practices
 

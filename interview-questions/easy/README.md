@@ -41,48 +41,24 @@ graph TD
 
 #### Key Components
 1. **URL Generation Service**
-```python
-class URLShortener:
-    def __init__(self):
-        self.base62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    
-    def encode(self, num):
-        """Encode number to base62."""
-        if num == 0:
-            return self.base62[0]
-        
-        arr = []
-        base = len(self.base62)
-        while num:
-            num, rem = divmod(num, base)
-            arr.append(self.base62[rem])
-        arr.reverse()
-        return ''.join(arr)
-    
-    def create_short_url(self, url):
-        """Create short URL."""
-        # Store URL in database
-        url_id = self.store_url(url)
-        
-        # Generate short code
-        short_code = self.encode(url_id)
-        
-        return f"http://short.url/{short_code}"
-```
+
+**How it works — Short code generation:** each new URL gets a monotonically increasing ID from the database; encode that ID in base62 (digits + lower + upper case) to produce the short code. ID 1 → `1`, ID 62 → `10`, ID 3844 → `100`. Seven base62 characters give 62⁷ ≈ 3.5 trillion codes — far more than any realistic workload.
+
+**Worked example:** store the long URL → row gets ID 1,000,000 → encode as `4C92` → serve `https://short.url/4C92`. Redirects are a single lookup of the short code, ideally served from cache.
 
 2. **Database Schema**
-```sql
-CREATE TABLE urls (
-    id BIGSERIAL PRIMARY KEY,
-    original_url TEXT NOT NULL,
-    short_code VARCHAR(10) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP,
-    user_id INTEGER REFERENCES users(id)
-);
 
-CREATE INDEX idx_short_code ON urls(short_code);
-```
+**`urls` table:**
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | BIGINT, primary key | monotonic ID, also the base62 source |
+| `original_url` | TEXT | the destination |
+| `short_code` | VARCHAR(10), unique | the lookup key for redirects |
+| `created_at` | TIMESTAMP | audit trail |
+| `expires_at` | TIMESTAMP, nullable | optional TTL for cleanup |
+
+The redirect path only ever queries by `short_code` — that single unique index is what matters. Say so in the interview.
 
 ### 2. Rate Limiter
 Design a rate limiter for an API
@@ -102,36 +78,11 @@ graph TD
 ```
 
 #### Key Components
-1. **Token Bucket Implementation**
-```python
-class TokenBucket:
-    def __init__(self, capacity, refill_rate):
-        self.capacity = capacity
-        self.tokens = capacity
-        self.refill_rate = refill_rate
-        self.last_refill = time.time()
-    
-    def consume(self, tokens=1):
-        """Consume tokens from bucket."""
-        self.refill()
-        
-        if self.tokens >= tokens:
-            self.tokens -= tokens
-            return True
-        return False
-    
-    def refill(self):
-        """Refill tokens based on elapsed time."""
-        now = time.time()
-        elapsed = now - self.last_refill
-        new_tokens = elapsed * self.refill_rate
-        
-        self.tokens = min(
-            self.capacity,
-            self.tokens + new_tokens
-        )
-        self.last_refill = now
-```
+1. **Token Bucket Algorithm**
+
+**How it works — Token bucket:** the bucket holds up to `capacity` tokens and refills at `refill_rate` tokens per second. Each request consumes one token: allowed if the bucket is non-empty, rejected (HTTP 429) otherwise. Bursts are absorbed up to the bucket size, then traffic settles to the refill rate. Key knobs: `capacity` (maximum burst) and `refill_rate` (sustained throughput).
+
+**Worked example:** capacity 100, refill 10/sec — a client can fire 100 requests instantly, then averages 10/sec; after going idle for 10 seconds the bucket is full again.
 
 ### 3. Key-Value Store
 Design a simple key-value store
@@ -153,125 +104,44 @@ graph TD
 
 #### Key Components
 1. **Storage Engine**
-```python
-class KeyValueStore:
-    def __init__(self):
-        self.store = {}
-        self.cleanup_thread = Thread(
-            target=self.cleanup_expired
-        )
-    
-    def set(self, key, value, ttl=None):
-        """Set key with optional TTL."""
-        expires_at = None
-        if ttl:
-            expires_at = time.time() + ttl
-        
-        self.store[key] = {
-            'value': value,
-            'expires_at': expires_at
-        }
-    
-    def get(self, key):
-        """Get value for key."""
-        if key not in self.store:
-            return None
-        
-        entry = self.store[key]
-        if self.is_expired(entry):
-            del self.store[key]
-            return None
-        
-        return entry['value']
-    
-    def is_expired(self, entry):
-        """Check if entry is expired."""
-        if not entry['expires_at']:
-            return False
-        return time.time() > entry['expires_at']
-```
+
+**How it works — Key value store:** a hash map gives O(1) `get`/`set`. Entries carry an optional `expires_at`; reads that find an expired entry delete it and return nothing, while a background sweeper reclaims memory from keys nobody reads again. Durability comes from an append-only log replayed on restart — describe that sequence, not the data structure internals.
+
+**Interview framing:** this is Redis in miniature — in-memory hash map + TTL + persistence. Name the real-world analogue and the interviewer will steer you to what they care about (eviction, replication, sharding).
 
 ## Solution Strategies
 
 ### 1. Requirements Analysis
-```python
-class RequirementsAnalyzer:
-    def analyze_requirements(self):
-        """Analyze system requirements."""
-        functional_reqs = [
-            "Core functionality",
-            "Basic operations",
-            "Data persistence"
-        ]
-        
-        non_functional_reqs = [
-            "Performance",
-            "Reliability",
-            "Scalability"
-        ]
-        
-        constraints = [
-            "Time constraints",
-            "Resource limitations",
-            "Technology stack"
-        ]
-        
-        return {
-            'functional': functional_reqs,
-            'non_functional': non_functional_reqs,
-            'constraints': constraints
-        }
-```
+
+Work through three buckets out loud:
+
+- **Functional** — the core operations the system must support (shorten + redirect, get/set, publish/subscribe)
+- **Non-functional** — latency targets, availability, consistency, scale
+- **Constraints** — time budget, team size, existing tech stack
+
+State each assumption explicitly; interviewers grade the assumptions as much as the design.
 
 ### 2. Component Design
-```python
-class ComponentDesigner:
-    def design_components(self, requirements):
-        """Design system components."""
-        components = []
-        
-        # Add required components
-        if 'data_storage' in requirements:
-            components.append(self.design_storage())
-        
-        if 'api' in requirements:
-            components.append(self.design_api())
-        
-        if 'caching' in requirements:
-            components.append(self.design_cache())
-        
-        return components
-```
+
+Choose components driven by the requirements, not by habit:
+
+- Data must persist? → database (pick the access pattern first)
+- Read-heavy with hot keys? → cache in front of the database
+- Public interface? → API layer with authentication and rate limiting
+- Spiky or slow work? → queue that decouples producers from consumers
+
+Sketch each component as a box with its inputs and outputs; arrows are the data flow you will be quizzed on.
 
 ### 3. API Design
-```python
-class APIDesigner:
-    def design_api(self):
-        """Design API endpoints."""
-        return {
-            'endpoints': [
-                {
-                    'path': '/api/v1/resource',
-                    'method': 'GET',
-                    'params': ['id', 'filter'],
-                    'response': {
-                        'type': 'object',
-                        'properties': {
-                            'id': 'string',
-                            'data': 'object'
-                        }
-                    }
-                }
-            ],
-            'authentication': {
-                'type': 'bearer',
-                'headers': ['Authorization']
-            },
-            'rate_limiting': {
-                'rate': '100/minute'
-            }
-        }
-```
+
+Define the surface before the internals:
+
+- **Endpoints** — resource-oriented paths with their methods (`GET /resource/{id}`, params, filters)
+- **Response shape** — the fields clients depend on, plus typed error responses
+- **Authentication** — bearer tokens in the `Authorization` header
+- **Rate limiting** — per-client limits with `429` and `Retry-After` on breach
+
+A small, consistent API table beats a large ad-hoc one in interviews.
 
 ## Best Practices
 
