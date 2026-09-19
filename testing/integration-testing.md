@@ -1,13 +1,21 @@
-# Integration Testing in Microservices
+# Integration Testing in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Testing Strategies](#testing-strategies)
 - [Implementation Patterns](#implementation-patterns)
 - [Test Infrastructure](#test-infrastructure)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,227 +28,72 @@ Integration testing in microservices verifies the interaction between different 
 4. **Dependency Verification**
 5. **System Reliability**
 
+## Prerequisites & Related Topics
+
+- Builds on: [Contract Testing](contract-testing.md), unit testing discipline
+- Used in: [Microservices](../scalability/microservices.md), [CI/CD](../cloud-native/kubernetes-orchestration.md), Data Pipelines
+- Techniques often combined: testcontainers, ephemeral environments, seeded fixtures, parallel isolation
+- See also: [Testcontainers](https://testcontainers.com/) — real dependencies in CI
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Integration Testing
+
+**Keywords in requirements**: "integration test", "testcontainers", "real database", "wiring", "repository test", "end-to-end"
+**Reach for this when**:
+- Verifying persistence: migrations, queries, transactions against real DB
+- Message flows: publish, consume, DLQ behavior on a real broker
+- Cache and lock semantics with real Redis
+- Pre-merge confidence for services whose bugs live in wiring
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Component test | one service + real deps | the workhorse level |
+| Contract-backed integration | consumer expectations verified | service boundaries |
+| End-to-end smoke | journey through the system | few, critical paths only |
+| Data-pipeline test | input → transformation → output | ETL correctness |
+
+### ❌ When NOT to Use
+
+- Mocking everything and calling it integration — that is a unit test with extra steps
+- Exhaustive coverage at this level — reserve for wiring and high-risk paths
+- Shared mutable environments across CI runs — isolation or flakiness, pick one
+
+
 ## Testing Strategies
 
 ### 1. Consumer-Driven Contracts
-```python
-class ConsumerContractTest:
-    def define_contract(self):
-        """Define service contract"""
-        return {
-            'service': 'order-service',
-            'endpoint': '/api/orders',
-            'method': 'POST',
-            'request': {
-                'required_fields': [
-                    'user_id',
-                    'product_id',
-                    'quantity'
-                ],
-                'optional_fields': [
-                    'notes',
-                    'shipping_preference'
-                ]
-            },
-            'response': {
-                'success': {
-                    'status': 201,
-                    'fields': ['order_id', 'status']
-                },
-                'error': {
-                    'status': 400,
-                    'fields': ['error_code', 'message']
-                }
-            }
-        }
-```
+**How it works — Consumer contract test:** Exercise the "Consumer contract test" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ### 2. Service Virtualization
-```python
-class ServiceMock:
-    def create_mock_service(self):
-        """Create mock service"""
-        return {
-            'endpoints': [
-                {
-                    'path': '/api/products',
-                    'method': 'GET',
-                    'response': {
-                        'status': 200,
-                        'body': self.generate_product_data()
-                    }
-                },
-                {
-                    'path': '/api/inventory',
-                    'method': 'POST',
-                    'response': {
-                        'status': 200,
-                        'body': {'status': 'updated'}
-                    }
-                }
-            ]
-        }
-```
+**How it works — Service mock:** contract-based mocks stand in for dependencies in tests — same interface, canned but realistic responses, latency and failure injection included — so tests exercise our logic, not the dependency's uptime.
 
 ## Implementation Patterns
 
 ### 1. Test Environment
-```python
-class TestEnvironment:
-    async def setup_environment(self):
-        """Setup test environment"""
-        try:
-            # Start required services
-            services = await self.start_services([
-                'order-service',
-                'payment-service',
-                'inventory-service'
-            ])
-            
-            # Setup test data
-            await self.setup_test_data()
-            
-            # Configure service communication
-            await self.configure_service_routes()
-            
-            return services
-        except Exception as e:
-            await self.cleanup()
-            raise EnvironmentSetupError(str(e))
-```
+**How it works — Test environment:** Exercise the "Test environment" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ### 2. Test Data Management
-```python
-class TestDataManager:
-    async def manage_test_data(self):
-        """Manage test data"""
-        try:
-            # Clean existing data
-            await self.clean_test_data()
-            
-            # Generate new data
-            test_data = self.generate_test_data()
-            
-            # Load data into services
-            for service, data in test_data.items():
-                await self.load_service_data(service, data)
-                
-            return test_data
-        finally:
-            # Register cleanup
-            self.register_cleanup(self.clean_test_data)
-```
+**How it works — Test data manager:** Exercise the "Test data manager" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ## Test Infrastructure
 
 ### 1. Service Dependencies
-```python
-class DependencyManager:
-    def manage_dependencies(self):
-        """Manage service dependencies"""
-        return {
-            'services': {
-                'order-service': {
-                    'depends_on': [
-                        'payment-service',
-                        'inventory-service'
-                    ],
-                    'healthcheck': {
-                        'endpoint': '/health',
-                        'interval': '5s',
-                        'retries': 3
-                    }
-                }
-            },
-            'databases': {
-                'order-db': {
-                    'type': 'postgresql',
-                    'version': '13',
-                    'schema': 'order_schema.sql'
-                }
-            },
-            'queues': {
-                'order-events': {
-                    'type': 'rabbitmq',
-                    'exchanges': ['orders', 'notifications']
-                }
-            }
-        }
-```
+**How it works — Dependency manager:** every service pins exact versions of its dependencies, updates are automated PRs with test gates, and known-CVE versions are blocked from deploy — upgrades become routine, not incidents.
 
 ### 2. Test Orchestration
-```python
-class TestOrchestrator:
-    async def run_integration_tests(self):
-        """Run integration test suite"""
-        try:
-            # Setup environment
-            env = await self.setup_environment()
-            
-            # Run tests
-            results = []
-            for test_case in self.test_cases:
-                result = await self.run_test_case(
-                    test_case,
-                    env
-                )
-                results.append(result)
-                
-            # Analyze results
-            return self.analyze_results(results)
-        finally:
-            # Cleanup
-            await self.cleanup_environment()
-```
+**How it works — Test orchestrator:** Exercise the "Test orchestrator" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ## Common Use Cases
 
 ### 1. Order Processing Flow
-```python
-class OrderFlowTest:
-    async def test_order_flow(self):
-        """Test complete order flow"""
-        # Create order
-        order = await self.create_order({
-            'user_id': 'test_user',
-            'product_id': 'test_product',
-            'quantity': 1
-        })
-        
-        # Verify payment
-        payment = await self.verify_payment(order['id'])
-        assert payment['status'] == 'completed'
-        
-        # Check inventory
-        inventory = await self.check_inventory(
-            order['product_id']
-        )
-        assert inventory['quantity'] == 0
-        
-        # Verify notification
-        notification = await self.get_notification(
-            order['id']
-        )
-        assert notification['type'] == 'order_confirmed'
-```
+**How it works — Order flow test:** Exercise the "Order flow test" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ### 2. Service Communication
-```python
-class ServiceCommunicationTest:
-    async def test_service_communication(self):
-        """Test service communication patterns"""
-        # Test synchronous communication
-        response = await self.test_http_communication()
-        assert response.status_code == 200
-        
-        # Test asynchronous communication
-        message = await self.test_message_queue()
-        assert message['status'] == 'processed'
-        
-        # Test event broadcasting
-        events = await self.test_event_broadcast()
-        assert len(events) == 3  # All services received
-```
+**How it works — Service communication test:** Exercise the "Service communication test" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ## Trade-offs
 
@@ -258,6 +111,36 @@ class ServiceCommunicationTest:
 **Mock maintenance:** Doubles are code that rots — generate from contracts/schemas rather than hand-writing.
 
 > **⚠️ When NOT to mock:** auth, payment, and persistence flows where mock drift hides real breakage — run those against real dependencies in a scheduled, gated suite.
+
+## Edge Cases to Consider
+
+- Flaky timing on async consumption — awaitable assertions, not sleeps
+- Migration drift between test and prod schemas
+- Test data volume skewing planner behavior
+- Parallel CI runs sharing seeded IDs — namespace per run
+
+
+## Common Pitfalls
+
+1. Sleep-based synchronization — flakiness factory
+2. Testing only the happy path through real deps
+3. Slow suites nobody runs locally — keep under minutes, parallelize
+4. Skipping cleanup — cross-test contamination follows
+
+
+## FAQ
+
+**Q1: Mocks or real dependencies?**
+
+A: Mocks in unit tests for speed; real dependencies in integration tests because wiring, SQL, and serialization bugs only appear for real. The pyramid wants few integration tests — but they must be real.
+
+**Q2: How do I stop flaky integration tests?**
+
+A: Eliminate sleeps with awaitable conditions, isolate state per test, seed deterministically, and quarantine-repeat offenders while fixing root causes. Flakiness is a bug in the test.
+
+**Q3: How many integration tests per service?**
+
+A: Enough to cover each real dependency interaction and each critical write path — usually dozens, not hundreds. Unit tests cover logic; integration covers wiring.
 
 ## Interview Tips
 
@@ -280,6 +163,14 @@ class ServiceCommunicationTest:
 - Automate environment setup
 - Monitor test execution
 - Document test cases
+
+## Advanced Topics
+
+1. Testcontainers-style ephemeral stacks per CI job
+2. Snapshot/verify patterns for complex outputs
+3. Deterministic clocks and injected randomness
+4. Environment parity checks: schema and config drift detection
+
 
 ## Further Reading
 - [Integration Testing Guide](https://martinfowler.com/articles/practical-test-pyramid.html)

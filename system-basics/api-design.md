@@ -1,14 +1,23 @@
-# API Design Fundamentals
+# API Design in System Design 📌
 
 ## Table of Contents
+
 - [Introduction to APIs](#introduction-to-apis)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [API Design Principles](#api-design-principles)
 - [REST API Design](#rest-api-design)
 - [GraphQL APIs](#graphql-apis)
 - [API Security](#api-security)
 - [API Documentation](#api-documentation)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Real-World Examples](#real-world-examples)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction to APIs
 
@@ -20,6 +29,39 @@ An API (Application Programming Interface) is a set of rules and protocols that 
 3. **gRPC APIs**
 4. **SOAP APIs**
 5. **WebSocket APIs**
+
+## Prerequisites & Related Topics
+
+- **Builds on**: HTTP semantics, [Load Balancing](load-balancing.md) (gateways sit on the edge)
+- **Used in**: [Microservices](../scalability/microservices.md), [API Gateway](../architecture/api-gateway.md), [Rate Limiting](../architecture/rate-limiting.md)
+- **Techniques often combined**: contract-first specs, idempotency keys, cursor pagination, webhooks
+- **See also**: [Message Queues](../architecture/message-queues.md) (when async beats request-response)
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use API Design
+
+**Keywords in requirements**: "public API", "backward compatible", "versioning", "pagination", "client integration", "REST vs gRPC vs GraphQL"
+**Reach for this when**:
+- Client-facing or third-party-facing interfaces where the contract must hold
+- Service-to-service contracts that multiple teams build against
+- Aggregating several backends behind one stable surface
+- Event push to consumers (webhooks) where polling won't do
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| REST | resource CRUD, cacheability, simplicity | public APIs |
+| gRPC | typed contracts, streaming, low latency | internal service calls |
+| GraphQL | client-shaped queries, aggregation | BFF for mobile/web |
+| Webhooks | push events to consumers | payment/platform callbacks |
+
+### ❌ When NOT to Use
+
+- Chained synchronous calls across many services → publish [events](../scalability/event-driven.md) instead
+- One-off internal utility endpoints — skip API governance theater
+- Real-time bidirectional streaming as "an API" → sockets/WebRTC designs
 
 ## API Design Principles
 
@@ -59,30 +101,27 @@ DELETE /deleteUser
 ### 3. Response Formats
 
 #### Success Response
-```json
-{
-  "status": "success",
-  "data": {
-    "id": 123,
-    "name": "John Doe",
-    "email": "john@example.com"
-  }
-}
-```
+**Response fields:**
+
+| Field | Meaning |
+|-------|---------|
+| `status` | overall result indicator |
+| `data` | payload data for the client |
+| `id` | payload data for the client |
+| `name` | payload data for the client |
+| `email` | payload data for the client |
 
 #### Error Response
-```json
-{
-  "status": "error",
-  "error": {
-    "code": "USER_NOT_FOUND",
-    "message": "User with ID 123 not found",
-    "details": {
-      "userId": 123
-    }
-  }
-}
-```
+**Response fields:**
+
+| Field | Meaning |
+|-------|---------|
+| `status` | overall result indicator |
+| `error` | payload data for the client |
+| `code` | payload data for the client |
+| `message` | payload data for the client |
+| `details` | payload data for the client |
+| `userId` | payload data for the client |
 
 ## REST API Design
 
@@ -119,55 +158,10 @@ GET /users?fields=id,name,email
 ## GraphQL APIs
 
 ### 1. Schema Definition
-```graphql
-type User {
-  id: ID!
-  name: String!
-  email: String!
-  posts: [Post!]!
-}
-
-type Post {
-  id: ID!
-  title: String!
-  content: String!
-  author: User!
-}
-
-type Query {
-  user(id: ID!): User
-  users: [User!]!
-  post(id: ID!): Post
-}
-
-type Mutation {
-  createUser(name: String!, email: String!): User!
-  updateUser(id: ID!, name: String, email: String): User!
-}
-```
+**GraphQL surface:** types — `User` (`id`, `name`, `email`, `posts`); `Post` (`id`, `title`, `content`, `author`); `Query` (`user`, `users`, `post`); `Mutation` (`createUser`, `updateUser`). Queries fan out per client request; watch N+1 resolver calls against the database.
 
 ### 2. Query Examples
-```graphql
-# Query
-query {
-  user(id: "123") {
-    name
-    email
-    posts {
-      title
-    }
-  }
-}
-
-# Mutation
-mutation {
-  createUser(name: "John", email: "john@example.com") {
-    id
-    name
-    email
-  }
-}
-```
+**GraphQL surface:** the schema is the contract — narrate the types, their relationships, and the resolvers instead of transcribing them.
 
 ## API Security
 
@@ -206,34 +200,7 @@ sequenceDiagram
 ## API Documentation
 
 ### 1. OpenAPI (Swagger) Example
-```yaml
-openapi: 3.0.0
-info:
-  title: User API
-  version: 1.0.0
-paths:
-  /users:
-    get:
-      summary: Get all users
-      responses:
-        '200':
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-```
+**OpenAPI spec:** the machine-readable REST contract — paths, parameters, and response codes — consumed by docs and client generators.
 
 ### 2. Documentation Best Practices
 - Keep it up to date
@@ -255,6 +222,36 @@ components:
 **Flexibility vs safety:** Rich query capabilities (GraphQL, filters) improve client experience but increase backend cost and abuse surface.
 
 > **⚠️ When NOT to use REST:** high-frequency internal service-to-service calls where latency dominates (gRPC), or clients that need to slice and dice large nested graphs (GraphQL). Also avoid deep resource hierarchies when clients always need cross-entity views.
+
+## Edge Cases to Consider
+
+- Long-running operations — return 202 + status endpoint, don't hold the request
+- Retries on POST without idempotency keys — duplicate orders
+- Pagination while data mutates — cursors stay stable, offsets skip/duplicate
+- Batch endpoints with partial failures — per-item results required
+- Time zones and money — ISO 8601 + integer minor units, always
+
+## Common Pitfalls
+
+1. Breaking changes without a version bump
+2. Offset pagination at scale — page 10,000 scans everything before it
+3. POST-for-everything ignoring HTTP semantics and caching
+4. Leaking stack traces and internal IDs in errors
+5. No deprecation policy — clients can't migrate if you never tell them
+
+## FAQ
+
+**Q1: REST, gRPC, or GraphQL?**
+
+A: Public/cacheable → REST; internal low-latency with typed contracts → gRPC; client-driven aggregation over many resources → GraphQL. They also mix: gRPC inside, REST at the edge.
+
+**Q2: How do I version an API without breaking clients?**
+
+A: Additive-only changes within a version; breaking changes get a new version with a published deprecation window and dual-running.
+
+**Q3: Why idempotency keys on POST?**
+
+A: Networks retry. Without a key, a timeout-plus-retry creates two orders; with it, the second attempt returns the first result.
 
 ## Interview Tips
 
@@ -296,6 +293,13 @@ POST /orders
 GET /orders/{id}
 PUT /orders/{id}/status
 ```
+
+## Advanced Topics
+
+1. **Contract-first development** — OpenAPI/protobuf drive codegen and CI checks
+2. **Gateway composition** — [API Gateway](../architecture/api-gateway.md) policies over per-route contracts
+3. **Streaming APIs** — SSE/WebSocket design and backpressure
+4. **SDK generation** — typed clients as a distribution channel
 
 ## Further Reading
 - [REST API Design Best Practices](https://restfulapi.net/)

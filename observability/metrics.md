@@ -1,13 +1,21 @@
-# Metrics Collection and Analysis
+# Metrics in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Types of Metrics](#types-of-metrics)
 - [Collection Strategies](#collection-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,171 +28,72 @@ Metrics provide quantitative measurements of system behavior and performance ove
 4. **SLA Tracking**
 5. **Business Insights**
 
+## Prerequisites & Related Topics
+
+- Builds on: [Monitoring](../system-basics/monitoring.md) concepts
+- Used in: [Alerting](alerting.md), [Performance Monitoring](performance-monitoring.md), [SLO burn alerts](alerting.md)
+- Techniques often combined: RED/USE dashboards, histogram quantiles, exemplars, cardinality budgets
+- See also: [Prometheus docs](https://prometheus.io/docs/practices/naming/) — naming and practice conventions
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Metrics
+
+**Keywords in requirements**: "metric", "counter", "histogram", "p99", "dashboard", "time series", "rate"
+**Reach for this when**:
+- Per-service RED (rate, errors, duration) dashboards
+- Resource saturation (USE) for capacity planning
+- Business metrics as first-class signals (signups, orders)
+- SLO burn-rate alerting inputs
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Counter | monotonically increasing events | requests, errors |
+| Gauge | current value | queue depth, connections |
+| Histogram | value distribution | latency, payload sizes |
+| Summary | client-side quantiles | limited aggregation cases |
+
+### ❌ When NOT to Use
+
+- Unbounded label values (user IDs, URLs) — cardinality kills the store
+- Metrics for per-event forensics — logs/traces answer that
+- Averages only — distributions or nothing
+
+
 ## Types of Metrics
 
 ### 1. System Metrics
-```python
-class SystemMetricsCollector:
-    def collect_metrics(self):
-        """Collect system metrics"""
-        metrics = {
-            'cpu_usage': psutil.cpu_percent(),
-            'memory_usage': psutil.virtual_memory().percent,
-            'disk_usage': psutil.disk_usage('/').percent,
-            'network_io': psutil.net_io_counters()
-        }
-        return self.format_metrics(metrics)
-```
+**How it works — System metrics collector:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Application Metrics
-```python
-class ApplicationMetrics:
-    def __init__(self):
-        self.prometheus_client = PrometheusClient()
-        
-    def setup_metrics(self):
-        """Setup application metrics"""
-        self.request_counter = Counter(
-            'http_requests_total',
-            'Total HTTP requests',
-            ['method', 'endpoint', 'status']
-        )
-        
-        self.response_time = Histogram(
-            'http_response_time_seconds',
-            'HTTP response time',
-            ['method', 'endpoint']
-        )
-        
-        self.active_users = Gauge(
-            'active_users',
-            'Number of active users'
-        )
-```
+**How it works — Application metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Collection Strategies
 
 ### 1. Push vs Pull
-```python
-class MetricsExporter:
-    def export_metrics(self, metrics):
-        """Push metrics to collector"""
-        if self.mode == 'push':
-            # Push to remote collector
-            self.push_client.send(metrics)
-        else:
-            # Expose metrics endpoint
-            self.metrics_registry.update(metrics)
-```
+**How it works — Metrics exporter:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Aggregation
-```python
-class MetricsAggregator:
-    def aggregate_metrics(self, metrics_list):
-        """Aggregate metrics from multiple sources"""
-        aggregated = defaultdict(list)
-        
-        for metrics in metrics_list:
-            for key, value in metrics.items():
-                aggregated[key].append(value)
-        
-        return {
-            key: self.calculate_stats(values)
-            for key, values in aggregated.items()
-        }
-        
-    def calculate_stats(self, values):
-        """Calculate statistical measures"""
-        return {
-            'min': min(values),
-            'max': max(values),
-            'avg': sum(values) / len(values),
-            'p95': numpy.percentile(values, 95),
-            'p99': numpy.percentile(values, 99)
-        }
-```
+**How it works — Metrics aggregator:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Analysis Patterns
 
 ### 1. Time Series Analysis
-```python
-class TimeSeriesAnalyzer:
-    def analyze_trend(self, metrics, window):
-        """Analyze metric trends"""
-        df = pd.DataFrame(metrics)
-        
-        # Calculate moving average
-        ma = df.rolling(window=window).mean()
-        
-        # Detect anomalies
-        std = df.rolling(window=window).std()
-        upper_bound = ma + 2 * std
-        lower_bound = ma - 2 * std
-        
-        anomalies = df[(df > upper_bound) | (df < lower_bound)]
-        
-        return {
-            'trend': ma.to_dict(),
-            'anomalies': anomalies.to_dict()
-        }
-```
+**How it works — Time series analyzer:** metrics are stored as (timestamp, value) series with downsampling and retention tiers; queries aggregate over windows, and seasonality-aware baselines separate signal from daily rhythm.
 
 ### 2. Alerting
-```python
-class AlertManager:
-    def check_thresholds(self, metrics):
-        """Check metrics against thresholds"""
-        alerts = []
-        
-        for metric, value in metrics.items():
-            threshold = self.thresholds.get(metric)
-            if threshold and value > threshold:
-                alerts.append({
-                    'metric': metric,
-                    'value': value,
-                    'threshold': threshold,
-                    'timestamp': datetime.utcnow()
-                })
-        
-        if alerts:
-            self.send_alerts(alerts)
-```
+**How it works — Alert manager:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Common Use Cases
 
 ### 1. Performance Monitoring
-```python
-class PerformanceMonitor:
-    def monitor_endpoints(self):
-        """Monitor API endpoints"""
-        with self.response_time.time():
-            response = self.make_request()
-            
-        self.request_counter.labels(
-            method=request.method,
-            endpoint=request.path,
-            status=response.status_code
-        ).inc()
-```
+**How it works — Performance monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Resource Usage
-```python
-class ResourceMonitor:
-    def monitor_resources(self):
-        """Monitor resource usage"""
-        metrics = {
-            'cpu': self.get_cpu_metrics(),
-            'memory': self.get_memory_metrics(),
-            'disk': self.get_disk_metrics(),
-            'network': self.get_network_metrics()
-        }
-        
-        # Store metrics
-        self.store_metrics(metrics)
-        
-        # Check thresholds
-        self.check_thresholds(metrics)
-```
+**How it works — Resource monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Trade-offs
 
@@ -202,6 +111,36 @@ class ResourceMonitor:
 **Latency vs durability in collection:** In-memory agent buffers are fast and lossy; durable queues survive restarts at a cost.
 
 > **⚠️ When NOT to increase resolution:** metrics that vary slowly (queue depth, config), non-critical jobs, and labels with unbounded cardinality (user IDs, URLs) — aggregate or histogram them before they take down the metrics store.
+
+## Edge Cases to Consider
+
+- Counter resets on restart — use rate() functions that handle resets
+- Histogram buckets missing the tail — choose bounds from real data
+- Label explosion after a feature flag goes wide
+- Aggregation across instances hiding hot instances
+
+
+## Common Pitfalls
+
+1. p99 computed client-side where server aggregation is needed
+2. Metrics named per-feature ad hoc — naming conventions decay
+3. No unit in the name (seconds vs ms confusion)
+4. Dashboards nobody trusts because two metrics disagree
+
+
+## FAQ
+
+**Q1: Histogram or summary?**
+
+A: Histograms when aggregation across instances matters (most cases); summaries only for single-instance client-side quantiles.
+
+**Q2: How do I control cardinality?**
+
+A: Bounded label values (status codes, not URLs), drop per-user labels into exemplars/traces, and enforce per-team label budgets.
+
+**Q3: Which metrics must every service expose?**
+
+A: Rate, errors, and duration for its endpoints, plus saturation of its critical dependencies (DB pool, queue depth). Start RED, add USE.
 
 ## Interview Tips
 
@@ -224,6 +163,14 @@ class ResourceMonitor:
 - Implement proper aggregation
 - Set meaningful alerts
 - Monitor the monitoring system
+
+## Advanced Topics
+
+1. Exemplars linking histogram spikes to traces
+2. Cardinality budgets and enforcement per team
+3. Native histograms for adaptive bucket resolution
+4. Recording rules for precomputed SLO indicators
+
 
 ## Further Reading
 - [Prometheus Documentation](https://prometheus.io/docs/introduction/overview/)

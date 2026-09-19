@@ -1,13 +1,21 @@
-# Edge Computing
+# Edge Computing in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Architecture Components](#architecture-components)
 - [Implementation Patterns](#implementation-patterns)
 - [Data Management](#data-management)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,203 +28,72 @@ Edge computing brings computation and data storage closer to the location where 
 4. **Reliability**
 5. **Autonomous Operation**
 
+## Prerequisites & Related Topics
+
+- Builds on: CDN & Content Delivery, [Caching](../system-basics/caching.md)
+- Used in: [IoT Architecture](iot-architecture.md), [Jamstack](#), [Real-Time Analytics](../data-engineering/real-time-analytics.md)
+- Techniques often combined: edge KV stores, geo-routing, stale-while-revalidate, regional failover
+- See also: [Cloudflare Workers docs](https://developers.cloudflare.com/workers/) — a representative edge runtime
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Edge Computing
+
+**Keywords in requirements**: "edge", "latency", "compute at the edge", "regional", "near the user", "PoP", "edge functions"
+**Reach for this when**:
+- Personalization/AB assignment at the edge without origin hops
+- API gateways and auth checks close to the user
+- IoT/local processing where connectivity is unreliable
+- Content transformation, image optimization, bot filtering
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Edge functions | stateless JS/WASM at PoPs | personalization, routing |
+| Regional caches + KV | low-latency state near users | sessions, config |
+| Local gateways (IoT) | processing at the site | industrial, retail |
+| Hybrid origin+edge | edge filters, origin computes | the common architecture |
+
+### ❌ When NOT to Use
+
+- Strongly consistent transactional workloads — state at the edge is eventually consistent
+- Heavy compute not latency-bound — central regions with cheap capacity win
+- Everything to the edge — each edge run costs more per CPU than a dense region
+
+
 ## Architecture Components
 
 ### 1. Edge Node
-```python
-class EdgeNode:
-    def configure_node(self):
-        """Configure edge node"""
-        return {
-            'compute': {
-                'cpu': {
-                    'cores': 4,
-                    'frequency': '2.5GHz'
-                },
-                'memory': {
-                    'ram': '8GB',
-                    'storage': '256GB'
-                },
-                'gpu': {
-                    'enabled': True,
-                    'type': 'nvidia_tegra'
-                }
-            },
-            'networking': {
-                'interfaces': ['ethernet', 'wifi', '5g'],
-                'bandwidth': '1Gbps',
-                'protocols': ['mqtt', 'http']
-            }
-        }
-```
+**How it works — edge node:** compute deployed at CDN PoPs runs your code within ~50 ms of users; requests terminate at the nearest node, reading from regional caches/KV stores — origin is hit only for cache misses and writes, which is what moves latency from hundreds of ms to tens.
 
 ### 2. Edge Processing
-```python
-class EdgeProcessor:
-    async def process_data(self, data):
-        """Process data at edge"""
-        try:
-            # Filter data
-            filtered = self.filter_data(data)
-            
-            # Apply transformations
-            transformed = await self.transform_data(filtered)
-            
-            # Run analytics
-            analytics = self.run_analytics(transformed)
-            
-            # Cache results
-            await self.cache_results(analytics)
-            
-            return analytics
-        except Exception as e:
-            await self.handle_processing_error(e)
-```
+**How it works — Edge processor:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
 
 ## Implementation Patterns
 
 ### 1. Data Flow
-```python
-class DataFlow:
-    def configure_flow(self):
-        """Configure data flow"""
-        return {
-            'ingestion': {
-                'sources': ['sensors', 'devices', 'systems'],
-                'protocols': {
-                    'mqtt': {'qos': 1},
-                    'http': {'method': 'POST'}
-                }
-            },
-            'processing': {
-                'pipeline': {
-                    'filtering': True,
-                    'transformation': True,
-                    'aggregation': True
-                },
-                'rules': {
-                    'threshold': 'dynamic',
-                    'anomaly': 'statistical'
-                }
-            }
-        }
-```
+**How it works — Data flow:** data moves through defined stages (ingest → process → store → serve) with each hop's contract explicit; the flow diagram is the shared language between producers and consumers.
 
 ### 2. Edge Orchestration
-```python
-class EdgeOrchestrator:
-    async def orchestrate_edge(self):
-        """Orchestrate edge operations"""
-        try:
-            # Deploy workloads
-            await self.deploy_workloads()
-            
-            # Monitor resources
-            resources = await self.monitor_resources()
-            
-            # Balance load
-            await self.balance_load(resources)
-            
-            # Update configurations
-            await self.update_configs()
-            
-        except Exception as e:
-            await self.handle_orchestration_error(e)
-```
+**How it works — Edge orchestrator:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
 
 ## Data Management
 
 ### 1. Edge Storage
-```python
-class EdgeStorage:
-    def configure_storage(self):
-        """Configure edge storage"""
-        return {
-            'local': {
-                'type': 'sqlite',
-                'capacity': '100GB',
-                'retention': '7d'
-            },
-            'sync': {
-                'strategy': 'incremental',
-                'interval': '1h',
-                'priority': ['high', 'medium', 'low']
-            },
-            'cache': {
-                'type': 'redis',
-                'size': '2GB',
-                'eviction': 'lru'
-            }
-        }
-```
+**How it works — Edge storage:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
 
 ### 2. Data Synchronization
-```python
-class DataSynchronizer:
-    async def sync_data(self):
-        """Synchronize edge data"""
-        try:
-            # Identify changes
-            changes = await self.identify_changes()
-            
-            # Prioritize sync
-            priority = self.prioritize_sync(changes)
-            
-            # Transfer data
-            await self.transfer_data(priority)
-            
-            # Verify sync
-            await self.verify_sync()
-            
-        except Exception as e:
-            await self.handle_sync_error(e)
-```
+**How it works — Data synchronizer:** the synchronizer diffs source and target, applies changes in dependency order, and verifies counts after each batch — idempotent by design so an interrupted run resumes safely.
 
 ## Common Use Cases
 
 ### 1. Video Analytics
-```python
-class VideoAnalytics:
-    async def process_video(self):
-        """Process video at edge"""
-        try:
-            # Capture frames
-            frames = await self.capture_frames()
-            
-            # Detect objects
-            objects = self.detect_objects(frames)
-            
-            # Track movement
-            tracking = await self.track_movement(objects)
-            
-            # Generate alerts
-            await self.generate_alerts(tracking)
-            
-        except Exception as e:
-            await self.handle_video_error(e)
-```
+**How it works — Video analytics:** frames are sampled at the edge, lightweight models pre-filter (motion, objects), and only events — not raw video — stream upstream; the cloud runs the heavy re-analysis and long-term pattern mining.
 
 ### 2. Industrial IoT
-```python
-class IndustrialEdge:
-    async def monitor_equipment(self):
-        """Monitor industrial equipment"""
-        try:
-            # Collect telemetry
-            telemetry = await self.collect_telemetry()
-            
-            # Analyze performance
-            performance = self.analyze_performance(telemetry)
-            
-            # Predict maintenance
-            maintenance = await self.predict_maintenance()
-            
-            # Control systems
-            await self.control_systems(maintenance)
-            
-        except Exception as e:
-            await self.handle_monitoring_error(e)
-```
+**How it works — Industrial edge:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
 
 ## Trade-offs
 
@@ -234,6 +111,36 @@ class IndustrialEdge:
 **Fleet management:** Thousands of edge nodes turn deployment, security patching, and monitoring into a first-class design problem.
 
 > **⚠️ When NOT to compute at the edge:** latency-insensitive workloads (centralize for operability), stateful logic needing strong consistency with the core, and fleets too small to justify management overhead.
+
+## Edge Cases to Consider
+
+- Eventual consistency surprising session logic — design reads around it
+- Per-region deployments drifting in version
+- Observability at hundreds of PoPs — sampling and aggregation strategy
+- Cross-region state writes costing more than origin round-trips
+
+
+## Common Pitfalls
+
+1. Moving the whole database to the edge — only hot, tolerant reads belong there
+2. Ignoring regional cold starts for bursty traffic
+3. Edge vendor lock-in on proprietary APIs
+4. Testing only from the region where the team sits
+
+
+## FAQ
+
+**Q1: What belongs at the edge?**
+
+A: Latency-sensitive, cacheable, or filterable work: routing, auth checks, personalization, content transforms. Consistent transactional writes stay central.
+
+**Q2: Edge compute or CDN caching?**
+
+A: Caching serves the same bytes cheaper; edge compute runs logic (revalidation, personalization) per request. Most platforms layer both under one config surface.
+
+**Q3: How does edge state work?**
+
+A: Eventually-consistent KV stores replicated globally: great for sessions/config at read latency, wrong for strong-consistency writes — route those to origin.
 
 ## Interview Tips
 
@@ -256,6 +163,14 @@ class IndustrialEdge:
 - Secure communication
 - Resource monitoring
 - Failure handling
+
+## Advanced Topics
+
+1. Edge-side A/B assignment with deterministic hashing
+2. Streaming log shipping from PoPs with tail sampling
+3. Tiered caching: edge → regional shield → origin
+4. WASM runtimes for portable edge compute
+
 
 ## Further Reading
 - [Edge Computing Guide](https://www.linux.com/news/state-edge-computing/)

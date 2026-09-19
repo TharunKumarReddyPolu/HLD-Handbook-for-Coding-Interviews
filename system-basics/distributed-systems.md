@@ -1,13 +1,59 @@
-# Distributed Systems Fundamentals
+# Distributed Systems Fundamentals 📌
 
 ## Table of Contents
+
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [What is a Distributed System?](#what-is-a-distributed-system)
 - [Key Characteristics](#key-characteristics)
 - [Core Concepts](#core-concepts)
 - [Common Challenges](#common-challenges)
 - [Design Principles](#design-principles)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Real-World Examples](#real-world-examples)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
+- [Practice Questions](#practice-questions)
+
+## Prerequisites & Related Topics
+
+- Builds on: networking basics, single-node database internals
+- Used in: [Replication](../scalability/replication.md), [Data Partitioning](../scalability/data-partitioning.md), [Cap Theorem](../scalability/cap-theorem.md)
+- Techniques often combined: consensus, quorums, idempotency, backpressure
+- See also: [Fallacies of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) — the eight assumptions that bite every new system
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Distributed Systems Fundamentals 📌
+
+**Keywords in requirements**: "multiple nodes", "replication", "consensus", "partial failure", "eventual consistency", "network partitions", "latency between services"
+**Reach for this when**:
+- Scale or availability beyond one machine
+- Geo-distribution serving users from nearby regions
+- Fault tolerance through redundancy
+- Throughput via parallelism across nodes
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Leader-follower replication | read scaling, failover | most databases |
+| Quorum systems | tunable consistency | Dynamo-family |
+| Consensus (Raft/Paxos) | strong coordination | etcd, CockroachDB, Spanner |
+| Eventual + CRDT | offline tolerance, convergence | collaborative apps |
+| Two-phase commit | atomic multi-node writes | rare — cost is availability |
+
+### ❌ When NOT to Use
+
+- One machine suffices — distribution multiplies failure modes for no return
+- Strong global ordering needed at high write rates — partition or queue instead
+- Team lacks operational maturity — a distributed monolith is the worst of both
+
 
 ## What is a Distributed System?
 
@@ -133,6 +179,38 @@ graph LR
 
 > **⚠️ When NOT to use eventual consistency:** flows where a stale read causes real damage — payments, inventory commitments, permission checks. And never use it as an excuse to skip conflict-resolution design.
 
+## Edge Cases to Consider
+
+- Split-brain — two leaders after partition; leases/quorums arbitrate
+- Gray failure — slow-not-dead nodes poison quorums and retries
+- Retry storms — exponential backoff plus budgets, always
+- Cross-region clock skew — hybrid logical clocks where ordering matters
+- Poison messages and negative caching at every layer
+
+
+## Common Pitfalls
+
+1. Designing for the happy path — networks partition, nodes pause, disks fill
+2. Assuming in-order, exactly-once delivery anywhere in the stack
+3. Unbounded retries amplifying an outage
+4. Confusing replication with backup
+5. Testing only single-node failures in staging
+
+
+## FAQ
+
+**Q1: Why is exactly-once delivery so hard?**
+
+A: Delivery and processing are separate events; a crash between them breaks the guarantee. The practical answer: at-least-once delivery plus idempotent processing.
+
+**Q2: Consensus vs quorum reads?**
+
+A: Quorum reads/writes are per-operation overlap guarantees; consensus is continuous agreement on a log. Systems use consensus for control planes and quorums for data paths.
+
+**Q3: What is the first distributed-systems failure I should design for?**
+
+A: The slow dependency: set timeouts and retries with backoff everywhere, then decide per-call what failure looks like (fallback, cached, shed).
+
 ## Interview Tips
 
 ### 1. System Design Questions
@@ -174,6 +252,14 @@ graph LR
    - Post service
    - Notification service
    - Analytics service
+
+## Advanced Topics
+
+1. Raft and Multi-Paxos internals — elections, log replication, membership change
+2. Hybrid logical clocks for causality tracking
+3. Jepsen-style partition testing
+4. Cell and shard architectures for blast-radius control
+
 
 ## Further Reading
 - [Designing Data-Intensive Applications](https://dataintensive.net/)

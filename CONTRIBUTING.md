@@ -28,8 +28,8 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 ### 2. Technical Content
 - Add architecture diagrams
-- Improve code examples
-- Share configuration samples
+- Improve how-it-works explanations (prose, not code)
+- Share configuration and tuning guidance
 - Add deployment patterns
 - Document performance optimizations
 
@@ -52,7 +52,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 ### Markdown Style
 - Use appropriate headers (H1 for title, H2 for major sections)
 - Include emojis for better visual organization
-- Use code blocks with language specification
+- Use code fences only for Mermaid diagrams and ASCII text diagrams — the handbook is code-free
 - Include architecture diagrams using Mermaid
 - Keep line length under 120 characters
 - Start every topic file with a Table of Contents linking to all H2 sections
@@ -67,14 +67,10 @@ graph TD
 \```
 ```
 
-### Code Examples
-```python
-# Clear, focused examples that illustrate the concept
-class LoadBalancer:
-    def __init__(self):
-        self.servers = []
-        self.algorithm = "round_robin"
-```
+### How-It-Works Explanations
+Instead of code, explain mechanisms in prose:
+
+**How it works — consistent hashing:** place servers and keys on the same hash ring; each key routes clockwise to the nearest server, so adding or removing a server only remaps the keys between its neighbours — roughly 1/N of the keyspace — instead of everything.
 
 ### Content Organization
 - Start with system overview
@@ -135,7 +131,7 @@ diag(caching): add distributed cache diagram
 
 ### When Adding New Topics
 
-1. **Structure** — every topic file follows this template:
+1. **Structure** — every topic file follows this template (already applied to all 64 topics):
 
 ```markdown
 # Topic Name
@@ -145,32 +141,45 @@ diag(caching): add distributed cache diagram
 ## Introduction
 Overview, context, and why this matters in interviews
 
+## Prerequisites & Related Topics
+Builds on / Used in / Techniques often combined / See also (with cross-links)
+
+## Pattern Recognition Guide
+### 🎯 When to Use
+- Keywords in requirements + "reach for this when" scenarios
+### 🔑 Approach Indicators
+- Table: Approach | Signals | Best For
+### ❌ When NOT to Use
+- The over-applied default and what to reach for instead
+
 ## Core Concepts
 Key terminology, components, and architecture diagrams (Mermaid)
 
 ## Patterns / Techniques
 The main approaches, each with:
-- How it works (diagram + pseudocode or reference implementation)
+- How it works (diagram + prose walkthrough — no code)
 - When to use it (keywords and indicators)
-- When NOT to use it
 
 ## Trade-offs
 Comparison tables: consistency vs availability, cost vs performance, etc.
 
-## Implementation Strategies
-Reference implementations and configuration examples
+## Edge Cases to Consider
+The boundary conditions that decide correctness under stress
 
-## Scalability Considerations
-How the technique behaves as load grows
+## Common Pitfalls
+Numbered list of the mistakes reviewers keep catching
+
+## FAQ
+3-5 interview-style Q&As (**Q1: ...** / A: ...)
+
+## Interview Tips
+Key considerations, common questions, and decision frameworks
 
 ## Real-World Examples
 How real companies apply this, with concrete numbers where possible
 
-## Common Pitfalls & Edge Cases
-Frequent mistakes and failure modes to avoid
-
-## Interview Tips
-Key considerations, common questions, and decision frameworks
+## Advanced Topics
+The next level of the technique — for readers who outgrow the basics
 
 ## Further Reading
 Links to primary sources, docs, and deep dives

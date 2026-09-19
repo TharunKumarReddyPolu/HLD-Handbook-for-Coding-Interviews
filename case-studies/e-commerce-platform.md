@@ -1,13 +1,22 @@
-# E-commerce Platform Case Study
+# Case Study: E-Commerce Platform 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [System Requirements](#system-requirements)
 - [Architecture Design](#architecture-design)
 - [Implementation Details](#implementation-details)
 - [Scaling Strategy](#scaling-strategy)
 - [Lessons Learned](#lessons-learned)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
+- [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -19,6 +28,41 @@ This case study examines the design and implementation of a large-scale e-commer
 3. **Product Catalog**: 10M+ items
 4. **Storage**: 100TB+ data
 5. **Availability**: 99.99%
+
+## Prerequisites & Related Topics
+
+- Builds on: [Caching](../system-basics/caching.md), [Database Sharding](../system-basics/database-sharding.md), [Event-Driven Architecture](../scalability/event-driven.md)
+- Used in: [Cap Theorem](../scalability/cap-theorem.md), [API Gateway](../architecture/api-gateway.md), [Search systems](../system-basics/indexing.md)
+- Techniques often combined: reservation-based inventory, CQRS for catalog, saga checkout, flash-sale queues
+- See also: [Interview Questions: Medium](../interview-questions/medium/README.md) — design-a-store prompts
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Case Study: E-Commerce Platform 📌
+
+**Keywords in requirements**: "e-commerce", "storefront", "inventory", "checkout", "flash sale", "catalog scale", "payment consistency"
+**Reach for this when**:
+- Interview: the most common medium design question — practice the full walk
+- Reference for read-heavy catalog + write-critical checkout split
+- Template for per-domain consistency mapping (CAP applied)
+- Flash-sale scaling playbook (queue, reserve, shed)
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Cache-heavy catalog | read ratios exceed 100:1 | browse and search paths |
+| Reservation inventory | avoid overselling vs live checks | checkout correctness |
+| Saga checkout | payment/inventory/fulfillment consistency | order lifecycle |
+| Queue-based admission | flash-sale peaks | flash sales |
+
+### ❌ When NOT to Use
+
+- Copying this architecture day one — a modular monolith plus caches runs early stores
+- Strong consistency everywhere — reviews and feeds tolerate eventual; payments do not
+- Microservices before traffic and teams justify the seams
+
 
 ## System Requirements
 
@@ -36,251 +80,56 @@ graph TD
 ```
 
 ### 2. Non-Functional Requirements
-```python
-class SystemRequirements:
-    def define_requirements(self):
-        """Define system requirements"""
-        return {
-            'performance': {
-                'page_load': '< 2s',
-                'api_response': '< 200ms',
-                'search_latency': '< 500ms'
-            },
-            'scalability': {
-                'users': '10M concurrent',
-                'orders': '10K/minute',
-                'products': '10M+ items'
-            },
-            'availability': {
-                'uptime': '99.99%',
-                'recovery_time': '< 5 minutes'
-            },
-            'security': {
-                'data_encryption': 'at rest & transit',
-                'payment_compliance': 'PCI DSS'
-            }
-        }
-```
+**How it works — System requirements:** convert the vague brief into numbers before designing — DAU, read/write ratio, p99 latency, consistency needs, availability target — every later component choice traces back to one of these.
 
 ## Architecture Design
 
 ### 1. System Architecture
-```python
-class SystemArchitecture:
-    def define_architecture(self):
-        """Define system architecture"""
-        return {
-            'frontend': {
-                'web': 'React.js SPA',
-                'mobile': 'React Native',
-                'cdn': 'CloudFront'
-            },
-            'backend': {
-                'api_gateway': 'API Gateway',
-                'services': {
-                    'user_service': 'Node.js',
-                    'product_service': 'Python',
-                    'order_service': 'Java',
-                    'search_service': 'Elasticsearch'
-                }
-            },
-            'data': {
-                'main_db': 'PostgreSQL',
-                'cache': 'Redis',
-                'search': 'Elasticsearch',
-                'queue': 'Kafka'
-            }
-        }
-```
+**How it works — System architecture:** the case study's shape — edge (LB, CDN), stateless services, async workers, primary/replica storage — each choice answers a measured bottleneck; walk the request path when explaining it.
 
 ### 2. Data Model
-```sql
--- User Management
-CREATE TABLE users (
-    user_id UUID PRIMARY KEY,
-    email VARCHAR(255) UNIQUE,
-    password_hash VARCHAR(255),
-    created_at TIMESTAMP
-);
+**`users` table:**
 
--- Product Catalog
-CREATE TABLE products (
-    product_id UUID PRIMARY KEY,
-    name VARCHAR(255),
-    description TEXT,
-    price DECIMAL(10,2),
-    inventory_count INTEGER,
-    category_id UUID
-);
+| Column | Type |
+|--------|------|
+| user_id | UUID PRIMARY KEY |
+| email | VARCHAR(255) UNIQUE |
+| password_hash | VARCHAR(255) |
+| created_at | TIMESTAMP |
+| product_id | UUID PRIMARY KEY |
+| name | VARCHAR(255) |
+| description | TEXT |
+| price | DECIMAL(10,2) |
+| inventory_count | INTEGER |
+| category_id | UUID |
+| order_id | UUID PRIMARY KEY |
+| user_id | UUID REFERENCES users(user_id) |
 
--- Order Management
-CREATE TABLE orders (
-    order_id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(user_id),
-    status VARCHAR(50),
-    total_amount DECIMAL(10,2),
-    created_at TIMESTAMP
-);
-```
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ## Implementation Details
 
 ### 1. Search Implementation
-```python
-class SearchService:
-    def configure_search(self):
-        """Configure search service"""
-        return {
-            'engine': 'elasticsearch',
-            'indices': {
-                'products': {
-                    'shards': 5,
-                    'replicas': 2,
-                    'mappings': {
-                        'name': {'type': 'text'},
-                        'description': {'type': 'text'},
-                        'category': {'type': 'keyword'},
-                        'price': {'type': 'float'},
-                        'inventory': {'type': 'integer'}
-                    }
-                }
-            },
-            'queries': {
-                'search_products': {
-                    'multi_match': {
-                        'fields': ['name^3', 'description'],
-                        'fuzziness': 'AUTO'
-                    }
-                }
-            }
-        }
-```
+**How it works — Search service:** Index the corpus into an inverted or vector structure at write time, then serve queries by lookup-plus-scoring instead of scanning — relevance tuning happens on the index, not the data.
 
 ### 2. Order Processing
-```python
-class OrderProcessor:
-    async def process_order(self, order):
-        """Process customer order"""
-        try:
-            # Start transaction
-            async with self.transaction() as txn:
-                # Check inventory
-                if not await self.check_inventory(order):
-                    raise InsufficientInventory()
-                    
-                # Process payment
-                payment = await self.process_payment(order)
-                
-                # Update inventory
-                await self.update_inventory(order)
-                
-                # Create order
-                order_id = await self.create_order(order)
-                
-                # Send notifications
-                await self.notify_user(order_id)
-                
-            return order_id
-        except Exception as e:
-            await self.rollback_order(order)
-            raise OrderProcessingError(str(e))
-```
+**How it works — Order processor:** validate and persist the order, then execute the side effects as an orchestrated saga — reserve inventory, charge payment, trigger fulfillment — with each step idempotent and compensated on failure.
 
 ## Scaling Strategy
 
 ### 1. Database Sharding
-```python
-class DatabaseSharding:
-    def define_sharding(self):
-        """Define database sharding strategy"""
-        return {
-            'shard_key': 'user_id',
-            'shard_function': 'consistent_hashing',
-            'num_shards': 100,
-            'shard_mapping': {
-                'users': 'user_id',
-                'orders': 'user_id',
-                'products': 'category_id'
-            }
-        }
-```
+**How it works — Database sharding:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ### 2. Caching Strategy
-```python
-class CacheStrategy:
-    def configure_caching(self):
-        """Configure caching strategy"""
-        return {
-            'layers': {
-                'browser': {
-                    'type': 'local_storage',
-                    'ttl': '1h'
-                },
-                'cdn': {
-                    'type': 'cloudfront',
-                    'ttl': '24h'
-                },
-                'application': {
-                    'type': 'redis',
-                    'ttl': '15m'
-                }
-            },
-            'invalidation': {
-                'strategy': 'write_through',
-                'async_update': True
-            }
-        }
-```
+**How it works — Cache strategy:** Store the computed result under a stable key with a TTL sized to how stale the data may be; hits skip the expensive path, misses repopulate, and invalidation events cover the changes TTL alone would miss.
 
 ## Lessons Learned
 
 ### 1. Performance Optimization
-```python
-class PerformanceLessons:
-    def document_lessons(self):
-        """Document performance lessons"""
-        return {
-            'caching': {
-                'issue': 'High database load',
-                'solution': 'Implemented multi-layer caching',
-                'impact': '70% reduction in DB queries'
-            },
-            'search': {
-                'issue': 'Slow search results',
-                'solution': 'Optimized Elasticsearch indices',
-                'impact': '200ms to 50ms response time'
-            },
-            'scaling': {
-                'issue': 'Database bottlenecks',
-                'solution': 'Implemented sharding',
-                'impact': '5x throughput improvement'
-            }
-        }
-```
+**How it works — Performance lessons:** the recurring wins — cache the hot read, add the missing index, make the fan-out async, batch the chatty calls — all came from measured traces, never from guessing; measure, fix the top span, re-measure.
 
 ### 2. Architecture Evolution
-```python
-class ArchitectureEvolution:
-    def document_evolution(self):
-        """Document architecture evolution"""
-        return {
-            'phase1': {
-                'architecture': 'Monolithic',
-                'issues': ['Scaling difficulties', 'Deployment complexity'],
-                'changes': 'Split into microservices'
-            },
-            'phase2': {
-                'architecture': 'Microservices',
-                'issues': ['Service communication', 'Data consistency'],
-                'changes': 'Implemented event sourcing'
-            },
-            'phase3': {
-                'architecture': 'Event-driven',
-                'issues': ['Monitoring complexity', 'Debugging challenges'],
-                'changes': 'Enhanced observability'
-            }
-        }
-```
+**How it works — Architecture evolution:** the system grew monolith → service extraction at the first scaling pain → read replicas and caches → per-domain services; each step was pulled by a concrete bottleneck, never pushed by fashion.
 
 ## Trade-offs
 
@@ -298,6 +147,36 @@ class ArchitectureEvolution:
 **Scale path:** Start relational, add caches, then CQRS for reads — each step defers complexity until traffic justifies it.
 
 > **⚠️ When NOT to copy this architecture day one:** early-stage stores can run a modular monolith with caches — adopt this shape when traffic and team count justify the seams (the scaling path above does exactly that).
+
+## Edge Cases to Consider
+
+- Flash sales 50x traffic — admission queues, cached catalog, over-provisioned checkout
+- Inventory race between two buyers — atomic reserve with expiry
+- Payment succeeded but order write failed — reconciliation job must exist
+- Stale price shown then charged differently — price revalidation at checkout
+
+
+## Common Pitfalls
+
+1. Caching prices/stock too long — correctness bugs customers see
+2. Synchronous chain checkout → payment → shipping (fragile, slow)
+3. No idempotency on payment endpoints — double charges on retry
+4. Search bolted onto the OLTP database instead of a dedicated engine
+
+
+## FAQ
+
+**Q1: How do you prevent overselling?**
+
+A: Reservation-based inventory: atomic decrement with expiry at checkout start, releasing abandoned holds. Live checks lose to races at scale.
+
+**Q2: How do you design for a flash sale?**
+
+A: Admit through a queue, serve catalog entirely from cache, pre-scale checkout, and isolate the sale paths so the rest of the store stays healthy.
+
+**Q3: Where does CAP show up here?**
+
+A: Per domain: payments and inventory are CP (correctness), catalog and recommendations are AP (freshness tolerance) — one system, explicit choices.
 
 ## Interview Tips
 
@@ -320,6 +199,14 @@ class ArchitectureEvolution:
 - Monitor everything
 - Document decisions
 - Learn from incidents
+
+## Advanced Topics
+
+1. CQRS read models for catalog and search
+2. Cell-based storefronts for blast-radius isolation
+3. Experimentation at scale on the funnel
+4. Personalization pipelines feeding browse paths
+
 
 ## Further Reading
 - [E-commerce Architecture](https://aws.amazon.com/solutions/retail/)

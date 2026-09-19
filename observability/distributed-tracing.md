@@ -1,13 +1,21 @@
-# Distributed Tracing
+# Distributed Tracing in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Core Concepts](#core-concepts)
 - [Implementation Strategies](#implementation-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,226 +28,72 @@ Distributed tracing provides visibility into request flows across distributed sy
 4. **Error Tracking**
 5. **Service Dependencies**
 
+## Prerequisites & Related Topics
+
+- Builds on: [Logging](logging-practices.md), [Metrics](metrics.md)
+- Used in: [Microservices](../scalability/microservices.md), [Debug Strategies](debug-strategies.md), [Performance Monitoring](performance-monitoring.md)
+- Techniques often combined: context propagation (W3C traceparent), tail-based sampling, exemplars
+- See also: [OpenTelemetry](https://opentelemetry.io/) — the vendor-neutral standard
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Distributed Tracing
+
+**Keywords in requirements**: "trace", "span", "latency attribution", "which service is slow", "request journey", "propagation"
+**Reach for this when**:
+- Latency breakdown across service hops and external calls
+- Finding N+1 patterns and accidental fan-outs
+- Post-deploy comparison of the same request shape
+- Dependency mapping from real traffic, not diagrams
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Head sampling | decide at request start | cheap, uniform |
+| Tail sampling | decide after completion | keep all errors/slow ones |
+| Auto-instrumentation | framework spans for free | the 80% base |
+| Manual spans | domain-meaningful children | the critical 20% |
+
+### ❌ When NOT to Use
+
+- 100% tracing at high volume — cost and cardinality explode; sample
+- Tracing as a replacement for logs — spans are not free-text debugging
+- Solo-service tracing — value comes from propagation across hops
+
+
 ## Core Concepts
 
 ### 1. Trace Context
-```python
-class TraceContext:
-    def __init__(self):
-        self.trace_id = str(uuid.uuid4())
-        self.span_id = str(uuid.uuid4())
-        self.parent_id = None
-        
-    def create_child_span(self):
-        """Create child span context"""
-        child = TraceContext()
-        child.trace_id = self.trace_id
-        child.parent_id = self.span_id
-        return child
-```
+**How it works — Trace context:** a standard header (W3C traceparent) carries trace ID, span ID, and sampling flags across services and queues — any component that drops it breaks the chain, which is why propagation belongs in libraries, not application code.
 
 ### 2. Span Management
-```python
-class SpanManager:
-    def __init__(self):
-        self.tracer = opentelemetry.trace.get_tracer(__name__)
-        
-    def create_span(self, name, context=None):
-        """Create new span"""
-        with self.tracer.start_as_current_span(
-            name,
-            context=context,
-            kind=trace.SpanKind.SERVER
-        ) as span:
-            span.set_attribute("service.name", "order-service")
-            return span
-            
-    def end_span(self, span, status=None):
-        """End span with status"""
-        if status:
-            span.set_status(status)
-        span.end()
-```
+**How it works — Span manager:** each operation records a span (start, duration, tags, parent) and children nest under it; the tree of spans per trace ID reconstructs the request's path and its time breakdown across services.
 
 ## Implementation Strategies
 
 ### 1. Middleware Integration
-```python
-class TracingMiddleware:
-    def __init__(self, app):
-        self.app = app
-        self.tracer = init_tracer()
-        
-    async def __call__(self, scope, receive, send):
-        """ASGI middleware for tracing"""
-        if scope["type"] != "http":
-            return await self.app(scope, receive, send)
-            
-        with self.tracer.start_span(
-            scope["path"],
-            kind=trace.SpanKind.SERVER
-        ) as span:
-            # Add request details
-            span.set_attribute("http.method", scope["method"])
-            span.set_attribute("http.route", scope["path"])
-            
-            # Handle request
-            try:
-                response = await self.app(scope, receive, send)
-                span.set_attribute("http.status_code", response.status_code)
-                return response
-            except Exception as e:
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                raise
-```
+**How it works — Tracing middleware:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
 
 ### 2. Service Instrumentation
-```python
-class TracedService:
-    def __init__(self):
-        self.tracer = init_tracer()
-        
-    async def process_order(self, order):
-        """Process order with tracing"""
-        with self.tracer.start_span("process_order") as span:
-            try:
-                # Validate order
-                with self.tracer.start_span(
-                    "validate_order",
-                    parent=span
-                ) as validate_span:
-                    self.validate_order(order)
-                
-                # Process payment
-                with self.tracer.start_span(
-                    "process_payment",
-                    parent=span
-                ) as payment_span:
-                    payment = await self.payment_service.charge(order)
-                    
-                # Update inventory
-                with self.tracer.start_span(
-                    "update_inventory",
-                    parent=span
-                ) as inventory_span:
-                    await self.inventory_service.update(order)
-                    
-                return "Order processed"
-            except Exception as e:
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                raise
-```
+**How it works — Traced service:** each service auto-instruments its framework (server spans) and explicitly instruments expensive calls (DB, external APIs) with meaningful tags — traces are only as good as the annotations on them.
 
 ## Analysis Patterns
 
 ### 1. Trace Analysis
-```python
-class TraceAnalyzer:
-    def analyze_trace(self, trace_id):
-        """Analyze complete trace"""
-        # Get all spans for trace
-        spans = self.trace_store.get_spans(trace_id)
-        
-        # Build trace tree
-        trace_tree = self.build_trace_tree(spans)
-        
-        # Calculate metrics
-        metrics = self.calculate_trace_metrics(trace_tree)
-        
-        return {
-            'trace_id': trace_id,
-            'duration': metrics['duration'],
-            'span_count': len(spans),
-            'error_count': metrics['error_count'],
-            'services': metrics['services']
-        }
-        
-    def build_trace_tree(self, spans):
-        """Build hierarchical trace structure"""
-        span_map = {span.span_id: span for span in spans}
-        root = None
-        
-        for span in spans:
-            if not span.parent_id:
-                root = span
-                continue
-                
-            parent = span_map.get(span.parent_id)
-            if parent:
-                parent.children.append(span)
-                
-        return root
-```
+**How it works — Trace analyzer:** aggregate traces into service-level views — which dependency owns the p99, which call fan-out multiplies latency — and diff the top slow traces week over week to catch regressions early.
 
 ### 2. Performance Analysis
-```python
-class PerformanceAnalyzer:
-    def analyze_service_performance(self, traces, service_name):
-        """Analyze service performance"""
-        service_spans = []
-        
-        for trace in traces:
-            service_spans.extend([
-                span for span in trace.spans
-                if span.service_name == service_name
-            ])
-            
-        return {
-            'avg_duration': statistics.mean(
-                span.duration for span in service_spans
-            ),
-            'p95_duration': numpy.percentile(
-                [span.duration for span in service_spans],
-                95
-            ),
-            'error_rate': len([
-                span for span in service_spans
-                if span.status.code == StatusCode.ERROR
-            ]) / len(service_spans)
-        }
-```
+**How it works — Performance analyzer:** take the p95 request, walk its trace top-down (total → slowest span → its slowest child), and fix the deepest expensive hop first — averages lie, distributions and traces don't.
 
 ## Common Use Cases
 
 ### 1. Request Tracing
-```python
-class RequestTracer:
-    async def trace_request(self, request):
-        """Trace HTTP request"""
-        with self.tracer.start_span("http_request") as span:
-            # Add request context
-            span.set_attribute("http.method", request.method)
-            span.set_attribute("http.url", str(request.url))
-            
-            try:
-                response = await self.handle_request(request)
-                span.set_attribute(
-                    "http.status_code",
-                    response.status_code
-                )
-                return response
-            except Exception as e:
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                raise
-```
+**How it works — Request tracer:** a trace ID is minted at the edge and propagated through every hop's headers; each service records a span (start, duration, tags), and the assembled trace shows the request's real path and time split.
 
 ### 2. Database Tracing
-```python
-class DatabaseTracer:
-    async def trace_query(self, query, params=None):
-        """Trace database query"""
-        with self.tracer.start_span("db_query") as span:
-            span.set_attribute("db.type", "postgresql")
-            span.set_attribute("db.statement", query)
-            
-            try:
-                result = await self.execute_query(query, params)
-                span.set_attribute("db.rows_affected", len(result))
-                return result
-            except Exception as e:
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                raise
-```
+**How it works — Database tracer:** slow query logs, plan stats, and wait events attribute database time to specific queries; tracing at this layer answers "which query, which plan, which index" — the level where fixes actually happen.
 
 ## Trade-offs
 
@@ -257,6 +111,36 @@ class DatabaseTracer:
 **Context propagation coupling:** Full tracing requires consistent context headers across every service; retrofitting partial coverage yields confusing partial traces.
 
 > **⚠️ When NOT to trace every request:** high-volume healthy paths where head-based sampling captures the shape at 1% of the cost, and systems that can't propagate context consistently — partial tracing yields misleading partial pictures.
+
+## Edge Cases to Consider
+
+- Missing spans from un-instrumented clients (queue consumers, cron)
+- Async handoffs — context must ride message headers, not threads
+- Clock skew between hosts — trust durations and causality
+- High-cardinality span tags blowing storage budgets
+
+
+## Common Pitfalls
+
+1. Propagation gaps that orphan subtraces
+2. Spans named after HTTP paths only — no domain meaning
+3. Sampling that drops the exact failing trace you need
+4. Traces never queried — collecting cost without debugging value
+
+
+## FAQ
+
+**Q1: Traces or logs?**
+
+A: Traces for structure (which hop, how long), logs for detail (what exactly happened inside). The trace ID in every log line joins them.
+
+**Q2: What sampling rate should I pick?**
+
+A: Head-sample base traffic at 1–10%, keep 100% of errors and slow requests (tail-based), and raise rates during incidents.
+
+**Q3: How do traces cross queues?**
+
+A: Context travels in message headers — producers inject, consumers extract. Break the chain and you get orphan spans that explain nothing.
 
 ## Interview Tips
 
@@ -279,6 +163,14 @@ class DatabaseTracer:
 - Implement proper sampling
 - Consider data volume
 - Monitor trace system
+
+## Advanced Topics
+
+1. Tail-based sampling policies (errors, latency outliers, rare routes)
+2. Service diagrams derived from live traces
+3. Trace-to-metric exemplars for investigating histogram tails
+4. Trace-based testing in CI for critical paths
+
 
 ## Further Reading
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)

@@ -1,13 +1,21 @@
-# Container Orchestration with Kubernetes
+# Kubernetes Orchestration in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Core Concepts](#core-concepts)
 - [Architecture Components](#architecture-components)
 - [Implementation Patterns](#implementation-patterns)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -19,6 +27,41 @@ Kubernetes is a container orchestration platform that automates the deployment, 
 3. **High Availability**
 4. **Resource Efficiency**
 5. **Declarative Configuration**
+
+## Prerequisites & Related Topics
+
+- Builds on: containers, [Load Balancing](../system-basics/load-balancing.md)
+- Used in: Service Mesh, [Cost Optimization](cost-optimization.md), [Serverless Patterns](serverless-patterns.md)
+- Techniques often combined: HPA autoscaling, readiness/liveness probes, resource requests/limits, NetworkPolicies
+- See also: [The Twelve-Factor App](https://12factor.net/) — the app discipline K8s assumes
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Kubernetes Orchestration
+
+**Keywords in requirements**: "container orchestration", "declarative", "self-healing", "rolling update", "autoscaling", "pod", "cluster"
+**Reach for this when**:
+- Fleets of services needing uniform deploy, scaling, and healing
+- Mixed workloads with bin-packing efficiency on shared nodes
+- Platform engineering golden paths (templates, operators)
+- Hybrid/multi-cloud portability at the orchestration layer
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Deployment + Service | stateless rollout, stable VIP | the default shape |
+| StatefulSet | stable identity + storage | databases, brokers |
+| HPA/KEDA | metric- or queue-driven scaling | variable load |
+| Operator pattern | automated domain ops | running stateful tech |
+
+### ❌ When NOT to Use
+
+- A few stateless services — managed platforms (Fargate, Cloud Run) are cheaper to run and staff
+- Strong statefulness without an operator — databases often belong on managed services
+- One giant shared cluster with no tenancy boundaries
+
 
 ## Core Concepts
 
@@ -35,230 +78,37 @@ graph TD
 ```
 
 ### 2. Kubernetes Objects
-```yaml
-# Pod Example
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx-pod
-  labels:
-    app: nginx
-spec:
-  containers:
-  - name: nginx
-    image: nginx:1.14.2
-    ports:
-    - containerPort: 80
-```
+**Kubernetes `Pod` `nginx-pod`**: the smallest schedulable unit. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ### 3. Deployment Patterns
-```yaml
-# Deployment with Rolling Update
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: web-app
-spec:
-  replicas: 3
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-  selector:
-    matchLabels:
-      app: web
-  template:
-    metadata:
-      labels:
-        app: web
-    spec:
-      containers:
-      - name: web-app
-        image: web-app:1.0
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-```
+**Kubernetes `Deployment` `web-app`** — 3 replicas: rolls out stateless replicas behind a Service. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ## Architecture Components
 
 ### 1. Control Plane Components
-```python
-class ControlPlane:
-    def __init__(self):
-        self.api_server = APIServer()
-        self.scheduler = Scheduler()
-        self.controller_manager = ControllerManager()
-        self.etcd = ETCD()
-    
-    def handle_request(self, request):
-        """Process API request"""
-        # Authenticate and authorize
-        if not self.api_server.authenticate(request):
-            return "Unauthorized"
-            
-        # Schedule if needed
-        if request.type == "CREATE_POD":
-            node = self.scheduler.select_node(request.pod)
-            return self.api_server.create_pod(request.pod, node)
-```
+**How it works — Control plane:** the component that stores desired state and drives the data plane toward it — schedulers, service-mesh pilots, and orchestrators are all control planes; they decide, the data plane executes.
 
 ### 2. Networking
-```python
-class KubernetesNetwork:
-    def setup_network(self):
-        """Configure cluster networking"""
-        # Pod networking
-        self.configure_pod_network()
-        
-        # Service networking
-        self.configure_service_network()
-        
-        # Network policies
-        self.apply_network_policies()
-    
-    def configure_pod_network(self):
-        """Setup pod network with CNI"""
-        cni_config = {
-            "cniVersion": "0.3.1",
-            "name": "cluster-network",
-            "type": "calico",
-            "ipam": {
-                "type": "host-local",
-                "subnet": "10.244.0.0/16"
-            }
-        }
-        return self.apply_cni_config(cni_config)
-```
+**How it works — Kubernetes network:** every pod gets a cluster-routable IP and pods talk directly without NAT; Services provide stable virtual IPs with load balancing across pods, and NetworkPolicies apply default-deny between namespaces.
 
 ## Implementation Patterns
 
 ### 1. Service Discovery
-```yaml
-# Service Definition
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-service
-spec:
-  selector:
-    app: web
-  ports:
-  - port: 80
-    targetPort: 8080
-  type: LoadBalancer
-```
+**Kubernetes `Service` `web-service`**: gives pods a stable virtual IP and DNS name. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ### 2. Configuration Management
-```yaml
-# ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  database_url: "postgresql://db:5432"
-  api_key: "development-key"
-
----
-# Secret
-apiVersion: v1
-kind: Secret
-metadata:
-  name: app-secrets
-type: Opaque
-data:
-  db_password: BASE64_ENCODED_PASSWORD
-```
+**Kubernetes `ConfigMap` `app-config`**: injects non-secret configuration as env vars or files. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ### 3. State Management
-```yaml
-# StatefulSet Example
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: web
-spec:
-  serviceName: "nginx"
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.14.2
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: www
-          mountPath: /usr/share/nginx/html
-  volumeClaimTemplates:
-  - metadata:
-      name: www
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
-```
+**Kubernetes `StatefulSet` `web`** — 3 replicas: gives replicas stable identities and ordered rollout. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ## Common Use Cases
 
 ### 1. Microservices Deployment
-```yaml
-# Microservice Architecture
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: auth-service
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: auth
-  template:
-    metadata:
-      labels:
-        app: auth
-    spec:
-      containers:
-      - name: auth
-        image: auth-service:1.0
-        env:
-        - name: DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: database_url
-```
+**Kubernetes `Deployment` `auth-service`** — 3 replicas: rolls out stateless replicas behind a Service. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ### 2. Batch Processing
-```yaml
-# Job Example
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: batch-job
-spec:
-  template:
-    spec:
-      containers:
-      - name: batch-processor
-        image: batch-processor:1.0
-        command: ["python", "process.py"]
-      restartPolicy: Never
-  backoffLimit: 4
-```
+**Kubernetes `Job` `batch-job`**: runs a workload to completion once. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ## Trade-offs
 
@@ -276,6 +126,36 @@ spec:
 **Fast autoscaling vs stability:** Aggressive scale-up handles spikes quickly but thrashes; stabilize windows smooth it at the cost of brief over/under-provisioning.
 
 > **⚠️ When NOT to use Kubernetes:** a few stateless services that fit managed platforms (Cloud Run, ECS), small teams without ops capacity, and single-region apps where the control plane's flexibility buys nothing — managed PaaS is cheaper to run and to staff.
+
+## Edge Cases to Consider
+
+- Graceful shutdown — SIGTERM handling and preStop drains
+- Pod disruption during node ops — PodDisruptionBudgets protect availability
+- Probe misconfig killing healthy pods (liveness on slow endpoints)
+- ETCD/control-plane saturation from churn (HPA flapping)
+
+
+## Common Pitfalls
+
+1. No resource requests — scheduling and capacity planning break
+2. Liveness probes that check dependencies — restart storms
+3. latest tags and immutable-image violations
+4. Secrets as plain ConfigMaps — use secret stores and encryption
+
+
+## FAQ
+
+**Q1: Kubernetes or serverless?**
+
+A: Serverless for spiky/event-driven and small teams; Kubernetes for dense fleets, custom runtimes, and cost at sustained scale. Start serverless, migrate deliberately.
+
+**Q2: Why requests and limits?**
+
+A: Requests drive placement guarantees; limits prevent noisy neighbors. Without requests, the scheduler packs blind and QoS collapses under pressure.
+
+**Q3: What makes deploys zero-downtime?**
+
+A: Rolling updates gated by readiness probes plus PDBs — new pods receive traffic only when able, old pods drain gracefully.
 
 ## Interview Tips
 
@@ -298,6 +178,14 @@ spec:
 - Use health checks
 - Plan for disaster recovery
 - Monitor cluster health
+
+## Advanced Topics
+
+1. Horizontal + vertical autoscaling with cost-aware bin-packing
+2. Multi-cluster traffic and failover (service mesh assisted)
+3. GitOps (Argo/Flux) with progressive delivery (Argo Rollouts)
+4. Operators/CRDs encoding operational runbooks
+
 
 ## Further Reading
 - [Kubernetes Documentation](https://kubernetes.io/docs/)

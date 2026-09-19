@@ -1,13 +1,21 @@
-# Authentication & Authorization
+# Authentication & Authorization in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Authentication Methods](#authentication-methods)
 - [Authorization Strategies](#authorization-strategies)
 - [Security Best Practices](#security-best-practices)
 - [Implementation Examples](#implementation-examples)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -19,54 +27,49 @@ Authentication verifies who a user is, while authorization determines what they 
 3. **Identity Management**: User lifecycle
 4. **Access Control**: Resource protection
 
+## Prerequisites & Related Topics
+
+- Builds on: HTTP basics, tokens and cookies
+- Used in: [API Security](../security/api-security.md), [OAuth & OIDC](../security/oauth-openid.md), [Zero Trust](../security/zero-trust.md)
+- Techniques often combined: JWTs, MFA, RBAC/ABAC, secret rotation
+- See also: [Secrets Management](../security/secrets-management.md) — machine auth uses the same principles
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Authentication & Authorization
+
+**Keywords in requirements**: "login", "who is the user", "permissions", "roles", "SSO", "session", "token", "access control"
+**Reach for this when**:
+- Any request that must be tied to a verified identity
+- Multi-tenant systems where data isolation is enforced per principal
+- Delegating access to third-party apps (OAuth scopes)
+- Privileged operations requiring step-up verification
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Session cookies | browser apps, revocable server state | traditional web apps |
+| JWT bearer | stateless verification, cross-service | APIs and microservices |
+| OAuth 2.0/OIDC | delegated or federated login | SSO, third-party integrations |
+| RBAC | permission sets per role | org-tooling semantics |
+| ABAC | attribute/policy-driven decisions | fine-grained data rules |
+
+### ❌ When NOT to Use
+
+- Building your own crypto or password hashing — use bcrypt/argon2 and proven libs
+- Long-lived static tokens in browsers — short-lived access + refresh
+- Permissions hard-coded in handlers — policy must be data, not code
+
+
 ## Authentication Methods
 
 ### 1. Password-Based Authentication
-```python
-class PasswordAuth:
-    def hash_password(self, password):
-        """Hash password using bcrypt."""
-        salt = bcrypt.gensalt()
-        return bcrypt.hashpw(password.encode(), salt)
-    
-    def verify_password(self, password, hashed):
-        """Verify password against hash."""
-        return bcrypt.checkpw(password.encode(), hashed)
-    
-    def authenticate(self, username, password):
-        """Authenticate user."""
-        user = db.get_user(username)
-        if not user:
-            return None
-        if self.verify_password(password, user.password):
-            return user
-        return None
-```
+**How it works — Password auth:** hash with a slow adaptive function (bcrypt/argon2), compare in constant time, rate-limit attempts, and step up to MFA for sensitive actions — the password check is deliberately the slowest part of login.
 
 ### 2. JWT Authentication
-```python
-class JWTAuth:
-    def generate_token(self, user_id, claims=None):
-        """Generate JWT token."""
-        payload = {
-            'sub': user_id,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(days=1)
-        }
-        if claims:
-            payload.update(claims)
-        return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-    
-    def verify_token(self, token):
-        """Verify JWT token."""
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            return payload
-        except jwt.ExpiredSignatureError:
-            raise AuthError('Token expired')
-        except jwt.InvalidTokenError:
-            raise AuthError('Invalid token')
-```
+**How it works — JWT auth:** verify signature and expiry on every request, check issuer/audience, then trust the claims — stateless auth with zero session lookups; revocation is handled with short TTLs plus a denylist.
 
 ### 3. OAuth 2.0 Flow
 ```mermaid
@@ -88,194 +91,37 @@ sequenceDiagram
 ```
 
 ### 4. Multi-Factor Authentication
-```python
-class MFAAuth:
-    def generate_totp(self, secret):
-        """Generate TOTP code."""
-        return pyotp.TOTP(secret).now()
-    
-    def verify_totp(self, secret, code):
-        """Verify TOTP code."""
-        return pyotp.TOTP(secret).verify(code)
-    
-    def authenticate(self, username, password, mfa_code):
-        """Authenticate with MFA."""
-        user = self.verify_credentials(username, password)
-        if not user:
-            return None
-        if self.verify_totp(user.mfa_secret, mfa_code):
-            return user
-        return None
-```
+**How it works — MFA flow:** after the password check, a second factor (TOTP, WebAuthn key) is verified server-side; WebAuthn is phishing-resistant because the challenge is bound to the origin — TOTP as the baseline, WebAuthn for privileged users.
 
 ## Authorization Strategies
 
 ### 1. Role-Based Access Control (RBAC)
-```python
-class RBACSystem:
-    def check_permission(self, user, resource, action):
-        """Check if user has permission."""
-        user_roles = self.get_user_roles(user)
-        required_permissions = self.get_required_permissions(resource, action)
-        
-        return any(
-            role.has_permissions(required_permissions)
-            for role in user_roles
-        )
-    
-    def get_user_roles(self, user):
-        """Get user's roles."""
-        return db.get_user_roles(user.id)
-    
-    def get_required_permissions(self, resource, action):
-        """Get required permissions for action."""
-        return db.get_resource_permissions(resource, action)
-```
+**How it works — RBAC system:** users hold roles, roles hold permissions, tokens carry role claims; changes propagate through the token refresh or a versioned policy cache — the whole model is data, so every grant is auditable.
 
 ### 2. Attribute-Based Access Control (ABAC)
-```python
-class ABACSystem:
-    def evaluate_policy(self, user, resource, action, context):
-        """Evaluate ABAC policy."""
-        policy = self.get_applicable_policy(resource, action)
-        
-        return policy.evaluate({
-            'user': user.attributes,
-            'resource': resource.attributes,
-            'action': action,
-            'context': context
-        })
-    
-    def get_applicable_policy(self, resource, action):
-        """Get applicable policy."""
-        return db.get_policy(resource.type, action)
-```
+**How it works — ABAC system:** user, resource, and environment attributes feed a central policy engine (OPA/XACML-style); decisions are logged with the inputs that produced them — debuggable authorization instead of scattered if-statements.
 
 ### 3. Token-Based Authorization
-```python
-class TokenAuth:
-    def create_access_token(self, user, scope):
-        """Create access token with scope."""
-        return {
-            'token': self.generate_token(user.id),
-            'scope': scope,
-            'expires_at': datetime.utcnow() + timedelta(hours=1)
-        }
-    
-    def verify_scope(self, token, required_scope):
-        """Verify token has required scope."""
-        token_data = self.decode_token(token)
-        return required_scope in token_data['scope']
-```
+**How it works — Token auth:** the bearer token *is* the credential — whoever holds it is authenticated — so TLS only, short lifetimes, and scopes limited to what the client actually needs.
 
 ## Security Best Practices
 
 ### 1. Password Security
-```python
-class PasswordPolicy:
-    def validate_password(self, password):
-        """Validate password strength."""
-        return (
-            len(password) >= 8 and
-            any(c.isupper() for c in password) and
-            any(c.islower() for c in password) and
-            any(c.isdigit() for c in password) and
-            any(not c.isalnum() for c in password)
-        )
-    
-    def check_common_passwords(self, password):
-        """Check against common passwords."""
-        return not db.is_common_password(password)
-```
+**How it works — Password policy:** modern guidance: length over complexity, check against breached-password lists, rate-limit brute force, and store only adaptive hashes (argon2/bcrypt) — complexity rules make passwords worse, not better.
 
 ### 2. Rate Limiting
-```python
-class RateLimiter:
-    def __init__(self, redis_client):
-        self.redis = redis_client
-    
-    def is_rate_limited(self, key, limit, window):
-        """Check if rate limited."""
-        current = self.redis.get(key) or 0
-        if int(current) >= limit:
-            return True
-        
-        pipe = self.redis.pipeline()
-        pipe.incr(key)
-        pipe.expire(key, window)
-        pipe.execute()
-        return False
-```
+**How it works — Rate limiter:** identify the caller (IP, user, API key), check their window/counter against the policy, and return 429 with retry-after headers when exceeded — enforce centrally (or with shared state) so the limit is global, not per-instance.
 
 ### 3. Session Management
-```python
-class SessionManager:
-    def create_session(self, user):
-        """Create new session."""
-        session_id = self.generate_session_id()
-        session_data = {
-            'user_id': user.id,
-            'created_at': datetime.utcnow(),
-            'expires_at': datetime.utcnow() + timedelta(hours=24)
-        }
-        self.store_session(session_id, session_data)
-        return session_id
-    
-    def validate_session(self, session_id):
-        """Validate session."""
-        session = self.get_session(session_id)
-        if not session:
-            return False
-        return datetime.utcnow() < session['expires_at']
-```
+**How it works — Session manager:** sessions live server-side (or as signed tokens) with rotation on privilege change, absolute and idle expiry, and revocation on logout — the session store is the single place that decides who is "logged in".
 
 ## Implementation Examples
 
 ### 1. API Authentication
-```python
-@app.route('/api/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    user = authenticate_user(data['username'], data['password'])
-    if not user:
-        return jsonify({'error': 'Invalid credentials'}), 401
-    
-    token = create_access_token(user)
-    return jsonify({
-        'token': token,
-        'user': user.to_dict()
-    })
-
-@app.route('/api/protected', methods=['GET'])
-@require_auth
-def protected_route():
-    user = g.current_user
-    return jsonify({'message': f'Hello {user.username}'})
-```
+**Endpoint: POST /api/login** — validates the request, applies business logic, and returns a typed response.
 
 ### 2. Role-Based API
-```python
-class UserRoles(Enum):
-    ADMIN = 'admin'
-    USER = 'user'
-    GUEST = 'guest'
-
-def require_role(role):
-    def decorator(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            if not g.current_user.has_role(role):
-                return jsonify({'error': 'Unauthorized'}), 403
-            return f(*args, **kwargs)
-        return wrapped
-    return decorator
-
-@app.route('/api/admin', methods=['GET'])
-@require_auth
-@require_role(UserRoles.ADMIN)
-def admin_route():
-    return jsonify({'message': 'Admin access granted'})
-```
+**Endpoint: GET /api/admin** — validates the request, applies business logic, and returns a typed response.
 
 ## Trade-offs
 
@@ -290,6 +136,38 @@ def admin_route():
 **Centralization vs autonomy:** A central authorization service gives consistent policy but adds a dependency; service-level checks are resilient but drift over time.
 
 > **⚠️ When NOT to use JWTs:** when you need instant revocation (stolen token, banned user, logout-everywhere), strict per-session audit, or sessions shorter than a token's natural lifetime — a server-side session store serves these better despite the lookup cost.
+
+## Edge Cases to Consider
+
+- Clock skew between issuer and verifier — allow leeway, but bound it
+- Token stolen before expiry — denylists plus short TTLs limit damage
+- Session fixation after login — rotate session IDs on privilege change
+- Service accounts outliving their owners — lifecycle and review required
+- Downstream revocation — services must re-check policy, not just the signature
+
+
+## Common Pitfalls
+
+1. Storing plaintext or weakly-hashed passwords
+2. Trusting unverified JWT claims from any issuer
+3. Permissions checked only in the UI
+4. No rate limiting on login — credential stuffing wins
+5. Skipping MFA for admin access
+
+
+## FAQ
+
+**Q1: Sessions or JWTs?**
+
+A: Sessions for revocation control and browser apps; JWTs for stateless scale across services. Many systems issue short-lived JWTs plus a server-side refresh/revocation path.
+
+**Q2: Where is authorization enforced?**
+
+A: At every trust boundary — gateway coarse checks, service fine checks, database row-level last line. UI checks are UX, not security.
+
+**Q3: How do services authenticate to each other?**
+
+A: Workload identity with short-lived credentials (mTLS certs or signed tokens), issued by the platform — never shared static secrets.
 
 ## Interview Tips
 
@@ -312,6 +190,14 @@ def admin_route():
 - Enable MFA where possible
 - Regular security audits
 - Monitor for suspicious activity
+
+## Advanced Topics
+
+1. WebAuthn/passkeys — phishing-resistant, origin-bound factors
+2. Short-lived workload identity (SPIFFE-style) for service-to-service
+3. Centralized policy engines (OPA) with decision logging
+4. Step-up authentication flows for sensitive operations
+
 
 ## Further Reading
 - [OWASP Authentication Cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)

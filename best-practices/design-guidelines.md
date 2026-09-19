@@ -1,14 +1,20 @@
-# System Design Guidelines
+# System Design Guidelines 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [The Interview Design Framework](#the-interview-design-framework)
 - [Core Design Principles](#core-design-principles)
 - [Component Selection Guidelines](#component-selection-guidelines)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
 - [Design Review Checklist](#design-review-checklist)
 - [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
 - [Further Reading](#further-reading)
 
 ## Introduction
@@ -18,6 +24,41 @@ These guidelines distill the cross-cutting principles that apply to almost every
 **Prerequisites:** [Distributed Systems Basics](../system-basics/distributed-systems.md), [Load Balancing](../system-basics/load-balancing.md), [Caching](../system-basics/caching.md), [CAP Theorem](../scalability/cap-theorem.md)
 
 **Related topics:** [Performance Optimization](performance.md), [Security Best Practices](security.md), [Cost Optimization](cost.md), [Case Studies](../case-studies/README.md)
+
+## Prerequisites & Related Topics
+
+- Builds on: every [System Basics](../system-basics/README.md) and [Scalability](../scalability/README.md) topic
+- Used in: [Interview Questions](../interview-questions/easy/README.md) at every level, real design reviews
+- Techniques often combined: back-of-envelope math, component-selection tables, checklists
+- See also: each category's README learning path for topic ordering
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use System Design Guidelines 📌
+
+**Keywords in requirements**: "design a system", "architecture", "how would you build", "design review", "trade-off", "45 minutes"
+**Reach for this when**:
+- Interview prep: the repeatable 45-minute structure
+- Real design docs: requirements → components → trade-offs → risks
+- Choosing components with a defensible selection process
+- Reviewing others' designs with a consistent checklist
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Requirements-first | numbers before boxes | always |
+| Request-path walk | deep-dive the hot path | interviews |
+| Trade-off table | 2 candidates, 1 killed | component choices |
+| Failure-mode pass | what breaks first | senior signal |
+
+### ❌ When NOT to Use
+
+- Diagram-first design — requirements before rectangles
+- Listing every technology — breadth is not depth
+- Choosing components without stating the rejected alternative
+
 
 ## The Interview Design Framework
 
@@ -124,23 +165,17 @@ Every design decision is a trade-off — saying so explicitly is what separates 
 | Provisioned vs Serverless | Cost vs control | Steady high load → provisioned; spiky → serverless |
 | Build vs Buy | Differentiation vs speed | Buy commodity (auth, payments); build your edge |
 
-```python
-# Frame every decision with this structure in the interview
-def justify_choice(option, alternatives):
-    """
-    "I chose X over Y because <requirement> dominates;
-    the trade-off I'm accepting is <cost>;
-    if <condition changes>, I'd switch to Y."
-    """
-    return {
-        "chosen": option,
-        "because": "<matching requirement>",
-        "cost_accepted": "<explicit trade-off>",
-        "revisit_when": "<trigger condition>",
-    }
-```
+**How to justify a choice:** name the requirement that forces the decision, list the two real candidates, and kill one with a concrete consequence — "we need 5-minute dashboard freshness, so ETL's batch window fails and ELT wins despite costlier queries." A choice without a rejected alternative reads as a guess in interviews.
 
 > **⚠️ When NOT to follow the upgrade paths:** when requirements don't demand them — the "first choice" column is a floor, not a checklist; every component you add must trace back to a stated requirement.
+
+## Edge Cases to Consider
+
+- Ambiguous requirements — state assumptions out loud and proceed
+- Interviewer pivots ("now make it global") — extend, do not restart
+- Missing numbers mid-design — estimate, mark as assumption, continue
+- Conflicting constraints — surface the conflict, choose with rationale
+
 
 ## Design Review Checklist
 
@@ -169,6 +204,20 @@ Run through this before presenting a finished design:
 6. **Forgetting operations** — no mention of monitoring, deploys, or on-call
 7. **Silent trade-offs** — making choices without stating what you gave up
 
+## FAQ
+
+**Q1: What is the 45-minute structure?**
+
+A: 5m requirements + estimates, 10m high-level design walking the request path, 15m deep-dive (database/consistency/hot component), 10m bottlenecks and failures, 5m wrap-up. Time-box each part.
+
+**Q2: How much math is expected?**
+
+A: Back-of-envelope fluency: QPS from DAU, storage from record size × growth, cache sizing from hit-rate targets — round numbers with stated assumptions, not precision.
+
+**Q3: How do I show seniority in a design?**
+
+A: State trade-offs unprompted, handle "what breaks first" without hesitation, and push back on requirements when they conflict — senior signal is judgment, not more boxes.
+
 ## Interview Tips
 
 ### 1. Communicate Framework, Not Just Answer
@@ -185,6 +234,14 @@ Run through this before presenting a finished design:
 
 ### 4. Know Your Numbers
 Memorize rough constants: memory is ~100× faster than SSD, SSD ~100× faster than network round-trips; a single app server handles ~1k RPS of medium requests. Estimates anchor credibility.
+
+## Advanced Topics
+
+1. Multi-region design patterns on demand
+2. Cost-aware design with unit economics
+3. Migration design: strangler figs and dual-writes
+4. Designing for change: extension points over speculation
+
 
 ## Further Reading
 

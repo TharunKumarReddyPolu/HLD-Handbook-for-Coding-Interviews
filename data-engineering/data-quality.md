@@ -1,13 +1,21 @@
-# Data Quality and Validation
+# Data Quality in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Quality Dimensions](#quality-dimensions)
 - [Validation Strategies](#validation-strategies)
 - [Implementation Patterns](#implementation-patterns)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,212 +28,72 @@ Data quality and validation ensure the reliability, accuracy, and consistency of
 4. **Consistent Processing**
 5. **Regulatory Compliance**
 
+## Prerequisites & Related Topics
+
+- Builds on: Data Pipelines concepts, schema design
+- Used in: [ETL vs ELT](etl-vs-elt.md), [Real-Time Analytics](real-time-analytics.md), [Data Warehousing](data-warehousing.md)
+- Techniques often combined: data contracts, quarantine zones, expectation suites (dbt/Great Expectations)
+- See also: [Observability](../observability/metrics.md) — pipeline metrics are data-quality signals
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Data Quality
+
+**Keywords in requirements**: "data validation", "schema change", "nulls", "duplicate", "freshness", "reconciliation", "trust the dashboard"
+**Reach for this when**:
+- Pipelines feeding dashboards where silent corruption is costly
+- Multi-team data platforms needing contracts at boundaries
+- ML feature pipelines where drift silently degrades models
+- Compliance regimes requiring lineage and accuracy evidence
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Schema validation | type/structure drift | every ingestion boundary |
+| Freshness SLO | staleness thresholds | serving + dashboards |
+| Reconciliation | counts/sums vs source | financial data |
+| Distribution checks | null rates, cardinality drift | feature pipelines |
+
+### ❌ When NOT to Use
+
+- Validating everything everywhere — gate the boundaries that matter
+- Quarantining without alerting — bad data rots in silence
+- Perfect data before launch — pragmatic gates on the critical path first
+
+
 ## Quality Dimensions
 
 ### 1. Data Accuracy
-```python
-class AccuracyValidator:
-    def validate_accuracy(self, data):
-        """Validate data accuracy"""
-        return {
-            'checks': {
-                'range_check': {
-                    'numeric_fields': {
-                        'min': 0,
-                        'max': 1000
-                    },
-                    'date_fields': {
-                        'start': '2020-01-01',
-                        'end': 'now'
-                    }
-                },
-                'format_check': {
-                    'email': r'^[\w\.-]+@[\w\.-]+\.\w+$',
-                    'phone': r'^\+?1?\d{9,15}$'
-                }
-            }
-        }
-```
+**How it works — Accuracy validator:** compare model output against a held-out labeled set on every training run; accuracy, precision/recall, and drift metrics gate promotion — a model that regressed never ships.
 
 ### 2. Data Completeness
-```python
-class CompletenessChecker:
-    def check_completeness(self, dataset):
-        """Check data completeness"""
-        try:
-            # Check required fields
-            missing = self.check_required_fields(dataset)
-            
-            # Check null values
-            nulls = self.check_null_values(dataset)
-            
-            # Check empty values
-            empty = self.check_empty_values(dataset)
-            
-            return {
-                'missing_fields': missing,
-                'null_count': nulls,
-                'empty_count': empty
-            }
-        except Exception as e:
-            raise DataQualityError(str(e))
-```
+**How it works — Completeness checker:** every pipeline run asserts expected row counts, partition coverage, and source-vs-destination reconciliation before publishing — missing data fails loudly instead of quietly producing a wrong dashboard.
 
 ## Validation Strategies
 
 ### 1. Schema Validation
-```python
-class SchemaValidator:
-    def validate_schema(self, data):
-        """Validate data schema"""
-        return {
-            'fields': {
-                'id': {
-                    'type': 'string',
-                    'required': True,
-                    'unique': True
-                },
-                'name': {
-                    'type': 'string',
-                    'required': True,
-                    'max_length': 100
-                },
-                'email': {
-                    'type': 'string',
-                    'required': True,
-                    'pattern': 'email'
-                },
-                'age': {
-                    'type': 'integer',
-                    'min': 0,
-                    'max': 150
-                }
-            }
-        }
-```
+**How it works — Schema validator:** Define the shape from the access patterns first, apply the change incrementally with a rollback path, and verify both old and new readers work during the transition window.
 
 ### 2. Business Rules
-```python
-class BusinessRuleValidator:
-    async def validate_rules(self, data):
-        """Validate business rules"""
-        try:
-            # Apply domain rules
-            domain_valid = await self.check_domain_rules(data)
-            
-            # Apply relationship rules
-            relation_valid = await self.check_relationships(data)
-            
-            # Apply constraint rules
-            constraint_valid = await self.check_constraints(data)
-            
-            return all([
-                domain_valid,
-                relation_valid,
-                constraint_valid
-            ])
-        except Exception as e:
-            await self.handle_validation_error(e)
-```
+**How it works — Business rule validator:** rules live in a policy layer separate from the request path; each request is evaluated against them (eligibility, limits, compliance) and rejections cite the violated rule — auditable and changeable without deploys.
 
 ## Implementation Patterns
 
 ### 1. Data Profiling
-```python
-class DataProfiler:
-    def profile_data(self, dataset):
-        """Profile dataset"""
-        return {
-            'statistics': {
-                'numeric': {
-                    'mean': self.calculate_mean,
-                    'std': self.calculate_std,
-                    'quartiles': self.calculate_quartiles
-                },
-                'categorical': {
-                    'unique_count': self.count_unique,
-                    'frequency': self.calculate_frequency
-                },
-                'temporal': {
-                    'range': self.calculate_range,
-                    'patterns': self.detect_patterns
-                }
-            }
-        }
-```
+**How it works — data profiling:** before trusting a dataset, compute column stats (null rate, cardinality, min/max, value distributions) and diff them against the last run — sudden drift flags upstream schema changes or broken producers before dashboards lie.
 
 ### 2. Quality Monitoring
-```python
-class QualityMonitor:
-    async def monitor_quality(self):
-        """Monitor data quality"""
-        try:
-            # Collect metrics
-            metrics = await self.collect_quality_metrics()
-            
-            # Check thresholds
-            violations = self.check_thresholds(metrics)
-            
-            # Generate alerts
-            if violations:
-                await self.generate_alerts(violations)
-                
-            # Store results
-            await self.store_quality_results(metrics)
-            
-        except Exception as e:
-            await self.handle_monitoring_error(e)
-```
+**How it works — Quality monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Common Use Cases
 
 ### 1. ETL Validation
-```python
-class ETLValidator:
-    async def validate_etl(self, data):
-        """Validate ETL process"""
-        try:
-            # Source validation
-            source_valid = await self.validate_source(data)
-            
-            # Transformation validation
-            transform_valid = await self.validate_transformation(data)
-            
-            # Load validation
-            load_valid = await self.validate_load(data)
-            
-            return {
-                'source': source_valid,
-                'transform': transform_valid,
-                'load': load_valid
-            }
-        except Exception as e:
-            await self.handle_etl_error(e)
-```
+**How it works — Etlvalidator:** each pipeline stage asserts its contract — row counts match source, no nulls in key columns, referential integrity holds — and failed validations quarantine the batch instead of loading it.
 
 ### 2. Data Pipeline Quality
-```python
-class PipelineQuality:
-    async def check_pipeline_quality(self, pipeline):
-        """Check data pipeline quality"""
-        try:
-            # Check data freshness
-            freshness = await self.check_freshness(pipeline)
-            
-            # Check data consistency
-            consistency = await self.check_consistency(pipeline)
-            
-            # Check data accuracy
-            accuracy = await self.check_accuracy(pipeline)
-            
-            return {
-                'freshness': freshness,
-                'consistency': consistency,
-                'accuracy': accuracy
-            }
-        except Exception as e:
-            await self.handle_quality_error(e)
-```
+**How it works — pipeline quality gates:** every pipeline run asserts expectations before publishing — row counts reconcile with source, key columns are non-null, freshness is within SLA — and a failed gate quarantines the batch and alerts, so bad data stops at the boundary instead of surfacing in a dashboard.
 
 ## Trade-offs
 
@@ -243,6 +111,36 @@ class PipelineQuality:
 **Manual review vs automation:** Human-in-the-loop handles edge cases well but does not scale; automate the common, escalate the rare.
 
 > **⚠️ When NOT to validate at ingestion:** exploratory pipelines where schema rigidity blocks new sources, and late-arriving reference data unavailable upstream — move checks downstream, but add contracts before data feeds billing.
+
+## Edge Cases to Consider
+
+- Late-arriving data inside watermark bounds — accept, count, reconcile
+- Backfills overwriting corrected rows — idempotent, versioned writes
+- Silent cardinality drop (empty partition) — completeness checks
+- Encoding/locale drift breaking joins after a producer upgrade
+
+
+## Common Pitfalls
+
+1. Trust-then-validate instead of validate-then-publish
+2. Checks only on row counts — values drift while counts stay right
+3. No ownership of quality gates — everyone assumes someone else
+4. Dashboards without freshness stamps
+
+
+## FAQ
+
+**Q1: Where should quality gates live?**
+
+A: At every boundary where ownership changes — ingestion, transformation outputs, serving tables. The producing team publishes contracts; the platform enforces them.
+
+**Q2: Schema changed and nothing broke — how?**
+
+A: Additive columns with defaults, never dropped/rename-in-place; contract versioning plus quarantine for violations keeps consumers stable.
+
+**Q3: How do you measure "quality"?**
+
+A: A handful of SLIs: freshness lag, completeness vs source, validation pass rate, and incident count per table. Track them like service SLOs.
 
 ## Interview Tips
 
@@ -265,6 +163,14 @@ class PipelineQuality:
 - Monitor continuously
 - Document rules
 - Plan for failures
+
+## Advanced Topics
+
+1. Expectation suites wired into CI for transformation code
+2. Anomaly detection on table metrics (volume, null rate)
+3. Column-level lineage automated from query logs
+4. Data contracts enforced at the broker (schema registry)
+
 
 ## Further Reading
 - [Data Quality Guide](https://www.dqglobal.com/data-quality-guide/)

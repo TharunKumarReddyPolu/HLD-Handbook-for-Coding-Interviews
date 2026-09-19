@@ -1,14 +1,22 @@
-# Service Discovery
+# Service Discovery in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Discovery Patterns](#discovery-patterns)
 - [Registration Methods](#registration-methods)
 - [Health Checking](#health-checking)
 - [Implementation Strategies](#implementation-strategies)
 - [Best Practices](#best-practices)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -19,6 +27,41 @@ Service discovery enables services to find and communicate with each other dynam
 2. **Service Registration**
 3. **Service Discovery**
 4. **Health Checking**
+
+## Prerequisites & Related Topics
+
+- Builds on: DNS basics, [Load Balancing](../system-basics/load-balancing.md)
+- Used in: [Microservices](../scalability/microservices.md), [Kubernetes](../cloud-native/kubernetes-orchestration.md), [API Gateway](api-gateway.md)
+- Techniques often combined: health checks, client-side balancing, DNS-based discovery
+- See also: Consistent Hashing — key-to-instance assignment on top of discovery
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Service Discovery
+
+**Keywords in requirements**: "find services", "dynamic instances", "registry", "health-checked routing", "elastic scaling", "service mesh"
+**Reach for this when**:
+- Autoscaled fleets where instances change by the minute
+- Multi-region or multi-cluster service addressing
+- Client-side load balancing with instance metadata
+- Zero-downtime deploys driven by health-gated registration
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Client-side (Eureka, Consul) | smart clients, one less hop | fine-grained balancing |
+| Server-side (K8s Service, LB) | dumb clients, central control | the common default |
+| DNS-based | ubiquitous, coarse TTLs | cross-cluster addressing |
+| Mesh (xDS) | uniform policy + discovery | large microservice fleets |
+
+### ❌ When NOT to Use
+
+- Static on-prem deployments with stable addresses — DNS entries suffice
+- Instance-level public discovery — expose the gateway, not the fleet
+- Replacing it with config files humans update — that is the failure mode it exists to remove
+
 
 ## Discovery Patterns
 
@@ -31,348 +74,45 @@ graph TD
     B --> E[Service Instance 3]
 ```
 
-```python
-class ClientSideDiscovery:
-    def __init__(self):
-        self.registry = ServiceRegistry()
-        self.load_balancer = LoadBalancer()
-    
-    async def get_service(self, service_name):
-        """Get service instance using client-side discovery."""
-        # Get all instances
-        instances = await self.registry.get_instances(service_name)
-        
-        if not instances:
-            raise ServiceNotFoundError(service_name)
-        
-        # Select instance using load balancer
-        instance = self.load_balancer.select_instance(instances)
-        
-        # Verify health
-        if not await self.check_health(instance):
-            # Remove unhealthy instance
-            await self.registry.deregister_instance(instance)
-            # Retry with remaining instances
-            return await self.get_service(service_name)
-        
-        return instance
-```
+**How it works — Client side discovery:** the consumer fetches the instance list from the registry and picks one itself (often with a client-side balancer) — one less network hop and smarter placement, at the cost of every client needing the discovery library.
 
 ### 2. Server-Side Discovery
-```python
-class ServerSideDiscovery:
-    def __init__(self):
-        self.registry = ServiceRegistry()
-        self.router = Router()
-    
-    async def route_request(self, request):
-        """Route request using server-side discovery."""
-        service_name = self.get_service_name(request)
-        
-        # Get service instances
-        instances = await self.registry.get_instances(service_name)
-        
-        if not instances:
-            raise ServiceNotFoundError(service_name)
-        
-        # Route request
-        response = await self.router.route(request, instances)
-        
-        # Handle routing failure
-        if not response.success:
-            await self.handle_routing_failure(request, response)
-        
-        return response
-```
+**How it works — Server side discovery:** clients call one stable address (LB/DNS/virtual IP); the infrastructure resolves it to healthy instances — clients stay dumb, and discovery logic is owned once, centrally.
 
 ### 3. Service Mesh Discovery
-```python
-class ServiceMesh:
-    def __init__(self):
-        self.sidecar = Sidecar()
-        self.control_plane = ControlPlane()
-    
-    async def handle_request(self, request):
-        """Handle request in service mesh."""
-        # Intercept request
-        enriched_request = await self.sidecar.intercept_request(request)
-        
-        # Get routing info
-        routing = await self.control_plane.get_routing(enriched_request)
-        
-        # Apply policies
-        if not self.check_policies(enriched_request, routing):
-            raise PolicyViolationError()
-        
-        # Forward request
-        response = await self.sidecar.forward_request(
-            enriched_request,
-            routing
-        )
-        
-        return response
-```
+**How it works — Service mesh:** sidecars intercept every call and enforce mTLS, retries, and traffic rules from one control plane — the app speaks plain HTTP to localhost and the mesh adds the reliability semantics uniformly.
 
 ## Registration Methods
 
 ### 1. Self Registration
-```python
-class ServiceRegistration:
-    def __init__(self):
-        self.instance_id = str(uuid.uuid4())
-        self.registry_client = RegistryClient()
-    
-    async def register_service(self):
-        """Register service with registry."""
-        registration = {
-            'id': self.instance_id,
-            'name': self.service_name,
-            'address': self.get_address(),
-            'port': self.port,
-            'health_check': {
-                'endpoint': '/health',
-                'interval': '10s',
-                'timeout': '1s'
-            },
-            'metadata': self.get_metadata()
-        }
-        
-        await self.registry_client.register(registration)
-    
-    async def deregister_service(self):
-        """Deregister service from registry."""
-        await self.registry_client.deregister(self.instance_id)
-```
+**How it works — Service registration:** on boot the instance registers with the registry and starts heartbeating; missed heartbeats expire it automatically — registration is how the rest of the system learns a deploy happened without being told.
 
 ### 2. Third-Party Registration
-```python
-class Registrar:
-    def __init__(self):
-        self.registry = ServiceRegistry()
-        self.discovery = ServiceDiscovery()
-    
-    async def monitor_services(self):
-        """Monitor and register services."""
-        while True:
-            # Discover services
-            services = await self.discovery.find_services()
-            
-            for service in services:
-                # Check if already registered
-                if not await self.registry.exists(service.id):
-                    # Register service
-                    await self.register_service(service)
-                
-                # Update health status
-                health = await self.check_health(service)
-                await self.update_health(service.id, health)
-            
-            await asyncio.sleep(self.check_interval)
-```
+**How it works — Registrar:** a service instance announces itself (address, port, health, metadata) on boot and renews continuously; deregistration happens on shutdown or lease expiry — consumers always see live instances only.
 
 ## Health Checking
 
 ### 1. Active Health Checking
-```python
-class HealthChecker:
-    def __init__(self):
-        self.check_interval = 10  # seconds
-        self.timeout = 1  # seconds
-    
-    async def check_service_health(self, service):
-        """Check service health actively."""
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{service.address}/health",
-                    timeout=self.timeout
-                ) as response:
-                    if response.status == 200:
-                        health_data = await response.json()
-                        return self.evaluate_health(health_data)
-                    return False
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
-            return False
-    
-    def evaluate_health(self, health_data):
-        """Evaluate health check response."""
-        required_checks = {
-            'db_connection': True,
-            'cache_connection': True,
-            'queue_connection': True
-        }
-        
-        return all(
-            health_data.get(check) == status
-            for check, status in required_checks.items()
-        )
-```
+**How it works — Health checker:** active probes hit each instance on an interval with healthy/unhealthy thresholds, and passive checks observe real traffic failures; only instances passing both receive load.
 
 ### 2. Passive Health Checking
-```python
-class PassiveHealthChecker:
-    def __init__(self):
-        self.circuit_breaker = CircuitBreaker()
-        self.metrics = HealthMetrics()
-    
-    async def track_request(self, service_id, response):
-        """Track service health passively."""
-        # Update metrics
-        self.metrics.track_response(service_id, response)
-        
-        # Check failure threshold
-        if self.metrics.get_error_rate(service_id) > 0.5:
-            await self.handle_service_degradation(service_id)
-    
-    async def handle_service_degradation(self, service_id):
-        """Handle service health degradation."""
-        # Open circuit breaker
-        self.circuit_breaker.open_circuit(service_id)
-        
-        # Notify registry
-        await self.registry.update_status(
-            service_id,
-            'unhealthy'
-        )
-        
-        # Alert operations
-        await self.alert_service_degradation(service_id)
-```
+**How it works — Passive health checker:** the balancer watches live requests and ejects servers that error, time out, or refuse connections — no probe traffic, instant reaction on user-visible failures, but silent servers are never tested.
 
 ## Implementation Strategies
 
 ### 1. Consul Implementation
-```python
-class ConsulServiceDiscovery:
-    def __init__(self):
-        self.consul = ConsulClient()
-        self.cache = ServiceCache()
-    
-    async def register_service(self, service_info):
-        """Register service with Consul."""
-        registration = {
-            'Name': service_info['name'],
-            'ID': service_info['id'],
-            'Address': service_info['address'],
-            'Port': service_info['port'],
-            'Tags': service_info['tags'],
-            'Check': {
-                'HTTP': f"http://{service_info['address']}:{service_info['port']}/health",
-                'Interval': '10s'
-            }
-        }
-        
-        await self.consul.agent.service.register(**registration)
-    
-    async def discover_service(self, service_name):
-        """Discover service using Consul."""
-        # Check cache first
-        cached = self.cache.get(service_name)
-        if cached:
-            return cached
-        
-        # Query Consul
-        services = await self.consul.health.service(
-            service_name,
-            passing=True
-        )
-        
-        # Update cache
-        self.cache.set(service_name, services)
-        
-        return services
-```
+**How it works — Consul:** services register with health checks attached (HTTP probe or TTL heartbeat); Consul exposes them via DNS or its API, and only instances passing checks are returned — the same agent also distributes KV config, so discovery and configuration share one infrastructure.
 
 ### 2. Eureka Implementation
-```python
-class EurekaServiceDiscovery:
-    def __init__(self):
-        self.eureka_client = EurekaClient()
-    
-    async def register_service(self, service_info):
-        """Register service with Eureka."""
-        instance = {
-            'instanceId': service_info['id'],
-            'app': service_info['name'],
-            'ipAddr': service_info['address'],
-            'port': {
-                '$': service_info['port'],
-                '@enabled': True
-            },
-            'healthCheckUrl': f"http://{service_info['address']}:{service_info['port']}/health",
-            'statusPageUrl': f"http://{service_info['address']}:{service_info['port']}/info",
-            'homePageUrl': f"http://{service_info['address']}:{service_info['port']}/",
-            'dataCenterInfo': {
-                '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
-                'name': 'MyOwn'
-            }
-        }
-        
-        await self.eureka_client.register_instance(instance)
-    
-    async def discover_service(self, service_name):
-        """Discover service using Eureka."""
-        return await self.eureka_client.get_instances(service_name)
-```
+**How it works — Eureka service discovery:** services register on boot and renew leases via heartbeat; clients pull the full registry periodically and route themselves — the registry optimizes for availability (stale-but-listed beats nothing) since clients tolerate brief staleness.
 
 ## Best Practices
 
 ### 1. Caching Strategy
-```python
-class ServiceCache:
-    def __init__(self):
-        self.cache = {}
-        self.ttl = 60  # seconds
-    
-    def get_service(self, service_name):
-        """Get service from cache."""
-        cached = self.cache.get(service_name)
-        if not cached:
-            return None
-        
-        if self.is_expired(cached['timestamp']):
-            del self.cache[service_name]
-            return None
-        
-        return cached['instances']
-    
-    def update_service(self, service_name, instances):
-        """Update service cache."""
-        self.cache[service_name] = {
-            'instances': instances,
-            'timestamp': time.time()
-        }
-```
+**How it works — Service cache:** Store the computed result under a stable key with a TTL sized to how stale the data may be; hits skip the expensive path, misses repopulate, and invalidation events cover the changes TTL alone would miss.
 
 ### 2. Failure Handling
-```python
-class FailureHandler:
-    def __init__(self):
-        self.fallback_registry = FallbackRegistry()
-        self.retry_policy = RetryPolicy()
-    
-    async def handle_discovery_failure(self, service_name):
-        """Handle service discovery failure."""
-        try:
-            # Try fallback registry
-            instances = await self.fallback_registry.get_instances(
-                service_name
-            )
-            if instances:
-                return instances
-            
-            # Try cached data
-            cached = self.cache.get_expired(service_name)
-            if cached:
-                return cached
-            
-            raise ServiceDiscoveryError(service_name)
-            
-        except Exception as e:
-            logger.error(f"Discovery failure: {e}")
-            raise
-```
+**How it works — Failure handler:** classify first (transient vs. permanent), retry transient failures with backoff and jitter, dead-letter the permanent ones with full context, and page a human when the failure rate itself breaches its budget.
 
 ## Trade-offs
 
@@ -390,6 +130,36 @@ class FailureHandler:
 **DNS simplicity vs rich routing:** DNS is universal but slow to converge and coarse; dedicated registries add tooling for real-time health and metadata.
 
 > **⚠️ When NOT to run a registry:** a handful of stable services behind DNS or a cloud load balancer, and container platforms (Kubernetes, ECS) that already embed discovery — a separate registry duplicates what the platform provides.
+
+## Edge Cases to Consider
+
+- Stale registrations routing to dead instances — health-gate every lookup
+- Registry outage — cache last-known-good on clients
+- Thundering re-registration after registry restart
+- Split-horizon truth — instance healthy locally, dead to peers (gray failure)
+
+
+## Common Pitfalls
+
+1. No deregistration on unclean shutdown — TTLs are the backstop
+2. Treating the registry as strongly consistent when it is not
+3. Discovery lookups on the hot path without caching
+4. Forgetting to verify health from the caller's perspective
+
+
+## FAQ
+
+**Q1: Client-side or server-side discovery?**
+
+A: Client-side gives smarter routing and one less hop but couples clients to the registry; server-side (Kubernetes default) keeps clients dumb and centralizes policy. Default to server-side.
+
+**Q2: How stale can the registry be?**
+
+A: Seconds — heartbeats and health checks bound it. Every lookup should still be health-gated, because staleness is guaranteed eventually.
+
+**Q3: Why not just DNS?**
+
+A: DNS works at coarse TTLs and record limits; registries add per-instance health, metadata, and instant updates. Use DNS across clusters, registries inside them.
 
 ## Interview Tips
 
@@ -417,6 +187,14 @@ graph TD
     F --> C
     F --> D
 ```
+
+## Advanced Topics
+
+1. xDS APIs (Envoy) for push-based discovery
+2. Cell-based discovery to bound blast radius
+3. Service identity (SPIFFE) bound to registration
+4. Multi-cluster discovery with failover priorities
+
 
 ## Further Reading
 - [Consul Documentation](https://www.consul.io/docs)

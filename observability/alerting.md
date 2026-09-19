@@ -1,13 +1,21 @@
-# Alerting Strategies
+# Alerting in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Alert Design](#alert-design)
 - [Implementation Patterns](#implementation-patterns)
 - [Alert Management](#alert-management)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,200 +28,72 @@ Effective alerting strategies help teams identify and respond to system issues p
 4. **Issue Prioritization**
 5. **Team Efficiency**
 
+## Prerequisites & Related Topics
+
+- Builds on: [Metrics](metrics.md), SLO concepts
+- Used in: [Monitoring](../system-basics/monitoring.md), [Debug Strategies](debug-strategies.md), [Chaos Engineering](../testing/chaos-engineering.md)
+- Techniques often combined: multi-window burn alerts, routing trees, dedup/grouping, runbooks
+- See also: [SLO guidance](https://sre.google/sre-book/alerting-on-slos/) — Google SRE's alerting chapters
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Alerting
+
+**Keywords in requirements**: "alert", "page", "on-call", "threshold", "burn rate", "runbook", "noise"
+**Reach for this when**:
+- SLO burn-rate paging tied to user impact
+- Infrastructure saturation warnings as tickets, not pages
+- Anomaly alerts for seasonal metrics
+- Synthetic checks catching silent failures on critical paths
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Static threshold | stable metrics with known bounds | disk, queue depth |
+| Burn-rate (multi-window) | SLO pacing | latency/error SLOs |
+| Anomaly detection | seasonal/spiky series | traffic, revenue |
+| Synthetic probes | black-box path checks | login, checkout flows |
+
+### ❌ When NOT to Use
+
+- Alerting on every metric — pages must map to action
+- CPU alerts as proxies for user pain — alert on SLIs instead
+- Email-only critical alerts — paging needs acknowledgment
+
+
 ## Alert Design
 
 ### 1. Alert Definition
-```python
-class AlertDefinition:
-    def define_alert(self):
-        """Define alert structure"""
-        return {
-            'metadata': {
-                'name': 'high_error_rate',
-                'severity': 'critical',
-                'team': 'platform'
-            },
-            'conditions': {
-                'metric': 'error_rate',
-                'threshold': 0.01,
-                'duration': '5m',
-                'frequency': '1m'
-            },
-            'notifications': {
-                'channels': ['slack', 'pagerduty'],
-                'escalation': 'linear'
-            }
-        }
-```
+**How it works — Alert definition:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Threshold Configuration
-```python
-class ThresholdManager:
-    def configure_thresholds(self):
-        """Configure alert thresholds"""
-        return {
-            'static': {
-                'cpu_usage': 0.8,
-                'memory_usage': 0.9,
-                'error_rate': 0.01
-            },
-            'dynamic': {
-                'algorithm': 'moving_average',
-                'window': '1h',
-                'deviation': 2
-            },
-            'adaptive': {
-                'learning_rate': 0.1,
-                'history_window': '7d'
-            }
-        }
-```
+**How it works — Threshold manager:** alert thresholds come from measured baselines (normal range, seasonality) and are set to fire on deviation that matters — static thresholds for stable metrics, burn-rate or anomaly alerts for spiky ones.
 
 ## Implementation Patterns
 
 ### 1. Alert Routing
-```python
-class AlertRouter:
-    async def route_alert(self, alert):
-        """Route alert to appropriate handlers"""
-        try:
-            # Classify alert
-            classification = self.classify_alert(alert)
-            
-            # Determine handlers
-            handlers = self.get_handlers(classification)
-            
-            # Route to handlers
-            for handler in handlers:
-                await self.send_to_handler(alert, handler)
-                
-            # Track routing
-            await self.track_routing(alert, handlers)
-            
-        except Exception as e:
-            await self.handle_routing_error(e)
-```
+**How it works — Alert router:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Alert Correlation
-```python
-class AlertCorrelator:
-    async def correlate_alerts(self, alerts):
-        """Correlate related alerts"""
-        try:
-            # Group alerts
-            groups = self.group_alerts(alerts)
-            
-            # Analyze patterns
-            patterns = await self.analyze_patterns(groups)
-            
-            # Identify root cause
-            root_cause = self.identify_root_cause(patterns)
-            
-            return {
-                'groups': groups,
-                'patterns': patterns,
-                'root_cause': root_cause
-            }
-        except Exception as e:
-            await self.handle_correlation_error(e)
-```
+**How it works — Alert correlator:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Alert Management
 
 ### 1. Alert Lifecycle
-```python
-class AlertLifecycle:
-    async def manage_lifecycle(self, alert):
-        """Manage alert lifecycle"""
-        try:
-            # Create alert
-            alert_id = await self.create_alert(alert)
-            
-            # Process alert
-            await self.process_alert(alert_id)
-            
-            # Track resolution
-            await self.track_resolution(alert_id)
-            
-            # Archive alert
-            await self.archive_alert(alert_id)
-            
-        except Exception as e:
-            await self.handle_lifecycle_error(e)
-```
+**How it works — Alert lifecycle:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Alert Aggregation
-```python
-class AlertAggregator:
-    def aggregate_alerts(self):
-        """Aggregate similar alerts"""
-        return {
-            'rules': {
-                'grouping': {
-                    'by': ['service', 'error_type'],
-                    'window': '5m'
-                },
-                'deduplication': {
-                    'fields': ['message'],
-                    'window': '1h'
-                }
-            },
-            'thresholds': {
-                'group_size': 10,
-                'time_window': '15m'
-            }
-        }
-```
+**How it works — Alert aggregator:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Common Use Cases
 
 ### 1. Service Health Monitoring
-```python
-class ServiceMonitor:
-    async def monitor_service(self):
-        """Monitor service health"""
-        try:
-            # Check endpoints
-            health = await self.check_endpoints()
-            
-            # Monitor metrics
-            metrics = await self.collect_metrics()
-            
-            # Analyze logs
-            logs = await self.analyze_logs()
-            
-            # Generate alerts
-            await self.generate_alerts(health, metrics, logs)
-            
-        except Exception as e:
-            await self.handle_monitoring_error(e)
-```
+**How it works — Service monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Infrastructure Alerts
-```python
-class InfrastructureAlerts:
-    async def monitor_infrastructure(self):
-        """Monitor infrastructure"""
-        try:
-            # Monitor resources
-            resources = await self.monitor_resources()
-            
-            # Check capacity
-            capacity = await self.check_capacity()
-            
-            # Verify connectivity
-            connectivity = await self.verify_connectivity()
-            
-            # Alert on issues
-            await self.alert_on_issues(
-                resources,
-                capacity,
-                connectivity
-            )
-            
-        except Exception as e:
-            await self.handle_infra_error(e)
-```
+**How it works — Infrastructure alerts:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Trade-offs
 
@@ -231,6 +111,36 @@ class InfrastructureAlerts:
 **Escalation depth vs response speed:** Deep escalation chains protect sleep but delay response; tune with real incident data, not policy defaults.
 
 > **⚠️ When NOT to alert on causes:** CPU, memory, and disk alerts that page humans for symptoms users never feel — demote them to tickets or dashboards, and page only on user-facing SLO burn.
+
+## Edge Cases to Consider
+
+- Low-traffic services — burn rates too slow; absolute floors help
+- Flapping alerts — hold-for-duration and multi-window confirmation
+- Cascade storms — dependency-aware grouping and suppression
+- Alert on deploy windows — automatic suppression windows
+
+
+## Common Pitfalls
+
+1. Alert fatigue from noisy thresholds — trust dies, pages get ignored
+2. No runbook links — responders start from zero
+3. Alerts owned by nobody — delete or assign
+4. Symptom and cause alerts both paging — dedupe to symptoms
+
+
+## FAQ
+
+**Q1: What makes an alert good?**
+
+A: Actionable now, tied to user impact, with a runbook and an owner. If the response to a page is "check tomorrow", it should be a ticket.
+
+**Q2: Threshold or burn rate?**
+
+A: Thresholds for hard resource limits; burn rates for SLOs because they account for traffic and time-to-exhaustion, paging only when the budget is genuinely at risk.
+
+**Q3: How do I reduce noise without missing incidents?**
+
+A: Symptom-based paging, multi-window confirmation to kill flaps, grouping for cascades, and quarterly deletion of alerts that never led to action.
 
 ## Interview Tips
 
@@ -253,6 +163,14 @@ class InfrastructureAlerts:
 - Automate responses
 - Document procedures
 - Regular review
+
+## Advanced Topics
+
+1. Multi-window multi-burn-rate alerting (fast + slow windows)
+2. Alert deduplication topologies (Alertmanager, Pagerduty Event Orchestration)
+3. Automated diagnostics attached to pages (traces, recent deploys)
+4. Error-budget policy gates on feature releases
+
 
 ## Further Reading
 - [Google SRE Book - Alerting](https://sre.google/sre-book/monitoring-distributed-systems/)

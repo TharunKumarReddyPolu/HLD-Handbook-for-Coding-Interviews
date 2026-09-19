@@ -1,13 +1,22 @@
-# Database Sharding
+# Database Sharding in System Design 📌
 
 ## Table of Contents
+
 - [Introduction to Sharding](#introduction-to-sharding)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Sharding Strategies](#sharding-strategies)
 - [Partitioning Methods](#partitioning-methods)
 - [Sharding Challenges](#sharding-challenges)
 - [Implementation Examples](#implementation-examples)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Real-World Examples](#real-world-examples)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction to Sharding
 
@@ -18,6 +27,39 @@ Database sharding is a technique for breaking up a large database into smaller, 
 2. **Better Scalability**
 3. **Higher Availability**
 4. **Reduced Query Load**
+
+## Prerequisites & Related Topics
+
+- **Builds on**: [Indexing](indexing.md), partitioning basics
+- **Used in**: multi-tenant SaaS data isolation, globally distributed data, write-heavy platforms
+- **Techniques often combined**: Consistent Hashing (placement), CQRS (cross-shard reads), sagas (cross-shard transactions)
+- **See also**: [Scaling Types](../scalability/scaling-types.md) (sharding is the last resort, not the first)
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Database Sharding
+
+**Keywords in requirements**: "scale writes", "data too large", "partition data", "tenant isolation", "horizontal database scaling"
+**Reach for this when**:
+- Write throughput exceeds what one primary can absorb
+- Dataset size exceeds practical single-node storage or working memory
+- Regulatory residency requires data to live in specific regions
+- Blast-radius isolation per tenant or per geography
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Hash sharding | even distribution, point lookups | user-scoped data |
+| Range sharding | range scans matter | time-series |
+| Directory sharding | flexible remapping | multi-tenant SaaS |
+| Geo sharding | latency/residency | global applications |
+
+### ❌ When NOT to Use
+
+- Reads are the bottleneck → [read replicas and caching](../scalability/scaling-types.md) first
+- Single node still has headroom — indexes, partitions, and caches are cheaper than shards
+- Queries demand heavy cross-shard joins — denormalize or rethink before sharding
 
 ## Sharding Strategies
 
@@ -30,37 +72,19 @@ graph TD
 ```
 
 Example Implementation:
-```sql
--- Shard 1: Customer IDs 1-1000
-CREATE TABLE customers_1 (
-    id INT PRIMARY KEY,
-    name VARCHAR(255),
-    CHECK (id BETWEEN 1 AND 1000)
-);
+**`customers_1` table:**
 
--- Shard 2: Customer IDs 1001-2000
-CREATE TABLE customers_2 (
-    id INT PRIMARY KEY,
-    name VARCHAR(255),
-    CHECK (id BETWEEN 1001 AND 2000)
-);
-```
+| Column | Type |
+|--------|------|
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ### 2. Hash-Based Sharding
-```python
-def get_shard(key, num_shards):
-    """Determine shard based on hash of key."""
-    return hash(key) % num_shards
-
-class ShardedDatabase:
-    def __init__(self, shard_count):
-        self.shard_count = shard_count
-        self.shards = [[] for _ in range(shard_count)]
-    
-    def insert(self, key, value):
-        shard = get_shard(key, self.shard_count)
-        self.shards[shard].append((key, value))
-```
+**How it works — Sharded database:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ### 3. Directory-Based Sharding
 ```mermaid
@@ -74,143 +98,66 @@ graph LR
 ## Partitioning Methods
 
 ### 1. Horizontal Partitioning (Sharding)
-```sql
--- Shard 1
-CREATE TABLE orders_2023 (
-    order_id INT PRIMARY KEY,
-    customer_id INT,
-    order_date DATE,
-    CHECK (order_date >= '2023-01-01' AND order_date < '2024-01-01')
-);
+**`orders_2023` table:**
 
--- Shard 2
-CREATE TABLE orders_2024 (
-    order_id INT PRIMARY KEY,
-    customer_id INT,
-    order_date DATE,
-    CHECK (order_date >= '2024-01-01' AND order_date < '2025-01-01')
-);
-```
+| Column | Type |
+|--------|------|
+| order_id | INT PRIMARY KEY |
+| customer_id | INT |
+| order_date | DATE |
+| order_id | INT PRIMARY KEY |
+| customer_id | INT |
+| order_date | DATE |
+
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ### 2. Vertical Partitioning
-```sql
--- User basic info
-CREATE TABLE user_profile (
-    user_id INT PRIMARY KEY,
-    username VARCHAR(50),
-    email VARCHAR(100)
-);
+**`user_profile` table:**
 
--- User detailed info
-CREATE TABLE user_details (
-    user_id INT PRIMARY KEY,
-    address TEXT,
-    preferences JSON,
-    FOREIGN KEY (user_id) REFERENCES user_profile(user_id)
-);
-```
+| Column | Type |
+|--------|------|
+| user_id | INT PRIMARY KEY |
+| username | VARCHAR(50) |
+| email | VARCHAR(100) |
+| user_id | INT PRIMARY KEY |
+| address | TEXT |
+| preferences | JSON |
+
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ## Sharding Challenges
 
 ### 1. Joins Across Shards
-```python
-class CrossShardQuery:
-    def join_user_orders(self, user_id):
-        # Get user shard
-        user_shard = self.get_user_shard(user_id)
-        user = user_shard.get_user(user_id)
-        
-        # Get orders from all shards
-        orders = []
-        for shard in self.order_shards:
-            shard_orders = shard.get_orders_for_user(user_id)
-            orders.extend(shard_orders)
-        
-        return user, orders
-```
+Once related rows live on different shards, the database can no longer join them locally. Options: fan the query out to every shard and merge results in the application (latency = slowest shard), keep frequently-joined tables co-located by sharing the shard key, or denormalize so the join disappears. State the trade-off out loud — co-location buys query speed at the cost of uneven data distribution.
 
 ### 2. Maintaining Consistency
-```python
-class ShardedTransaction:
-    def transfer_money(self, from_account, to_account, amount):
-        try:
-            # Start distributed transaction
-            self.start_transaction()
-            
-            # Get account shards
-            from_shard = self.get_account_shard(from_account)
-            to_shard = self.get_account_shard(to_account)
-            
-            # Perform transfer
-            from_shard.deduct(from_account, amount)
-            to_shard.add(to_account, amount)
-            
-            # Commit transaction
-            self.commit()
-        except Exception as e:
-            self.rollback()
-            raise e
-```
+A transaction touching several shards needs two-phase commit: prepare on every participant, commit only if all agree — which doubles latency and blocks if any shard is down. Most production systems avoid it: route transactions that must be atomic to a single shard by choosing the shard key well, or accept eventual consistency with sagas.
 
 ### 3. Rebalancing Shards
-```python
-class ShardRebalancer:
-    def rebalance(self, source_shard, target_shard):
-        """Rebalance data between shards."""
-        # Get data to move
-        data_to_move = source_shard.get_data_for_rebalancing()
-        
-        # Move data in batches
-        for batch in data_to_move:
-            try:
-                # Copy data to target
-                target_shard.insert_batch(batch)
-                # Verify data
-                if self.verify_data(batch, target_shard):
-                    # Delete from source
-                    source_shard.delete_batch(batch)
-            except Exception as e:
-                self.handle_rebalancing_error(e, batch)
-```
+When a shard outgrows its hardware, split it: pick a split point, copy the range to the new shard while the old one keeps serving, flip routing metadata, then delete the copied half from the source. Consistent hashing or a range→shard lookup table makes this a metadata change; hard-coded `shard = id % N` makes it a full rehash of the dataset.
 
 ## Implementation Examples
 
 ### 1. MongoDB Sharding
-```javascript
-// Enable sharding for database
-sh.enableSharding("mydb")
-
-// Create a sharded collection
-sh.shardCollection("mydb.users", {userId: "hashed"})
-
-// Add shards
-sh.addShard("rs1/shard1:27017")
-sh.addShard("rs2/shard2:27017")
-```
+**How it works — Mongo DB sharding:** enable sharding on the database, declare the collection's shard key (`userId`, hashed for even distribution), and add shard replica sets — the balancer then migrates chunks until data is spread evenly across shards.
 
 ### 2. MySQL Sharding
-```sql
--- Create shards
-CREATE DATABASE shard1;
-CREATE DATABASE shard2;
+**`users` table:**
 
--- Create identical tables in each shard
-USE shard1;
-CREATE TABLE users (
-    id INT PRIMARY KEY,
-    name VARCHAR(255),
-    email VARCHAR(255),
-    shard_id INT
-);
+| Column | Type |
+|--------|------|
+| USE | shard1; |
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| email | VARCHAR(255) |
+| shard_id | INT |
+| USE | shard2; |
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| email | VARCHAR(255) |
+| shard_id | INT |
 
-USE shard2;
-CREATE TABLE users (
-    id INT PRIMARY KEY,
-    name VARCHAR(255),
-    email VARCHAR(255),
-    shard_id INT
-);
-```
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ## Trade-offs
 
@@ -227,6 +174,36 @@ CREATE TABLE users (
 **Rebalancing now vs later:** Resharding early (before data grows) is cheap; virtual buckets/slots make later rebalancing far less painful.
 
 > **⚠️ When NOT to shard:** until a single well-tuned node (indexes, caching, read replicas) is genuinely at its ceiling — premature sharding multiplies operational complexity, kills cross-shard joins and transactions, and is painful to undo.
+
+## Edge Cases to Consider
+
+- Celebrity user hot-spots one hash shard — vnodes or salting spread it
+- Changing the shard key later means migrating every row
+- Rebalance running during peak traffic — budget throughput
+- Secondary indexes fan out across shards — cost them
+- Globally unique IDs: clock skew and collisions (use snowflake-style)
+
+## Common Pitfalls
+
+1. Sharding before indexing, caching, and vertical scaling are exhausted
+2. Monotonically increasing shard key (timestamps) → everything lands on the last shard
+3. Choosing a shard key without knowing the query patterns
+4. Defaulting to cross-shard transactions instead of designing them away
+5. No rebalancing plan — the first resharding becomes a company event
+
+## FAQ
+
+**Q1: How do I pick a shard key?**
+
+A: The column in most queries' WHERE clause with high cardinality and even distribution — usually user_id or tenant_id. Get co-location of the top joins for free.
+
+**Q2: Sharding or replicas?**
+
+A: Replicas scale reads only; sharding scales writes and data size. If writes are the ceiling, sharding is the answer.
+
+**Q3: How do transactions work across shards?**
+
+A: They mostly shouldn't: design transactions to touch one shard, or use sagas with compensations. Two-phase commit exists but costs latency and availability.
 
 ## Interview Tips
 
@@ -253,36 +230,28 @@ CREATE TABLE users (
 ## Real-World Examples
 
 ### 1. User Data Sharding
-```python
-class UserDatabase:
-    def get_user_shard(self, user_id):
-        """Get shard for user based on ID."""
-        shard_id = user_id % self.num_shards
-        return self.shards[shard_id]
-    
-    def create_user(self, user_data):
-        """Create user in appropriate shard."""
-        shard = self.get_user_shard(user_data['id'])
-        return shard.insert_user(user_data)
-```
+**How it works — User database:** the user store is the system's highest-value target — salted password hashes, minimal PII, strict access, encrypted replication; most "user database" decisions are really security decisions.
 
 ### 2. Time-Series Data Sharding
-```sql
--- Create time-based shards
-CREATE TABLE metrics_2023_q1 (
-    timestamp TIMESTAMP,
-    metric_name VARCHAR(50),
-    value DECIMAL,
-    CHECK (timestamp >= '2023-01-01' AND timestamp < '2023-04-01')
-);
+**`metrics_2023_q1` table:**
 
-CREATE TABLE metrics_2023_q2 (
-    timestamp TIMESTAMP,
-    metric_name VARCHAR(50),
-    value DECIMAL,
-    CHECK (timestamp >= '2023-04-01' AND timestamp < '2023-07-01')
-);
-```
+| Column | Type |
+|--------|------|
+| timestamp | TIMESTAMP |
+| metric_name | VARCHAR(50) |
+| value | DECIMAL |
+| timestamp | TIMESTAMP |
+| metric_name | VARCHAR(50) |
+| value | DECIMAL |
+
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
+
+## Advanced Topics
+
+1. **Consistent hashing with virtual nodes** for placement
+2. **Two-tier sharding** — logical shards mapped onto physical nodes
+3. **Online resharding** — dual-write, backfill, flip, verify
+4. **Auto-sharding engines** — Vitess, CockroachDB, YugabyteDB
 
 ## Further Reading
 - [MongoDB Sharding](https://docs.mongodb.com/manual/sharding/)

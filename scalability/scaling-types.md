@@ -1,17 +1,60 @@
-# Horizontal vs Vertical Scaling
+# Scaling Types in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
-- [Vertical Scaling (Scale Up)](#vertical-scaling)
-- [Horizontal Scaling (Scale Out)](#horizontal-scaling)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
+- [Vertical Scaling](#vertical-scaling)
+- [Horizontal Scaling](#horizontal-scaling)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
 - [Implementation Strategies](#implementation-strategies)
 - [Real-World Examples](#real-world-examples)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
 Scaling is the ability of a system to handle increased load by adding resources. There are two main approaches: vertical scaling (scaling up) and horizontal scaling (scaling out).
+
+## Prerequisites & Related Topics
+
+- **Builds on**: [Load Balancing](../system-basics/load-balancing.md), [Caching](../system-basics/caching.md)
+- **Used in**: [Database Sharding](../system-basics/database-sharding.md), [Microservices](microservices.md), [Performance Optimization](../best-practices/performance.md)
+- **Techniques often combined**: autoscaling, read replicas, queue-based peak shaving
+- **See also**: [Cap Theorem](cap-theorem.md) — consistency constraints bound scaling choices
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Scaling Types
+
+**Keywords in requirements**: "scale up vs out", "vertical vs horizontal", "read replicas", "handle more traffic", "capacity planning"
+**Reach for this when**:
+- Stateless tiers → horizontal scale behind a load balancer
+- Read-heavy databases → replicas, then cache, then shard
+- Spiky workloads → queues and autoscaling to flatten peaks
+- Predictable growth → capacity math before hardware orders
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Vertical | quick win, no app change | hardware ceiling, SPOF |
+| Horizontal (stateless) | near-linear growth | requires statelessness |
+| Read replicas | read-heavy loads | lag, write ceiling |
+| Sharding | write + data size | operational cost |
+| Caching | hot read paths | invalidation complexity |
+| Async queues | peak shaving | eventual consistency |
+
+### ❌ When NOT to Use
+
+- Sharding before caching, indexes, and replicas are exhausted
+- Vertical scaling for stateless tiers — adding machines is cheaper and safer
+- Scaling anything before measuring the actual bottleneck
 
 ## Vertical Scaling
 
@@ -129,59 +172,24 @@ graph LR
 
 > **⚠️ When NOT to scale out:** stateful components that haven't been refactored for distribution (scaling out just spreads the problem), load well within current headroom (scale up first), and license-bound or single-threaded software.
 
+## Edge Cases to Consider
+
+- License or hardware ceilings on vertical growth
+- Replica lag breaking read-your-writes — route user reads to primary
+- Rebalancing shards under traffic
+- Stampede when a new cache node empties the ring
+- Autoscaler flapping on spiky metrics — cool-downs and smoothed signals
+
 ## Implementation Strategies
 
 ### 1. Vertical Scaling Implementation
-```yaml
-# AWS EC2 Instance Upgrade Example
-resource "aws_instance" "app_server" {
-  instance_type = "t2.medium"  # Upgrade from t2.small
-  ami           = "ami-0c55b159cbfafe1f0"
-  
-  root_block_device {
-    volume_size = 100  # Increase from 50GB
-  }
-  
-  tags = {
-    Name = "AppServer"
-  }
-}
-```
+**Infrastructure declaration:** the instance type shown here is the vertical-scaling lever; resize it (or add more instances behind a load balancer) as load grows.
 
 ### 2. Horizontal Scaling Implementation
-```yaml
-# Kubernetes Horizontal Pod Autoscaling
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: app-scaler
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: app-deployment
-  minReplicas: 2
-  maxReplicas: 10
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-```
+**Kubernetes `HorizontalPodAutoscaler` `app-scaler`**: adds or removes replicas from CPU/memory signals. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
 
 ### 3. Database Scaling
-```sql
--- Vertical Scaling: Increase Resources
-ALTER SYSTEM SET shared_buffers = '8GB';  -- Increase from 4GB
-ALTER SYSTEM SET work_mem = '32MB';       -- Increase from 16MB
-
--- Horizontal Scaling: Read Replicas
-CREATE SUBSCRIPTION subscription_name 
-CONNECTION 'host=primary port=5432 dbname=mydb' 
-PUBLICATION publication_name;
-```
+**Config lever:** raising memory/connection settings scales a single node vertically — effective until the hardware ceiling.
 
 ## Real-World Examples
 
@@ -198,30 +206,28 @@ graph TD
 ```
 
 ### 2. Video Streaming Service
-```python
-class AutoScaler:
-    def check_metrics(self):
-        """Monitor system metrics."""
-        cpu_usage = self.get_cpu_usage()
-        memory_usage = self.get_memory_usage()
-        request_count = self.get_request_count()
-        
-        if self.needs_scaling(cpu_usage, memory_usage, request_count):
-            self.scale_out()
-    
-    def needs_scaling(self, cpu, memory, requests):
-        """Determine if scaling is needed."""
-        return (
-            cpu > 70 or 
-            memory > 80 or 
-            requests > self.threshold
-        )
-    
-    def scale_out(self):
-        """Add new instances."""
-        self.provision_new_instance()
-        self.update_load_balancer()
-```
+**How it works — Auto scaler:** watch a load signal (CPU, request rate, queue depth), keep headroom above the target, and scale out before saturation — with cool-down periods so flapping doesn't churn instances and minimums that survive a zone loss.
+
+## Common Pitfalls
+
+1. Vertical-scaling habit until the hard ceiling forces a risky migration
+2. Adding replicas when writes are the real bottleneck
+3. Sharding before the cheaper 80% solutions
+4. No load test after any scale change
+
+## FAQ
+
+**Q1: Vertical or horizontal first?**
+
+A: Stateless tiers: horizontal from day one — it's the same image with more replicas. Stateful tiers: vertical until real pain, then replicas/sharding with a plan.
+
+**Q2: Do replicas help writes?**
+
+A: No — all writes still funnel to the primary. If write throughput is the ceiling, you're heading for sharding or async write paths.
+
+**Q3: What's the cheapest scaling lever?**
+
+A: Almost always caching — an order-of-magnitude DB offload for one subsystem's complexity. But it only buys read-path headroom.
 
 ## Interview Tips
 
@@ -257,6 +263,13 @@ graph TD
     E --> G
     F --> G
 ```
+
+## Advanced Topics
+
+1. **Autoscaling policies** — target tracking, predictive scaling
+2. **Cell-based architecture** — scale by duplicating whole stacks
+3. **Read-your-writes routing** — session-aware replica selection
+4. **Capacity planning math** — headroom, growth curves, unit economics
 
 ## Further Reading
 - [AWS Auto Scaling](https://aws.amazon.com/autoscaling/)

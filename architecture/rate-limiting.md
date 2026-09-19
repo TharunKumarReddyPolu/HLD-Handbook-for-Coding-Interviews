@@ -1,13 +1,21 @@
-# Rate Limiting
+# Rate Limiting in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Rate Limiting Algorithms](#rate-limiting-algorithms)
 - [Implementation Strategies](#implementation-strategies)
 - [Distributed Rate Limiting](#distributed-rate-limiting)
 - [Best Practices](#best-practices)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -19,372 +27,79 @@ Rate limiting controls the rate of requests a client can make to a service to pr
 3. **Protect Resources**
 4. **Cost Control**
 
+## Prerequisites & Related Topics
+
+- Builds on: [API Gateway](api-gateway.md), [Load Balancing](../system-basics/load-balancing.md)
+- Used in: [API Design](../system-basics/api-design.md) (limit headers), [DDoS Prevention](../security/ddos-prevention.md), [Microservices](../scalability/microservices.md)
+- Techniques often combined: token buckets, sliding windows, Redis shared counters, retry-after headers
+- See also: [Load Shedding](../best-practices/design-guidelines.md) — rate limiting per client, shedding global
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Rate Limiting
+
+**Keywords in requirements**: "throttle", "429", "quota", "too many requests", "protect the API", "fair usage", "bursts"
+**Reach for this when**:
+- Public APIs with per-key or per-IP quotas
+- Protecting backends from runaway clients or retry loops
+- Tiered service levels (free vs paid limits)
+- Internal protection of expensive endpoints (search, exports)
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Token bucket | bursts allowed, sustained cap | the general default |
+| Leaky bucket | smooth constant outflow | protecting fragile downstreams |
+| Fixed window | cheap, coarse | low-risk internal limits |
+| Sliding window log | exact counts | billing-grade accuracy |
+| Sliding window counter | O(1) approximation | high-traffic edges |
+
+### ❌ When NOT to Use
+
+- Global limits without per-client identity — one abuser consumes everyone's budget
+- Limiting only at the edge — internal fan-out multiplies the original request
+- Hard limits on critical user flows without a paid-tier escape hatch
+
+
 ## Rate Limiting Algorithms
 
 ### 1. Token Bucket Algorithm
-```python
-class TokenBucket:
-    def __init__(self, capacity, refill_rate):
-        self.capacity = capacity
-        self.refill_rate = refill_rate
-        self.tokens = capacity
-        self.last_refill = time.time()
-    
-    async def consume(self, tokens=1):
-        """Consume tokens from bucket."""
-        await self.refill()
-        
-        if self.tokens >= tokens:
-            self.tokens -= tokens
-            return True
-        return False
-    
-    async def refill(self):
-        """Refill tokens based on elapsed time."""
-        now = time.time()
-        elapsed = now - self.last_refill
-        
-        # Calculate tokens to add
-        new_tokens = elapsed * self.refill_rate
-        self.tokens = min(
-            self.capacity,
-            self.tokens + new_tokens
-        )
-        
-        self.last_refill = now
-```
+**How it works — Token bucket:** the bucket holds up to `capacity` tokens and refills continuously at `refill_rate` tokens/second; each request consumes one token and is rejected (429) when the bucket is empty. Bursts up to the bucket size are absorbed instantly, while sustained traffic settles at the refill rate — knobs: `capacity` (burst ceiling) and `refill_rate` (steady throughput).
 
 ### 2. Leaky Bucket Algorithm
-```python
-class LeakyBucket:
-    def __init__(self, capacity, leak_rate):
-        self.capacity = capacity
-        self.leak_rate = leak_rate
-        self.bucket = asyncio.Queue(maxsize=capacity)
-        self.last_leak = time.time()
-    
-    async def add(self, item):
-        """Add item to bucket."""
-        await self.leak()
-        
-        try:
-            self.bucket.put_nowait(item)
-            return True
-        except asyncio.QueueFull:
-            return False
-    
-    async def leak(self):
-        """Leak items from bucket."""
-        now = time.time()
-        elapsed = now - self.last_leak
-        
-        # Calculate items to leak
-        items_to_leak = int(elapsed * self.leak_rate)
-        
-        for _ in range(items_to_leak):
-            try:
-                self.bucket.get_nowait()
-            except asyncio.QueueEmpty:
-                break
-        
-        self.last_leak = now
-```
+**How it works — Leaky bucket:** requests enter a queue (the bucket) and are processed at a fixed `leak_rate`; when the queue is full, new requests are rejected. Unlike the token bucket it smooths bursts into a constant outflow instead of allowing them through — the right choice when the *downstream* needs a steady rate, not just the quota.
 
 ### 3. Fixed Window Counter
-```python
-class FixedWindowCounter:
-    def __init__(self, window_size, max_requests):
-        self.window_size = window_size
-        self.max_requests = max_requests
-        self.counters = {}
-    
-    def get_window(self, timestamp):
-        """Get window for timestamp."""
-        return timestamp - (timestamp % self.window_size)
-    
-    async def increment(self, key):
-        """Increment counter for key."""
-        now = time.time()
-        window = self.get_window(now)
-        
-        # Clear old windows
-        self.clear_old_windows(now)
-        
-        # Get or create counter
-        if window not in self.counters:
-            self.counters[window] = defaultdict(int)
-        
-        # Check limit
-        if self.counters[window][key] >= self.max_requests:
-            return False
-        
-        # Increment counter
-        self.counters[window][key] += 1
-        return True
-    
-    def clear_old_windows(self, now):
-        """Clear expired windows."""
-        cutoff = self.get_window(now - self.window_size)
-        for window in list(self.counters.keys()):
-            if window <= cutoff:
-                del self.counters[window]
-```
+**How it works — Fixed window counter:** count requests in fixed buckets (per minute, per hour) and reject once `max_requests` is hit. Cheap and O(1), but a burst at the boundary — 2× the limit straddling the window edge — can double the intended rate; that's what the sliding variants fix.
 
 ### 4. Sliding Window Log
-```python
-class SlidingWindowLog:
-    def __init__(self, window_size, max_requests):
-        self.window_size = window_size
-        self.max_requests = max_requests
-        self.requests = defaultdict(list)
-    
-    async def allow_request(self, key):
-        """Check if request is allowed."""
-        now = time.time()
-        
-        # Remove old requests
-        self.cleanup_requests(key, now)
-        
-        # Check request count
-        if len(self.requests[key]) >= self.max_requests:
-            return False
-        
-        # Add new request
-        self.requests[key].append(now)
-        return True
-    
-    def cleanup_requests(self, key, now):
-        """Remove expired requests."""
-        cutoff = now - self.window_size
-        
-        while (
-            self.requests[key] and
-            self.requests[key][0] <= cutoff
-        ):
-            self.requests[key].pop(0)
-```
+**How it works — Sliding window log:** keep a timestamped log of each client's recent requests and admit a new one only if fewer than `max_requests` fall inside the last `window_size` — perfectly accurate, at the cost of storing the log (the sliding-window-counter approximation trades a little accuracy for O(1) memory).
 
 ## Implementation Strategies
 
 ### 1. Redis Implementation
-```python
-class RedisRateLimiter:
-    def __init__(self, redis_client):
-        self.redis = redis_client
-        self.script = self.load_lua_script()
-    
-    def load_lua_script(self):
-        """Load rate limiting Lua script."""
-        return self.redis.script_load("""
-            local key = KEYS[1]
-            local limit = tonumber(ARGV[1])
-            local window = tonumber(ARGV[2])
-            local current = tonumber(redis.call('get', key) or 0)
-            
-            if current >= limit then
-                return 0
-            end
-            
-            redis.call('incr', key)
-            redis.call('expire', key, window)
-            
-            return 1
-        """)
-    
-    async def is_allowed(self, key, limit, window):
-        """Check if request is allowed."""
-        try:
-            result = await self.redis.evalsha(
-                self.script,
-                1,
-                key,
-                limit,
-                window
-            )
-            return bool(result)
-        except Exception as e:
-            logger.error(f"Rate limiting failed: {e}")
-            return True  # Fail open
-```
+**How it works — Redis rate limiter:** atomic Lua scripts (or INCR+EXPIRE) make check-and-increment one round-trip that all limiter instances share — correct globally, at the cost of Redis becoming the limiter's availability single point.
 
 ### 2. In-Memory Implementation
-```python
-class InMemoryRateLimiter:
-    def __init__(self):
-        self.limiters = {}
-        self.cleanup_task = asyncio.create_task(
-            self.cleanup_loop()
-        )
-    
-    def get_limiter(self, key, limit, window):
-        """Get or create limiter for key."""
-        if key not in self.limiters:
-            self.limiters[key] = {
-                'limit': limit,
-                'window': window,
-                'requests': []
-            }
-        return self.limiters[key]
-    
-    async def is_allowed(self, key, limit, window):
-        """Check if request is allowed."""
-        limiter = self.get_limiter(key, limit, window)
-        now = time.time()
-        
-        # Remove old requests
-        cutoff = now - window
-        limiter['requests'] = [
-            req for req in limiter['requests']
-            if req > cutoff
-        ]
-        
-        # Check limit
-        if len(limiter['requests']) >= limit:
-            return False
-        
-        # Add request
-        limiter['requests'].append(now)
-        return True
-    
-    async def cleanup_loop(self):
-        """Cleanup expired limiters."""
-        while True:
-            now = time.time()
-            for key in list(self.limiters.keys()):
-                limiter = self.limiters[key]
-                cutoff = now - limiter['window']
-                
-                # Remove old requests
-                limiter['requests'] = [
-                    req for req in limiter['requests']
-                    if req > cutoff
-                ]
-                
-                # Remove empty limiters
-                if not limiter['requests']:
-                    del self.limiters[key]
-            
-            await asyncio.sleep(60)  # Cleanup every minute
-```
+**How it works — In memory rate limiter:** counters live in the instance's own memory — zero latency, but per-instance budgets that multiply by replica count; acceptable for coarse protection, wrong when a precise global quota is the requirement.
 
 ## Distributed Rate Limiting
 
 ### 1. Centralized Redis Approach
-```python
-class DistributedRateLimiter:
-    def __init__(self, redis_cluster):
-        self.redis = redis_cluster
-    
-    async def acquire_permit(self, key, permits=1):
-        """Acquire rate limiting permits."""
-        try:
-            # Use Redis transaction
-            async with self.redis.pipeline() as pipe:
-                # Watch key for changes
-                await pipe.watch(key)
-                
-                # Get current count
-                current = await pipe.get(key) or 0
-                current = int(current)
-                
-                if current + permits > self.limit:
-                    return False
-                
-                # Update atomically
-                pipe.multi()
-                pipe.incr(key, permits)
-                pipe.expire(key, self.window)
-                
-                await pipe.execute()
-                return True
-                
-        except Exception as e:
-            logger.error(f"Failed to acquire permit: {e}")
-            return False
-```
+**How it works — Distributed rate limiter:** counters live in shared state (Redis) so all limiter instances enforce one global budget; the cost is a network round-trip per check — amortize with local token caches that sync periodically.
 
 ### 2. Consistent Hashing Approach
-```python
-class ShardedRateLimiter:
-    def __init__(self, nodes):
-        self.ring = HashRing(nodes)
-        self.limiters = {
-            node: RateLimiter()
-            for node in nodes
-        }
-    
-    async def is_allowed(self, key, limit, window):
-        """Check rate limit using consistent hashing."""
-        # Get responsible node
-        node = self.ring.get_node(key)
-        limiter = self.limiters[node]
-        
-        try:
-            return await limiter.is_allowed(key, limit, window)
-        except NodeUnavailableError:
-            # Handle node failure
-            return await self.handle_node_failure(node, key)
-    
-    async def handle_node_failure(self, failed_node, key):
-        """Handle node failure in rate limiting."""
-        # Remove failed node
-        self.ring.remove_node(failed_node)
-        
-        # Get new node
-        new_node = self.ring.get_node(key)
-        
-        # Use new node's limiter
-        return await self.limiters[new_node].is_allowed(
-            key,
-            self.limit,
-            self.window
-        )
-```
+**How it works — Sharded rate limiter:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ## Best Practices
 
 ### 1. Rate Limit Headers
-```python
-class RateLimitHeaders:
-    def add_headers(self, response, limit_info):
-        """Add rate limit headers to response."""
-        response.headers.update({
-            'X-RateLimit-Limit': str(limit_info['limit']),
-            'X-RateLimit-Remaining': str(
-                limit_info['remaining']
-            ),
-            'X-RateLimit-Reset': str(
-                limit_info['reset']
-            )
-        })
-        
-        if limit_info['remaining'] == 0:
-            response.headers['Retry-After'] = str(
-                limit_info['retry_after']
-            )
-```
+**How it works — Rate limit headers:** every response carries the client's budget — remaining requests and reset time — so well-behaved clients self-throttle instead of discovering the limit by getting 429s.
 
 ### 2. Dynamic Rate Limiting
-```python
-class DynamicRateLimiter:
-    def __init__(self):
-        self.metrics = SystemMetrics()
-    
-    async def get_limit(self, user_id):
-        """Get dynamic rate limit based on system load."""
-        system_load = await self.metrics.get_system_load()
-        user_tier = await self.get_user_tier(user_id)
-        
-        base_limit = self.tier_limits[user_tier]
-        
-        if system_load > 0.8:
-            # Reduce limits under high load
-            return int(base_limit * 0.5)
-        elif system_load > 0.6:
-            return int(base_limit * 0.8)
-        else:
-            return base_limit
-```
+**How it works — Dynamic rate limiter:** limits adjust to conditions — lower during incidents or dependency slowdowns, higher for premium tiers — driven from config rather than redeploy, so the protection matches the system's current capacity.
 
 ## Trade-offs
 
@@ -403,6 +118,36 @@ class DynamicRateLimiter:
 **Local vs distributed limits:** Local limits are fast but drift per node; centralized counters (Redis) are accurate but add a round trip and a dependency.
 
 > **⚠️ When NOT to rate limit at the app layer:** volumetric L3/L4 floods (edge scrubbing handles those before requests arrive), and fully trusted internal meshes where a simple per-dependency concurrency limiter beats full token-bucket machinery.
+
+## Edge Cases to Consider
+
+- Clock skew across limiter instances — use monotonic or server-side time
+- NAT/proxy IP collapse — prefer authenticated identity over IP
+- Distributed counters under partition — fail open or closed deliberately
+- Burst at window boundary (fixed window) — double-limit leakage
+
+
+## Common Pitfalls
+
+1. Per-instance limits that multiply by replica count
+2. No rate-limit headers — clients discover limits by failing
+3. 429 without Retry-After — clients hammer harder
+4. Redis limiter outage takes the API down — decide the fail-open story
+
+
+## FAQ
+
+**Q1: Token bucket or sliding window?**
+
+A: Token bucket when bursts are legitimate and you want simple tuning; sliding window log/counter when the quota must be exact within any window (billing).
+
+**Q2: Where should limits be enforced?**
+
+A: At the edge for coarse per-client quotas, and per-service for expensive internal endpoints. Enforce where identity is known and capacity is protected.
+
+**Q3: Fail open or closed when the limiter is down?**
+
+A: Public protective limits fail open (availability first); billing or abuse limits fail closed. Document the choice — it is a business decision.
 
 ## Interview Tips
 
@@ -428,6 +173,14 @@ graph TD
     B --> E[Service 2]
     B --> F[Service 3]
 ```
+
+## Advanced Topics
+
+1. Hierarchical limits: global, per-tenant, per-key, per-endpoint
+2. Cost-based limiting (weight heavy endpoints more)
+3. Local token caches synced to a global bucket (GitHub-style)
+4. Adaptive limits tied to server load (BBR-style)
+
 
 ## Further Reading
 - [Rate Limiting Algorithms](https://konghq.com/blog/how-to-design-a-scalable-rate-limiting-algorithm)

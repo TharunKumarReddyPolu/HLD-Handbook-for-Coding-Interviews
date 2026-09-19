@@ -1,14 +1,22 @@
-# Monitoring & Logging
+# System Monitoring in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Monitoring Fundamentals](#monitoring-fundamentals)
 - [Logging Best Practices](#logging-best-practices)
 - [Metrics Collection](#metrics-collection)
 - [Alerting Strategies](#alerting-strategies)
 - [Implementation Examples](#implementation-examples)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -21,108 +29,59 @@ Monitoring and logging are essential for understanding system behavior, troubles
 4. **Visualization**
 5. **Analysis Tools**
 
+## Prerequisites & Related Topics
+
+- Builds on: logging basics, time-series data
+- Used in: [Metrics](../observability/metrics.md), [Alerting](../observability/alerting.md), [Distributed Tracing](../observability/distributed-tracing.md)
+- Techniques often combined: SLOs and error budgets, RED/USE method, per-service dashboards
+- See also: [Debug Strategies](../observability/debug-strategies.md) — the reason the signals exist
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use System Monitoring
+
+**Keywords in requirements**: "monitor", "alert", "dashboard", "SLI/SLO", "latency regression", "production visibility"
+**Reach for this when**:
+- Know before users do: latency, errors, saturation per service
+- Capacity planning from growth trends
+- Incident response with correlated metrics, logs, traces
+- Verifying that a scaling or deploy change helped
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Metrics | aggregates over time, cheap to keep | dashboards, alerts |
+| Logs | per-event detail | debugging, audit |
+| Traces | request journey across services | latency attribution |
+| SLO burn alerts | user-impact pacing | paging decisions |
+
+### ❌ When NOT to Use
+
+- Alerting on everything — alert fatigue is the real outage
+- Monitoring without SLOs — thresholds without user-impact context misfire
+- Tracing every span at 100% — sample; keep errors at 100%
+
+
 ## Monitoring Fundamentals
 
 ### 1. System Metrics
-```python
-class SystemMonitor:
-    def collect_metrics(self):
-        """Collect system metrics."""
-        return {
-            'cpu_usage': psutil.cpu_percent(),
-            'memory_usage': psutil.virtual_memory().percent,
-            'disk_usage': psutil.disk_usage('/').percent,
-            'network_io': psutil.net_io_counters()
-        }
-    
-    def monitor_resources(self, interval=60):
-        """Monitor system resources."""
-        while True:
-            metrics = self.collect_metrics()
-            self.store_metrics(metrics)
-            time.sleep(interval)
-```
+**How it works — System monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Application Metrics
-```python
-class AppMetrics:
-    def __init__(self):
-        self.metrics = {
-            'requests_total': Counter('requests_total', 'Total requests'),
-            'request_duration_seconds': Histogram(
-                'request_duration_seconds', 
-                'Request duration'
-            ),
-            'active_users': Gauge('active_users', 'Active users')
-        }
-    
-    def track_request(self, duration):
-        """Track request metrics."""
-        self.metrics['requests_total'].inc()
-        self.metrics['request_duration_seconds'].observe(duration)
-```
+**How it works — App metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 3. Health Checks
-```python
-class HealthCheck:
-    def check_database(self):
-        """Check database connection."""
-        try:
-            db.execute('SELECT 1')
-            return True
-        except Exception as e:
-            logger.error(f"Database health check failed: {e}")
-            return False
-    
-    def check_services(self):
-        """Check dependent services."""
-        results = {}
-        for service in self.services:
-            try:
-                response = requests.get(service.health_url)
-                results[service.name] = response.status_code == 200
-            except Exception as e:
-                results[service.name] = False
-        return results
-```
+**How it works — Health check:** a liveness endpoint answers "is the process alive" (cheap, always local) and a readiness endpoint answers "can I serve" (checks DB/dependencies); balancers and orchestrators route on readiness and restart on liveness.
 
 ## Logging Best Practices
 
 ### 1. Structured Logging
-```python
-class StructuredLogger:
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-    
-    def log_event(self, event_type, **kwargs):
-        """Log structured event."""
-        log_entry = {
-            'timestamp': datetime.utcnow().isoformat(),
-            'event_type': event_type,
-            'service': self.service_name,
-            'data': kwargs
-        }
-        self.logger.info(json.dumps(log_entry))
-```
+**How it works — Structured logger:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
 
 ### 2. Log Levels
-```python
-class ApplicationLogger:
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.setup_logging()
-    
-    def setup_logging(self):
-        """Configure logging."""
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s [%(levelname)s] %(message)s',
-            handlers=[
-                logging.FileHandler('app.log'),
-                logging.StreamHandler()
-            ]
-        )
-```
+**How it works — Application logger:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
 
 ### 3. Log Aggregation
 ```mermaid
@@ -138,151 +97,26 @@ graph TD
 ## Metrics Collection
 
 ### 1. Prometheus Integration
-```python
-class PrometheusMetrics:
-    def __init__(self):
-        self.registry = CollectorRegistry()
-        self.metrics = {
-            'http_requests_total': Counter(
-                'http_requests_total',
-                'Total HTTP requests',
-                ['method', 'endpoint'],
-                registry=self.registry
-            ),
-            'response_time_seconds': Histogram(
-                'response_time_seconds',
-                'Response time in seconds',
-                registry=self.registry
-            )
-        }
-    
-    def track_request(self, method, endpoint, duration):
-        """Track HTTP request metrics."""
-        self.metrics['http_requests_total'].labels(
-            method=method, 
-            endpoint=endpoint
-        ).inc()
-        self.metrics['response_time_seconds'].observe(duration)
-```
+**How it works — Prometheus metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Custom Metrics
-```python
-class BusinessMetrics:
-    def __init__(self):
-        self.metrics = {
-            'sales_total': Counter('sales_total', 'Total sales amount'),
-            'active_users': Gauge('active_users', 'Number of active users'),
-            'order_processing_time': Histogram(
-                'order_processing_time',
-                'Order processing duration'
-            )
-        }
-    
-    def track_sale(self, amount):
-        """Track sale metrics."""
-        self.metrics['sales_total'].inc(amount)
-```
+**How it works — Business metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Alerting Strategies
 
 ### 1. Alert Rules
-```yaml
-# Prometheus Alert Rules
-groups:
-- name: example
-  rules:
-  - alert: HighCPUUsage
-    expr: cpu_usage_percent > 90
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: High CPU usage detected
-      description: CPU usage is above 90% for 5 minutes
-
-  - alert: HighErrorRate
-    expr: rate(http_requests_total{status=~"5.."}[5m]) > 1
-    for: 2m
-    labels:
-      severity: warning
-    annotations:
-      summary: High error rate detected
-      description: Error rate is above threshold
-```
+**Alert rules:** `HighCPUUsage`, `HighErrorRate` — each fires when its expression breaches the threshold for the configured duration.
 
 ### 2. Alert Management
-```python
-class AlertManager:
-    def __init__(self):
-        self.handlers = {
-            'critical': self.handle_critical,
-            'warning': self.handle_warning,
-            'info': self.handle_info
-        }
-    
-    def process_alert(self, alert):
-        """Process incoming alert."""
-        severity = alert.get('severity', 'info')
-        handler = self.handlers.get(severity, self.handle_info)
-        handler(alert)
-    
-    def handle_critical(self, alert):
-        """Handle critical alert."""
-        self.notify_oncall()
-        self.create_incident()
-        self.send_notifications()
-```
+**How it works — Alert manager:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Implementation Examples
 
 ### 1. Monitoring Dashboard
-```python
-class DashboardMetrics:
-    def get_system_health(self):
-        """Get system health metrics."""
-        return {
-            'system': self.get_system_metrics(),
-            'application': self.get_app_metrics(),
-            'database': self.get_db_metrics(),
-            'services': self.get_service_health()
-        }
-    
-    def get_system_metrics(self):
-        """Get system metrics."""
-        return {
-            'cpu': self.cpu_metrics(),
-            'memory': self.memory_metrics(),
-            'disk': self.disk_metrics(),
-            'network': self.network_metrics()
-        }
-```
+**How it works — Dashboard metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Log Analysis
-```python
-class LogAnalyzer:
-    def analyze_errors(self, timeframe):
-        """Analyze error logs."""
-        query = {
-            'query': {
-                'bool': {
-                    'must': [
-                        {'match': {'level': 'ERROR'}},
-                        {'range': {
-                            'timestamp': {
-                                'gte': f'now-{timeframe}'
-                            }
-                        }}
-                    ]
-                }
-            },
-            'aggs': {
-                'error_types': {
-                    'terms': {'field': 'error_type'}
-                }
-            }
-        }
-        return elasticsearch.search(query)
-```
+**How it works — Log analyzer:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
 
 ## Trade-offs
 
@@ -300,6 +134,38 @@ class LogAnalyzer:
 **Centralization vs autonomy:** Central metrics/logging gives one place to look but creates a scaling bottleneck of its own.
 
 > **⚠️ When NOT to monitor everything:** unbounded labels and per-request metrics explode cardinality and cost — instrument user-visible symptoms and business-critical paths first; you cannot alert your way out of a bad metric design.
+
+## Edge Cases to Consider
+
+- Low-traffic services — burn-rate alerts fire too slowly; use absolute floors
+- Cardinality explosion from unbounded labels (user IDs in tags)
+- Multi-window alerts both firing or neither — tune windows
+- Histogram buckets missing the p99 tail
+- Log volume cost dwarfs metric cost — tier retention
+
+
+## Common Pitfalls
+
+1. Averages hiding tail latency — percentiles or nothing
+2. Alerts without runbooks
+3. Dashboards nobody opens during incidents
+4. No correlation IDs — signals cannot be joined
+5. Monitoring the infrastructure, never the user journey
+
+
+## FAQ
+
+**Q1: Metrics, logs, or traces first?**
+
+A: Metrics plus alerts on user-impact SLOs first — cheapest and answers "is it broken". Logs next for "why". Traces when latency questions span services.
+
+**Q2: How do I stop alert fatigue?**
+
+A: Page only on SLO burn (user impact), ticket the rest, require runbooks, and delete alerts that fired without action in the last quarter.
+
+**Q3: What is the RED method?**
+
+A: Rate, Errors, Duration per service — the minimal dashboard that catches most regressions before users report them.
 
 ## Interview Tips
 
@@ -322,6 +188,14 @@ class LogAnalyzer:
 - Set up meaningful alerts
 - Monitor business metrics
 - Regular system audits
+
+## Advanced Topics
+
+1. Multi-window multi-burn-rate alerting (Google SRE style)
+2. Exemplars linking metrics to traces
+3. OpenTelemetry for vendor-neutral collection
+4. Anomaly detection for seasonal metrics
+
 
 ## Further Reading
 - [Prometheus Documentation](https://prometheus.io/docs/introduction/overview/)

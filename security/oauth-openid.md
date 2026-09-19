@@ -1,13 +1,21 @@
-# OAuth 2.0 and OpenID Connect
+# OAuth & OpenID Connect in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [OAuth 2.0 Flows](#oauth-20-flows)
 - [OpenID Connect](#openid-connect)
 - [Implementation Strategies](#implementation-strategies)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -19,6 +27,41 @@ OAuth 2.0 and OpenID Connect provide standardized protocols for authorization an
 3. **Token-based Security**
 4. **Identity Federation**
 5. **Scalable Authentication**
+
+## Prerequisites & Related Topics
+
+- Builds on: [Authentication & Authorization](../system-basics/auth.md), token concepts
+- Used in: [API Security](api-security.md), [Zero Trust](zero-trust.md), [SSO patterns](../system-basics/auth.md)
+- Techniques often combined: PKCE, token exchange, JWKS rotation, scope design
+- See also: [OAuth 2.0 spec family](https://oauth.net/2/) and [OIDC](https://openid.net/developers/how-connect-works/)
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use OAuth & OpenID Connect
+
+**Keywords in requirements**: "SSO", "delegated access", "access token", "refresh token", "authorization code", "client credentials", "scopes"
+**Reach for this when**:
+- Third-party apps accessing user data with limited scopes
+- SSO across internal tools via an identity provider
+- Machine-to-machine auth (client credentials) between services
+- Native/mobile apps using authorization code + PKCE
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Authorization code + PKCE | user-delegated, browser flow | web and mobile apps |
+| Client credentials | machine-to-machine | service-to-service |
+| Refresh token rotation | long sessions, short access | all public clients |
+| Token exchange | delegation chains | gateways acting for users |
+
+### ❌ When NOT to Use
+
+- Resource-owner password grant — deprecated and dangerous
+- Implicit flow in new work — tokens in URL fragments leak
+- Using OIDC ID tokens as API access tokens — different audiences, different jobs
+
 
 ## OAuth 2.0 Flows
 
@@ -40,189 +83,34 @@ sequenceDiagram
     Client->>ResourceServer: Access Resource
 ```
 
-```python
-class AuthorizationCodeFlow:
-    def initiate_flow(self, client_id, redirect_uri):
-        """Start authorization code flow"""
-        auth_request = {
-            'response_type': 'code',
-            'client_id': client_id,
-            'redirect_uri': redirect_uri,
-            'scope': 'read write',
-            'state': self.generate_state()
-        }
-        
-        return self.build_auth_url(auth_request)
-        
-    async def exchange_code(self, code, client_id, client_secret):
-        """Exchange code for tokens"""
-        token_request = {
-            'grant_type': 'authorization_code',
-            'code': code,
-            'client_id': client_id,
-            'client_secret': client_secret
-        }
-        
-        response = await self.token_endpoint.request(token_request)
-        return self.validate_tokens(response)
-```
+**How it works — Authorization code flow:** redirect the user to the identity provider, they authenticate and approve scopes there, the provider returns a one-time code, and the backend exchanges it for tokens server-side — the access token never touches the browser.
 
 ### 2. Client Credentials Flow
-```python
-class ClientCredentialsFlow:
-    async def get_token(self, client_id, client_secret):
-        """Get access token for service"""
-        token_request = {
-            'grant_type': 'client_credentials',
-            'client_id': client_id,
-            'client_secret': client_secret,
-            'scope': 'service_scope'
-        }
-        
-        response = await self.token_endpoint.request(token_request)
-        return self.validate_tokens(response)
-```
+**How it works — Client credentials flow:** machine-to-machine auth with no user involved — the service presents its own client ID/secret (better: a signed JWT assertion) to the token endpoint and receives a short-lived access token scoped to itself.
 
 ## OpenID Connect
 
 ### 1. Identity Token Validation
-```python
-class IDTokenValidator:
-    def validate_token(self, id_token):
-        """Validate ID token"""
-        try:
-            # Decode token
-            header = jwt.get_unverified_header(id_token)
-            
-            # Get key
-            key = await self.jwks_client.get_signing_key(
-                header['kid']
-            )
-            
-            # Verify token
-            claims = jwt.decode(
-                id_token,
-                key.key,
-                algorithms=['RS256'],
-                audience=self.client_id,
-                issuer=self.issuer
-            )
-            
-            return self.validate_claims(claims)
-        except Exception as e:
-            raise InvalidToken(str(e))
-```
+**How it works — Idtoken validator:** validate the ID token fully: signature against the provider's JWKS, issuer and audience match, expiry and nonce — any mismatch is a reject; use a maintained library, not hand-rolled parsing.
 
 ### 2. UserInfo Endpoint
-```python
-class UserInfoEndpoint:
-    async def get_user_info(self, access_token):
-        """Get user information"""
-        try:
-            # Validate token
-            if not await self.validate_token(access_token):
-                raise InvalidToken()
-                
-            # Get user claims
-            claims = await self.get_user_claims(access_token)
-            
-            # Filter claims based on scope
-            return self.filter_claims(claims, access_token.scope)
-        except Exception as e:
-            raise UserInfoError(str(e))
-```
+**How it works — User info endpoint:** Keep the contract explicit — resource, method, versioning, pagination, error shape — and evolve it without breaking existing clients; additive changes only, deprecations announced with a sunset date.
 
 ## Implementation Strategies
 
 ### 1. Token Management
-```python
-class TokenManager:
-    def __init__(self):
-        self.token_store = TokenStore()
-        
-    async def get_valid_token(self, client_id):
-        """Get or refresh access token"""
-        token = await self.token_store.get_token(client_id)
-        
-        if not token:
-            return await self.request_new_token(client_id)
-            
-        if self.is_token_expired(token):
-            return await self.refresh_token(token)
-            
-        return token
-        
-    def is_token_expired(self, token):
-        """Check if token is expired"""
-        return datetime.utcnow() > token.expires_at
-```
+**How it works — Token manager:** issues, refreshes, and revokes: short-lived access tokens, rotating refresh tokens, and a real revocation path for logout — the manager owns lifetimes so services only ever validate.
 
 ### 2. Scope Management
-```python
-class ScopeManager:
-    def validate_scopes(self, requested_scopes, allowed_scopes):
-        """Validate requested scopes"""
-        # Convert to sets
-        requested = set(requested_scopes.split())
-        allowed = set(allowed_scopes.split())
-        
-        # Check if all requested scopes are allowed
-        if not requested.issubset(allowed):
-            invalid = requested - allowed
-            raise InvalidScope(f"Invalid scopes: {invalid}")
-            
-        return True
-```
+**How it works — Scope manager:** the access request names the scopes (read:orders, write:profile); the user approves exactly those, the token carries them, and every API call is checked against the token's scopes — least privilege per integration.
 
 ## Common Use Cases
 
 ### 1. Single Sign-On
-```python
-class SSOProvider:
-    async def handle_login(self, request):
-        """Handle SSO login request"""
-        try:
-            # Validate request
-            if not self.validate_request(request):
-                raise InvalidRequest()
-                
-            # Authenticate user
-            user = await self.authenticate_user(request)
-            
-            # Generate tokens
-            access_token = self.generate_access_token(user)
-            id_token = self.generate_id_token(user)
-            
-            return {
-                'access_token': access_token,
-                'id_token': id_token,
-                'token_type': 'Bearer'
-            }
-        except Exception as e:
-            raise AuthenticationError(str(e))
-```
+**How it works — Ssoprovider:** the identity provider authenticates the user once and issues assertions (SAML) or tokens (OIDC) that every relying app accepts — apps do zero password handling and logout/MFA policy applies everywhere at once.
 
 ### 2. API Security
-```python
-class APISecurityMiddleware:
-    async def process_request(self, request):
-        """Process API request"""
-        try:
-            # Extract token
-            token = self.extract_token(request)
-            
-            # Validate token
-            if not await self.validate_token(token):
-                raise InvalidToken()
-                
-            # Check scopes
-            if not self.check_scopes(token, request.resource):
-                raise InsufficientScope()
-                
-            return await self.process_request(request)
-        except Exception as e:
-            raise SecurityError(str(e))
-```
+**How it works — Apisecurity middleware:** the middleware chain authenticates (token validation), authorizes (scopes/roles), rate-limits, and logs — in that order — before any handler runs; cross-cutting security is exactly what middleware is for.
 
 ## Trade-offs
 
@@ -240,6 +128,36 @@ class APISecurityMiddleware:
 **Scope granularity:** Fine-grained scopes enforce least privilege but complicate consent screens and token management.
 
 > **⚠️ When NOT to centralize identity:** a single small app with few users, air-gapped or embedded systems, and flows where IdP downtime must not take the product down (cache token validation locally).
+
+## Edge Cases to Consider
+
+- Redirect URI validation — exact match or token codes leak via open redirectors
+- Refresh token theft — rotation plus reuse detection kills stolen sessions
+- Clock skew at verification — small leeway, tightly bounded
+- Scope creep over years — review scopes as permissions portfolios
+
+
+## Common Pitfalls
+
+1. Tokens in localStorage for XSS-heavy apps — httpOnly cookies or BFF patterns
+2. Treating email as a stable identifier — use the subject (sub) claim
+3. Skipping audience checks — token reuse across services
+4. No revocation path when users disconnect apps
+
+
+## FAQ
+
+**Q1: OAuth vs OpenID Connect?**
+
+A: OAuth delegates authorization (what the app may do); OIDC adds authentication (who the user is) as a layer on top. "Login with X" is OIDC; "post on my behalf" is OAuth.
+
+**Q2: Access token vs ID token?**
+
+A: ID tokens prove identity to your app; access tokens authorize API calls. They have different audiences — never accept one as the other.
+
+**Q3: Why PKCE for server-side apps too?**
+
+A: Because the client secret is no longer the guarantee it was and code interception mitigations should be universal — PKCE costs little and removes a whole attack class.
 
 ## Interview Tips
 
@@ -262,6 +180,14 @@ class APISecurityMiddleware:
 - Implement proper scopes
 - Secure token storage
 - Regular security review
+
+## Advanced Topics
+
+1. Token exchange (RFC 8693) for gateway delegation
+2. mTLS-bound sender-constrained tokens
+3. JARM/PAR hardening for high-security flows
+4. Enterprise federation: SAML bridges via OIDC
+
 
 ## Further Reading
 - [OAuth 2.0 Specification](https://oauth.net/2/)

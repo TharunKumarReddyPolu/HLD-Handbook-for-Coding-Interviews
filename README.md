@@ -41,7 +41,7 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 - 🔗 **Learning Paths** - Suggested reading order and connections between topics
 - 🎯 **Interview Guidance** - When to use each technique and what interviewers probe
 - 🏗️ **Architecture Diagrams** - Mermaid diagrams for components and data flows
-- 💻 **Reference Implementations** - Working code and configuration examples
+- 🧭 **How-It-Works Explanations** - Step-by-step mechanism walkthroughs in prose, not code
 - ⚠️ **Common Challenges** - What to avoid and how to handle failures
 - 💰 **Cost Considerations** - Where cost trade-offs appear in designs
 - 🌐 **Real-World Applications** - How companies actually build these systems
@@ -56,7 +56,7 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 | Feature | Description |
 |---------|-------------|
 | 🔗 Learning Paths | Every category lists its topics with a suggested reading order for structured learning |
-| 💻 Reference Implementations | Python, SQL, and configuration examples in every topic |
+| 🚫 Zero-Code Content | Every concept explained through diagrams, tables, and prose — no code to wade through |
 | 🏗️ Mermaid Architecture Diagrams | Component, sequence, and data-flow diagrams rendered directly in GitHub |
 | 📊 Trade-off Analysis | Consistency, availability, latency, and cost trade-offs compared side by side |
 | ❓ Common Questions | Interview-style questions answered inside each topic |
@@ -73,7 +73,7 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 3. Use the when-to-use guidance and interview tips to understand how to apply the technique
 4. Review the key concepts and trade-off analysis
 5. Understand the architecture diagram before diving into implementations
-6. Study the reference implementations
+6. Walk through the how-it-works explanations for each technique
 7. Review common challenges and pitfalls to avoid mistakes
 8. Read the common questions section for interview-style Q&A
 9. Practice with the interview questions (Easy → Medium → Hard)
@@ -184,7 +184,7 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 ### ✨ Best Practices
 
 - [📋 System Design Guidelines](best-practices/design-guidelines.md) - End-to-end design principles
-- [🔍 Performance Optimization](best-practices/performance.md) - Optimization strategies for caching, database, and code
+- [🔍 Performance Optimization](best-practices/performance.md) - Optimization strategies for caching, databases, and connection pooling
 - [🔐 Security Best Practices](best-practices/security.md) - Best practices across identity, data, network, and monitoring
 - [💰 Cost Optimization](best-practices/cost.md) - Efficient systems without over-provisioning
 
@@ -203,19 +203,19 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 │   ├── Architecture Diagrams
 │   └── Trade-off Analysis
 ├── Common Techniques
-│   ├── Pseudocode (step-by-step logic)
-│   └── Reference Implementations
+│   ├── How-It-Works Explanations (prose walkthroughs)
+│   └── Configuration & Tuning Guidance
 ├── Scalability Considerations
 ├── Edge Cases to Consider
 ├── Common Pitfalls
+├── FAQ (interview-style Q&A)
+├── Interview Tips
 ├── Real-World Applications
 ├── Advanced Topics
-├── Important Resources
-├── FAQ Section
-└── Interview Tips
+└── Important Resources
 ```
 
-Topics are being progressively upgraded to this template. New contributions should follow it — see the [Contributing Guidelines](CONTRIBUTING.md).
+Every topic file now follows this template — the same quick-reference structure as the DSA handbook: keywords that trigger the technique, an approach-selection table, when NOT to use it, edge cases, pitfalls, and an interview-style FAQ.
 
 ---
 

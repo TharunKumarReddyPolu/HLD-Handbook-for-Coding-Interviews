@@ -1,13 +1,21 @@
-# Performance Testing
+# Performance Testing in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Testing Types](#testing-types)
 - [Implementation Strategies](#implementation-strategies)
 - [Analysis Patterns](#analysis-patterns)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,218 +28,72 @@ Performance testing evaluates system behavior under various conditions to ensure
 4. **Risk Mitigation**
 5. **User Experience**
 
+## Prerequisites & Related Topics
+
+- Builds on: [Metrics](../observability/metrics.md), [Performance Monitoring](../observability/performance-monitoring.md)
+- Used in: [Load Testing](load-testing.md), [Performance Optimization](../best-practices/performance.md), [Capacity Planning](../scalability/scaling-types.md)
+- Techniques often combined: benchmark baselines, profiler correlation, regression gates in CI
+- See also: [UST taxonomy](https://www.adaptavist.com/d/performance-testing-types) — load/stress/soak/spike family
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Performance Testing
+
+**Keywords in requirements**: "performance", "benchmark", "latency", "throughput", "regression", "optimization validation"
+**Reach for this when**:
+- Validating an optimization actually improved p95
+- Benchmarking storage/queue/engine choices before committing
+- Setting latency budgets per endpoint from measured capability
+- CI regression gates on critical-path latency
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Microbenchmark | component-level speed | library and driver choices |
+| End-to-end benchmark | user-visible latency | release gates |
+| Comparative A/B | candidate vs baseline | optimization validation |
+| Profiling run | where time is spent | before optimizing anything |
+
+### ❌ When NOT to Use
+
+- Sharing machines with other load — noise ruins comparisons
+- Optimizing without a profile — measure first, always
+- Single-run conclusions — variance needs repeats and statistics
+
+
 ## Testing Types
 
 ### 1. Load Testing
-```python
-class LoadTester:
-    def configure_load_test(self):
-        """Configure load test"""
-        return {
-            'scenarios': {
-                'steady_load': {
-                    'users': 1000,
-                    'ramp_up': '5m',
-                    'duration': '1h'
-                },
-                'peak_load': {
-                    'users': 5000,
-                    'ramp_up': '10m',
-                    'duration': '30m'
-                }
-            },
-            'metrics': {
-                'response_time': {
-                    'p95': '200ms',
-                    'p99': '500ms'
-                },
-                'throughput': {
-                    'min': '1000rps',
-                    'target': '5000rps'
-                }
-            }
-        }
-```
+**How it works — Load tester:** Exercise the "Load tester" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ### 2. Stress Testing
-```python
-class StressTester:
-    async def run_stress_test(self):
-        """Run stress test"""
-        try:
-            # Configure test
-            config = self.configure_test()
-            
-            # Execute test
-            results = await self.execute_test(config)
-            
-            # Monitor system
-            metrics = await self.monitor_system()
-            
-            # Analyze results
-            analysis = self.analyze_results(results, metrics)
-            
-            return analysis
-        except Exception as e:
-            await self.handle_test_error(e)
-```
+**How it works — Stress tester:** Exercise the "Stress tester" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ## Implementation Strategies
 
 ### 1. Test Scenarios
-```python
-class TestScenarios:
-    def define_scenarios(self):
-        """Define test scenarios"""
-        return {
-            'user_flows': {
-                'login': {
-                    'steps': ['auth', 'profile'],
-                    'think_time': '3s'
-                },
-                'checkout': {
-                    'steps': ['cart', 'payment', 'confirm'],
-                    'think_time': '5s'
-                }
-            },
-            'data': {
-                'users': self.generate_users,
-                'products': self.generate_products
-            },
-            'validation': {
-                'assertions': True,
-                'monitoring': True
-            }
-        }
-```
+**How it works — Test scenarios:** Exercise the "Test scenarios" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ### 2. Test Execution
-```python
-class TestExecutor:
-    async def execute_test(self, scenario):
-        """Execute performance test"""
-        try:
-            # Setup environment
-            env = await self.setup_environment()
-            
-            # Initialize monitoring
-            monitoring = await self.init_monitoring()
-            
-            # Run test
-            results = await self.run_test(scenario)
-            
-            # Collect metrics
-            metrics = await self.collect_metrics()
-            
-            return {
-                'results': results,
-                'metrics': metrics
-            }
-        except Exception as e:
-            await self.handle_execution_error(e)
-```
+**How it works — Test executor:** Exercise the "Test executor" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ## Analysis Patterns
 
 ### 1. Metrics Analysis
-```python
-class MetricsAnalyzer:
-    def analyze_metrics(self, data):
-        """Analyze performance metrics"""
-        return {
-            'response_time': {
-                'percentiles': {
-                    'p50': self.calculate_p50,
-                    'p90': self.calculate_p90,
-                    'p95': self.calculate_p95,
-                    'p99': self.calculate_p99
-                },
-                'trends': {
-                    'pattern': 'moving_average',
-                    'window': '5m'
-                }
-            },
-            'throughput': {
-                'average': self.calculate_average,
-                'peak': self.calculate_peak,
-                'stability': self.check_stability
-            }
-        }
-```
+**How it works — Metrics analyzer:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ### 2. Bottleneck Detection
-```python
-class BottleneckDetector:
-    async def detect_bottlenecks(self, metrics):
-        """Detect system bottlenecks"""
-        try:
-            # Analyze CPU
-            cpu = await self.analyze_cpu(metrics)
-            
-            # Analyze Memory
-            memory = await self.analyze_memory(metrics)
-            
-            # Analyze I/O
-            io = await self.analyze_io(metrics)
-            
-            # Generate report
-            return self.generate_report(cpu, memory, io)
-            
-        except Exception as e:
-            await self.handle_detection_error(e)
-```
+**How it works — Bottleneck detector:** Store the computed result under a stable key with a TTL sized to how stale the data may be; hits skip the expensive path, misses repopulate, and invalidation events cover the changes TTL alone would miss.
 
 ## Common Use Cases
 
 ### 1. Web Application Testing
-```python
-class WebAppTester:
-    async def test_webapp(self):
-        """Test web application performance"""
-        try:
-            # Test page load
-            page_metrics = await self.test_page_load()
-            
-            # Test user flows
-            flow_metrics = await self.test_user_flows()
-            
-            # Test API endpoints
-            api_metrics = await self.test_api_endpoints()
-            
-            # Generate report
-            return self.generate_report(
-                page_metrics,
-                flow_metrics,
-                api_metrics
-            )
-        except Exception as e:
-            await self.handle_test_error(e)
-```
+**How it works — Web app tester:** Exercise the "Web app tester" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ### 2. API Performance
-```python
-class APITester:
-    async def test_api(self):
-        """Test API performance"""
-        try:
-            # Test endpoints
-            endpoints = await self.test_endpoints()
-            
-            # Test concurrency
-            concurrency = await self.test_concurrency()
-            
-            # Test data load
-            data_load = await self.test_data_load()
-            
-            # Analyze results
-            return self.analyze_results(
-                endpoints,
-                concurrency,
-                data_load
-            )
-        except Exception as e:
-            await self.handle_api_error(e)
-```
+**How it works — API tester:** Exercise the "API tester" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.
 
 ## Trade-offs
 
@@ -249,6 +111,36 @@ class APITester:
 **Automation vs one-offs:** Continuous performance tests catch regressions when cheap; one-off studies answer launch questions.
 
 > **⚠️ When NOT to optimize from micro-benchmarks:** before profiling the full request path — component-level wins routinely vanish at system level (cache effects, contention); benchmark what users actually wait on.
+
+## Edge Cases to Consider
+
+- Warm-up effects polluting the first runs — discard or warm explicitly
+- JIT/compilation effects in benchmarked runtimes
+- Environmental drift (noisy neighbors) invalidating baselines
+- Realistic data volume — indexes and caches behave differently at scale
+
+
+## Common Pitfalls
+
+1. Benchmarking dev laptops and shipping conclusions to prod
+2. Comparing runs across different code paths without controls
+3. Reporting best-of-N instead of distribution
+4. Optimizing the benchmark instead of the workload
+
+
+## FAQ
+
+**Q1: Load testing vs performance testing?**
+
+A: Load testing asks "how much can it take"; performance testing asks "how fast is it and did that regress". Load is one type within the performance family.
+
+**Q2: How do I validate an optimization helped?**
+
+A: Same controlled environment, same dataset, baseline vs candidate with repeated runs and a statistical check — then confirm the p95 improvement end-to-end, not just in the microbenchmark.
+
+**Q3: What do I do with the profile?**
+
+A: Fix the top self-time item, re-measure, repeat. Optimization without re-measurement is superstition.
 
 ## Interview Tips
 
@@ -271,6 +163,14 @@ class APITester:
 - Proper monitoring
 - Regular testing
 - Documentation
+
+## Advanced Topics
+
+1. Statistical testing of benchmark deltas (Mann-Whitney style gates)
+2. Continuous profiling tied to release versions
+3. Coordinated omission-aware latency measurement
+4. Hardware-consistent benchmark fleets
+
 
 ## Further Reading
 - [Performance Testing Guide](https://k6.io/docs/)

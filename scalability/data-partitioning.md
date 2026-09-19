@@ -1,14 +1,22 @@
-# Data Partitioning
+# Data Partitioning in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Partitioning Methods](#partitioning-methods)
 - [Partitioning Criteria](#partitioning-criteria)
 - [Implementation Strategies](#implementation-strategies)
 - [Challenges and Solutions](#challenges-and-solutions)
 - [Best Practices](#best-practices)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,273 +28,106 @@ Data partitioning is the process of dividing large datasets into smaller, more m
 3. **Enhanced Availability**
 4. **Easier Maintenance**
 
+## Prerequisites & Related Topics
+
+- Builds on: [Database Sharding](../system-basics/database-sharding.md), consistent hashing concepts
+- Used in: [Replication](replication.md), [Event-Driven Architecture](event-driven.md) (Kafka partitions), [Data Warehousing](../data-engineering/data-warehousing.md)
+- Techniques often combined: co-located joins, rebalancing, partition pruning
+- See also: [Scaling Types](scaling-types.md) — partitioning is the write-scaling tier
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Data Partitioning
+
+**Keywords in requirements**: "partition", "shard", "distribute data", "hot partition", "rebalancing", "key ranges"
+**Reach for this when**:
+- Write volume or dataset size beyond one node
+- Ordered range scans with locality (time ranges)
+- Even write distribution on skewed keys (hash)
+- Regional data residency boundaries
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Range partitioning | ordered scans, locality | time-series |
+| Hash partitioning | even spread, point lookups | user-scoped data |
+| List partitioning | category-based placement | multi-region, tenants |
+| Composite | range + hash layered | large multi-tenant |
+
+### ❌ When NOT to Use
+
+- Read bottleneck — replicas and caches first
+- Small datasets — partitioning overhead without payoff
+- Frequent cross-partition joins on un-chosen keys — redesign access patterns
+
+
 ## Partitioning Methods
 
 ### 1. Horizontal Partitioning (Sharding)
-```sql
--- Create partitions by date range
-CREATE TABLE orders_2023 (
-    CHECK (order_date >= '2023-01-01' AND order_date < '2024-01-01')
-) INHERITS (orders);
+**`orders_2023` table:**
 
-CREATE TABLE orders_2024 (
-    CHECK (order_date >= '2024-01-01' AND order_date < '2025-01-01')
-) INHERITS (orders);
+| Column | Type |
+|--------|------|
+| RETURNS | TRIGGER AS $$ |
+| INSERT | INTO orders_2023 VALUES (NEW.*); |
+| INSERT | INTO orders_2024 VALUES (NEW.*); |
+| RAISE | EXCEPTION 'Date out of range'; |
+| END | IF; |
+| RETURN | NULL; |
 
--- Partition function
-CREATE OR REPLACE FUNCTION orders_partition_function()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF (NEW.order_date >= '2023-01-01' AND NEW.order_date < '2024-01-01') THEN
-        INSERT INTO orders_2023 VALUES (NEW.*);
-    ELSIF (NEW.order_date >= '2024-01-01' AND NEW.order_date < '2025-01-01') THEN
-        INSERT INTO orders_2024 VALUES (NEW.*);
-    ELSE
-        RAISE EXCEPTION 'Date out of range';
-    END IF;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-```
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ### 2. Vertical Partitioning
-```sql
--- Original table
-CREATE TABLE users (
-    user_id INT PRIMARY KEY,
-    username VARCHAR(50),
-    email VARCHAR(100),
-    address TEXT,
-    preferences JSON,
-    profile_data JSONB
-);
+**`users` table:**
 
--- Vertically partitioned tables
-CREATE TABLE user_core (
-    user_id INT PRIMARY KEY,
-    username VARCHAR(50),
-    email VARCHAR(100)
-);
+| Column | Type |
+|--------|------|
+| user_id | INT PRIMARY KEY |
+| username | VARCHAR(50) |
+| email | VARCHAR(100) |
+| address | TEXT |
+| preferences | JSON |
+| profile_data | JSONB |
+| user_id | INT PRIMARY KEY |
+| username | VARCHAR(50) |
+| email | VARCHAR(100) |
+| user_id | INT PRIMARY KEY |
+| address | TEXT |
+| preferences | JSON |
 
-CREATE TABLE user_details (
-    user_id INT PRIMARY KEY,
-    address TEXT,
-    preferences JSON,
-    FOREIGN KEY (user_id) REFERENCES user_core(user_id)
-);
-
-CREATE TABLE user_profile (
-    user_id INT PRIMARY KEY,
-    profile_data JSONB,
-    FOREIGN KEY (user_id) REFERENCES user_core(user_id)
-);
-```
+Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ### 3. Directory-Based Partitioning
-```python
-class PartitionDirectory:
-    def __init__(self):
-        self.partition_map = {}
-    
-    def register_partition(self, key_range, partition):
-        """Register partition for key range."""
-        self.partition_map[key_range] = partition
-    
-    def get_partition(self, key):
-        """Get partition for key."""
-        for key_range, partition in self.partition_map.items():
-            if key_range.contains(key):
-                return partition
-        raise KeyError(f"No partition found for key: {key}")
-```
+**How it works — Partition directory:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ## Partitioning Criteria
 
 ### 1. Range-Based Partitioning
-```python
-class RangePartitioner:
-    def __init__(self, ranges):
-        self.ranges = ranges  # List of (start, end) tuples
-    
-    def get_partition(self, value):
-        """Get partition number for value."""
-        for i, (start, end) in enumerate(self.ranges):
-            if start <= value < end:
-                return i
-        raise ValueError(f"Value {value} out of range")
-```
+**How it works — Range partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ### 2. Hash-Based Partitioning
-```python
-class HashPartitioner:
-    def __init__(self, num_partitions):
-        self.num_partitions = num_partitions
-    
-    def get_partition(self, key):
-        """Get partition using hash function."""
-        return hash(key) % self.num_partitions
-    
-    def distribute_data(self, data):
-        """Distribute data across partitions."""
-        partitions = [[] for _ in range(self.num_partitions)]
-        for item in data:
-            partition = self.get_partition(item['key'])
-            partitions[partition].append(item)
-        return partitions
-```
+**How it works — Hash partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ### 3. List-Based Partitioning
-```python
-class ListPartitioner:
-    def __init__(self):
-        self.partition_lists = {}
-    
-    def add_partition(self, partition_id, values):
-        """Add list of values for partition."""
-        self.partition_lists[partition_id] = set(values)
-    
-    def get_partition(self, value):
-        """Get partition for value."""
-        for partition_id, values in self.partition_lists.items():
-            if value in values:
-                return partition_id
-        raise ValueError(f"No partition found for value: {value}")
-```
+**How it works — List partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ## Implementation Strategies
 
 ### 1. Consistent Hashing
-```python
-class ConsistentHashRing:
-    def __init__(self, nodes=None, replicas=3):
-        self.replicas = replicas
-        self.ring = {}
-        self.sorted_keys = []
-        
-        if nodes:
-            for node in nodes:
-                self.add_node(node)
-    
-    def add_node(self, node):
-        """Add node to hash ring."""
-        for i in range(self.replicas):
-            key = self.hash_key(f"{node}:{i}")
-            self.ring[key] = node
-            self.sorted_keys.append(key)
-        self.sorted_keys.sort()
-    
-    def remove_node(self, node):
-        """Remove node from hash ring."""
-        for i in range(self.replicas):
-            key = self.hash_key(f"{node}:{i}")
-            del self.ring[key]
-            self.sorted_keys.remove(key)
-    
-    def get_node(self, key):
-        """Get node for key."""
-        if not self.ring:
-            return None
-        
-        hash_key = self.hash_key(key)
-        for ring_key in self.sorted_keys:
-            if hash_key <= ring_key:
-                return self.ring[ring_key]
-        return self.ring[self.sorted_keys[0]]
-```
+**How it works — Consistent hash ring:** hash servers and keys onto the same ring; each key belongs to the next server clockwise — adding or removing a server remaps only its neighboring arc (~1/N of keys), not the whole keyspace.
 
 ### 2. Dynamic Partitioning
-```python
-class DynamicPartitioner:
-    def __init__(self, initial_partitions=1):
-        self.partitions = [[] for _ in range(initial_partitions)]
-        self.partition_sizes = [0] * initial_partitions
-        self.size_threshold = 1000
-    
-    def add_data(self, data):
-        """Add data with dynamic partitioning."""
-        partition = self.get_target_partition()
-        
-        # Split partition if too large
-        if self.partition_sizes[partition] >= self.size_threshold:
-            self.split_partition(partition)
-            partition = self.get_target_partition()
-        
-        self.partitions[partition].append(data)
-        self.partition_sizes[partition] += 1
-    
-    def split_partition(self, partition_id):
-        """Split partition into two."""
-        data = self.partitions[partition_id]
-        mid = len(data) // 2
-        
-        self.partitions[partition_id] = data[:mid]
-        self.partitions.append(data[mid:])
-        
-        self.partition_sizes[partition_id] = mid
-        self.partition_sizes.append(len(data) - mid)
-```
+**How it works — Dynamic partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ## Challenges and Solutions
 
 ### 1. Join Operations
-```python
-class DistributedJoin:
-    def join_partitioned_data(self, table1, table2, join_key):
-        """Perform join on partitioned data."""
-        # Redistribute data based on join key
-        partitioned_data1 = self.partition_by_key(table1, join_key)
-        partitioned_data2 = self.partition_by_key(table2, join_key)
-        
-        results = []
-        # Perform local joins
-        for partition_id in partitioned_data1:
-            local_data1 = partitioned_data1[partition_id]
-            local_data2 = partitioned_data2.get(partition_id, [])
-            
-            local_results = self.local_join(
-                local_data1,
-                local_data2,
-                join_key
-            )
-            results.extend(local_results)
-        
-        return results
-```
+**How it works — Distributed join:** prefer co-locating joined data on the same shard key; otherwise broadcast one small side to all partitions, or shuffle both sides by the join key — each option trades network volume for parallelism.
 
 ### 2. Rebalancing
-```python
-class PartitionRebalancer:
-    def rebalance(self, partitions, target_count):
-        """Rebalance partitions."""
-        current_count = len(partitions)
-        if current_count == target_count:
-            return partitions
-        
-        # Merge or split partitions
-        if current_count < target_count:
-            return self.split_partitions(
-                partitions,
-                target_count
-            )
-        else:
-            return self.merge_partitions(
-                partitions,
-                target_count
-            )
-    
-    def split_partitions(self, partitions, target_count):
-        """Split partitions to increase count."""
-        result = []
-        for partition in partitions:
-            if len(result) < target_count:
-                # Split partition
-                split_point = len(partition) // 2
-                result.append(partition[:split_point])
-                result.append(partition[split_point:])
-            else:
-                result.append(partition)
-        return result
-```
+**How it works — Partition rebalancer:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ## Best Practices
 
@@ -297,26 +138,7 @@ class PartitionRebalancer:
 - Plan for growth
 
 ### 2. Monitoring
-```python
-class PartitionMonitor:
-    def __init__(self):
-        self.metrics = {
-            'partition_size': Gauge('partition_size', 'Partition size in bytes'),
-            'partition_count': Gauge('partition_count', 'Number of records in partition'),
-            'query_latency': Histogram('query_latency', 'Query latency by partition')
-        }
-    
-    def monitor_partitions(self):
-        """Monitor partition metrics."""
-        for partition in self.get_partitions():
-            self.metrics['partition_size'].labels(
-                partition=partition.id
-            ).set(partition.size)
-            
-            self.metrics['partition_count'].labels(
-                partition=partition.id
-            ).set(partition.record_count)
-```
+**How it works — Partition monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
 
 ## Trade-offs
 
@@ -333,6 +155,37 @@ class PartitionMonitor:
 **Physical vs logical partitioning:** Logical buckets (many per node) make future moves cheap at the cost of routing indirection.
 
 > **⚠️ When NOT to use hash partitioning:** workloads dominated by range scans or time-ordered queries — hashing scatters them across every partition; range or time-bucketed composite schemes fit better.
+
+## Edge Cases to Consider
+
+- Monotonic keys landing on the last range partition
+- Celebrity entity hot-spotting a hash partition — sub-partition or salt
+- Resizing partitions under live traffic
+- Secondary indexes becoming scatter-gather
+- Transactions spanning partitions — design away or accept 2PC
+
+
+## Common Pitfalls
+
+1. Partition key chosen without the query workload in hand
+2. Fixed partition count with no growth plan
+3. Ignoring rebalancing cost until the first resize
+4. Assuming indexes solve cross-partition queries — they do not
+
+
+## FAQ
+
+**Q1: Range or hash partitioning?**
+
+A: Range when queries need ordered scans and locality (time-series); hash when even distribution matters more (user data). Composite hybrids cover multi-tenant systems.
+
+**Q2: How does this differ from sharding?**
+
+A: Sharding is partitioning across machines; partitioning also covers within-node schemes. In interviews they are used interchangeably — the strategy discussion is the same.
+
+**Q3: What breaks first with bad partitioning?**
+
+A: Everything funnels to one hot partition — the system behaves like one small database plus the coordination overhead. Watch per-partition load, not averages.
 
 ## Interview Tips
 
@@ -360,6 +213,14 @@ graph TD
     D --> G[Storage 2]
     E --> H[Storage 3]
 ```
+
+## Advanced Topics
+
+1. Consistent-hash partition placement with virtual nodes
+2. Online resharding protocols (dual-write, flip, verify)
+3. Vitess-style keyspaces and VReplication
+4. Time-based partition lifecycle with tiered storage
+
 
 ## Further Reading
 - [Database Partitioning](https://docs.microsoft.com/en-us/azure/architecture/best-practices/data-partitioning)

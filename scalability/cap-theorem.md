@@ -1,13 +1,21 @@
-# CAP Theorem
+# CAP Theorem in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Core Concepts](#core-concepts)
 - [System Types](#system-types)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
 - [Implementation Strategies](#implementation-strategies)
 - [Real-World Examples](#real-world-examples)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -15,6 +23,38 @@ The CAP theorem states that a distributed system can only provide two of the fol
 - **Consistency**: All nodes see the same data at the same time
 - **Availability**: Every request receives a response
 - **Partition Tolerance**: System continues to operate despite network partitions
+
+## Prerequisites & Related Topics
+
+- **Builds on**: replication basics, distributed systems vocabulary
+- **Used in**: [Database Sharding](../system-basics/database-sharding.md), [Event-Driven Architecture](event-driven.md), Consistency patterns
+- **Techniques often combined**: quorum reads/writes, leader elections, conflict resolution (CRDTs, LWW)
+- **See also**: [Case Study: E-commerce](../case-studies/e-commerce-platform.md) — per-domain CP/AP in one system
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use CAP Theorem
+
+**Keywords in requirements**: "consistency vs availability", "network partition", "CP vs AP", "quorum", "stale reads"
+**Reach for this when**:
+- Choosing a database posture (CP vs AP vs tunable) per workload
+- Reasoning about failure behavior before it happens
+- Explaining per-domain trade-offs (payments CP, feeds AP) in interviews
+- Setting expectations for conflict resolution and staleness
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| CP | correctness over liveness | payments, ledgers, inventory |
+| AP | availability over freshness | social feeds, carts, sessions |
+| Tunable quorum | per-operation choice | Dynamo-family stores |
+
+### ❌ When NOT to Use
+
+- Single-node systems — CAP is a distributed-systems statement
+- Using CAP as an excuse for "no consistency anywhere" — most data is eventually-consistent-safe
+- Ignoring latency when there is no partition — PACELC completes the picture
 
 ## Core Concepts
 
@@ -36,101 +76,21 @@ sequenceDiagram
 ```
 
 ### 2. Availability
-```python
-class HighAvailabilitySystem:
-    def handle_request(self, request):
-        """Handle request with high availability."""
-        try:
-            # Try primary node
-            return self.primary_node.process(request)
-        except NodeUnavailableError:
-            # Failover to secondary
-            return self.secondary_node.process(request)
-        except AllNodesDownError:
-            # Degrade gracefully
-            return self.handle_degraded_mode(request)
-```
+**How it works — High availability system:** eliminate single points of failure — replicas across zones, automatic failover with a tested runbook, load balancers with health routing — and measure the result as availability nines, budgeting the residual downtime.
 
 ### 3. Partition Tolerance
-```python
-class PartitionTolerantSystem:
-    def handle_network_partition(self):
-        """Handle network partition."""
-        if self.is_primary_partition():
-            # Continue processing in primary partition
-            self.operate_primary_mode()
-        else:
-            # Operate in degraded mode
-            self.operate_secondary_mode()
-    
-    def detect_partition(self):
-        """Detect network partition."""
-        return not all(
-            node.is_reachable()
-            for node in self.cluster_nodes
-        )
-```
+**How it works — Partition tolerant system:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 ## System Types
 
 ### 1. CP Systems (Consistency + Partition Tolerance)
-```python
-class CPSystem:
-    def write_data(self, key, value):
-        """Write with consistency guarantee."""
-        # Get quorum of nodes
-        available_nodes = self.get_available_nodes()
-        if len(available_nodes) < self.quorum_size:
-            raise QuorumNotAvailableError("Cannot guarantee consistency")
-        
-        # Write to all available nodes
-        success = all(
-            node.write(key, value)
-            for node in available_nodes
-        )
-        
-        if not success:
-            raise WriteFailedError("Write failed to reach quorum")
-        
-        return success
-```
+**How it works — Cpsystem:** data is addressed by its hash — identical content dedupes naturally, writes are immutable, and integrity checks are free (re-hash on read).
 
 ### 2. AP Systems (Availability + Partition Tolerance)
-```python
-class APSystem:
-    def read_data(self, key):
-        """Read with availability guarantee."""
-        # Try any available node
-        for node in self.get_available_nodes():
-            try:
-                value = node.read(key)
-                return value
-            except NodeError:
-                continue
-        
-        # Return stale data if available
-        return self.get_cached_value(key)
-```
+**How it works — Apsystem:** the app tier stays stateless — session state in Redis, files in object storage — so instances scale horizontally and any instance can serve any request.
 
 ### 3. CA Systems (Consistency + Availability)
-```python
-class CASystem:
-    def process_transaction(self, transaction):
-        """Process with consistency and availability."""
-        # Note: Only works in single-node or perfect network
-        with self.distributed_lock:
-            # Verify all nodes are available
-            if not self.all_nodes_available():
-                raise SystemNotAvailableError()
-            
-            # Process transaction
-            result = self.process_atomic_transaction(transaction)
-            
-            # Replicate to all nodes
-            self.replicate_to_all_nodes(transaction)
-            
-            return result
-```
+**How it works — Casystem:** check-and-set gives optimistic concurrency: read the value with its version, attempt a conditional write that succeeds only if the version is unchanged — retries on conflict instead of holding locks.
 
 ## Trade-offs
 
@@ -147,170 +107,62 @@ class CASystem:
 **Partition Handling**: Networks split; the design question is whether the system stops (CP), continues degraded (AP), or tunes the response per operation with quorums.
 
 ### 1. Consistency vs Availability
-```python
-class ConsistencyLevel:
-    def choose_consistency_level(self, operation_type):
-        """Choose consistency level based on operation."""
-        if operation_type == 'financial_transaction':
-            return ConsistencyLevel.STRONG
-        elif operation_type == 'user_profile':
-            return ConsistencyLevel.EVENTUAL
-        elif operation_type == 'cache_data':
-            return ConsistencyLevel.WEAK
-```
+**How it works — Consistency level:** pick per operation — strong/quorum reads-writes when a stale answer is wrong (billing), eventual/single-replica when speed matters (feed counts) — declaring the choice per call is what makes tunable stores useful.
 
 ### 2. Latency vs Consistency
-```python
-class LatencyOptimizer:
-    def optimize_request(self, request):
-        """Optimize request handling."""
-        if request.requires_strong_consistency():
-            # Use synchronous replication
-            return self.handle_sync_request(request)
-        else:
-            # Use async replication for better latency
-            return self.handle_async_request(request)
-```
+**How it works — Latency optimizer:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
 
 ### 3. Partition Handling
-```python
-class PartitionHandler:
-    def handle_partition(self, partition_type):
-        """Handle different partition scenarios."""
-        if partition_type == 'network_split':
-            # Choose primary partition
-            self.elect_primary_partition()
-        elif partition_type == 'node_failure':
-            # Redistribute load
-            self.rebalance_nodes()
-        elif partition_type == 'partial_partition':
-            # Operate in degraded mode
-            self.handle_degraded_operation()
-```
+**How it works — Partition handler:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
 
 > **⚠️ When NOT to default to CP:** domains that tolerate brief staleness (feeds, recommendations, caches) — paying availability for consistency you don't need hurts users. Choose per data domain, not per company.
+
+## Edge Cases to Consider
+
+- Asymmetric partitions — nodes see each other one-way; Jepsen territory
+- Gray failures — slow-not-dead nodes poison quorums; use timeouts + ejection
+- Clock skew in LWW conflict resolution — logical clocks where it matters
+- Reads during repair — quorums can still see pre-repair values
 
 ## Implementation Strategies
 
 ### 1. Eventual Consistency
-```python
-class EventualConsistency:
-    def write_with_async_replication(self, key, value):
-        """Write with eventual consistency."""
-        # Write to local node
-        self.local_write(key, value)
-        
-        # Async replicate to other nodes
-        asyncio.create_task(self.async_replicate(key, value))
-        
-        # Return immediately
-        return True
-    
-    async def async_replicate(self, key, value):
-        """Asynchronously replicate data."""
-        for node in self.replica_nodes:
-            try:
-                await node.replicate(key, value)
-            except Exception as e:
-                # Queue for retry
-                self.replication_queue.put((node, key, value))
-```
+**How it works — Eventual consistency:** updates replicate asynchronously, so reads may briefly return older data — acceptable when the staleness window is small and conflicts rare; the design work is bounding that window and resolving conflicts deterministically.
 
 ### 2. Strong Consistency
-```python
-class StrongConsistency:
-    def write_with_consensus(self, key, value):
-        """Write with strong consistency."""
-        # Prepare phase
-        prepare_responses = self.prepare_phase(key, value)
-        if not self.has_quorum(prepare_responses):
-            raise ConsensusError("Failed to achieve prepare quorum")
-        
-        # Commit phase
-        commit_responses = self.commit_phase(key, value)
-        if not self.has_quorum(commit_responses):
-            raise ConsensusError("Failed to achieve commit quorum")
-        
-        return True
-```
+**How it works — Strong consistency:** every read reflects the latest committed write — achieved with leader-based replication (read from leader) or quorums (R + W > N) — and paid for in latency and availability during partitions; use it where money and correctness demand it.
 
 ### 3. Quorum-Based Consistency
-```python
-class QuorumConsistency:
-    def __init__(self, n, w, r):
-        self.N = n  # Total nodes
-        self.W = w  # Write quorum
-        self.R = r  # Read quorum
-        assert w + r > n, "W + R must be > N for strong consistency"
-    
-    def read_with_quorum(self, key):
-        """Read with quorum consistency."""
-        responses = []
-        for node in self.nodes:
-            try:
-                value = node.read(key)
-                responses.append(value)
-                if len(responses) >= self.R:
-                    return self.resolve_conflicts(responses)
-            except Exception:
-                continue
-        
-        raise QuorumNotMetError("Failed to achieve read quorum")
-```
+**How it works — Quorum consistency:** reads and writes each contact a quorum (R + W > N), so they always overlap in at least one up-to-date replica — tune R/W per operation to trade latency against staleness without stopping the system.
 
 ## Real-World Examples
 
 ### 1. Distributed Cache
-```python
-class DistributedCache:
-    def get_value(self, key):
-        """Get value with CAP trade-offs."""
-        try:
-            # Try local cache first
-            value = self.local_cache.get(key)
-            if value:
-                return value
-            
-            # Try distributed cache
-            value = self.distributed_get(key)
-            if value:
-                # Update local cache
-                self.local_cache.set(key, value)
-                return value
-            
-            return None
-            
-        except PartitionError:
-            # During partition, serve stale data
-            return self.local_cache.get(key)
-```
+**How it works — Distributed cache:** Store the computed result under a stable key with a TTL sized to how stale the data may be; hits skip the expensive path, misses repopulate, and invalidation events cover the changes TTL alone would miss.
 
 ### 2. Banking System
-```python
-class BankingSystem:
-    def transfer_money(self, from_account, to_account, amount):
-        """Handle money transfer with strong consistency."""
-        try:
-            # Must have all nodes available
-            if not self.all_nodes_available():
-                raise SystemNotAvailableError()
-            
-            # Two-phase commit
-            transaction_id = self.prepare_transfer(
-                from_account, to_account, amount
-            )
-            
-            success = self.commit_transfer(transaction_id)
-            if not success:
-                self.rollback_transfer(transaction_id)
-                raise TransactionFailedError()
-            
-            return success
-            
-        except PartitionError:
-            # Cannot process during partition
-            raise ServiceUnavailableError()
-```
+**How it works — Banking system:** money movement is transactional — double-entry ledger rows are immutable, balances are derived, and every transfer runs in an ACID transaction or a compensating saga; reconciliation jobs prove the books balance daily.
+
+## Common Pitfalls
+
+1. Claiming C+A+P all at once
+2. Quorum math done once at design time instead of per operation
+3. Equating eventual consistency with "no conflicts to resolve"
+4. Never testing partition behavior — run failure drills
+
+## FAQ
+
+**Q1: Is my database CP or AP?**
+
+A: Ask what happens to a read/write when replicas can't reach each other: rejects (CP) or serves-and-reconciles (AP). Dynamo-family is tunable per operation — know your settings.
+
+**Q2: Can I have consistency and availability?**
+
+A: Only without partitions — which is most of the time, and why PACELC matters. Under partition, pick one; in normal ops, tune latency vs consistency.
+
+**Q3: Where does CAP show up in an interview?**
+
+A: Per-domain choices: payments CP, feeds AP, carts AP-with-idempotency — saying "it depends" and then depending correctly is the winning answer.
 
 ## Interview Tips
 
@@ -350,6 +202,13 @@ graph TD
    - CP for financial systems
    - AP for content delivery
    - CA for single-node systems
+
+## Advanced Topics
+
+1. **PACELC** — the else: latency vs consistency when connected
+2. **CRDTs** — AP systems that still converge deterministically
+3. **Leader leases & fencing tokens** — guarding CP primaries
+4. **Jepsen-style verification** — finding the real behavior under partitions
 
 ## Further Reading
 - [CAP Theorem Paper](https://www.cs.berkeley.edu/~brewer/cs262b-2004/PODC-keynote.pdf)

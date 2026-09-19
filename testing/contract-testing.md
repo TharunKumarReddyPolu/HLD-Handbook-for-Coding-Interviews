@@ -1,13 +1,21 @@
-# Contract Testing
+# Contract Testing in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Testing Strategies](#testing-strategies)
 - [Implementation Patterns](#implementation-patterns)
 - [Contract Validation](#contract-validation)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,230 +28,72 @@ Contract testing ensures that services maintain their agreed-upon interfaces and
 4. **Faster Development**
 5. **Service Independence**
 
+## Prerequisites & Related Topics
+
+- Builds on: [API Design](../system-basics/api-design.md), [Integration Testing](integration-testing.md)
+- Used in: [Microservices](../scalability/microservices.md), [Event-Driven Architecture](../scalability/event-driven.md) (schema contracts), [CI/CD](../cloud-native/kubernetes-orchestration.md)
+- Techniques often combined: consumer-driven contracts (Pact), schema registries, canary verification
+- See also: [Pact docs](https://docs.pact.io/) — the reference implementation
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use Contract Testing
+
+**Keywords in requirements**: "breaking change", "consumer", "provider", "schema evolution", "API compatibility", "integration test"
+**Reach for this when**:
+- Microservice teams deploying independently without integration freezes
+- Public APIs with external consumers and version promises
+- Event schema evolution with many consumer teams
+- Preventing "works in staging" integration surprises
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Consumer-driven (Pact) | consumers own expectations | internal microservices |
+| Provider-driven (OpenAPI checks) | published spec is truth | public APIs |
+| Schema registry rules | event/message compatibility | Kafka ecosystems |
+| Canary contract replay | real traffic vs new version | high-stakes rollouts |
+
+### ❌ When NOT to Use
+
+- Tiny teams with one deploy train — shared integration environments may suffice
+- Contract tests replacing a few real end-to-end smoke tests — keep both, few
+- Testing business logic through contracts — they verify shape, not behavior
+
+
 ## Testing Strategies
 
 ### 1. Consumer-Driven Contracts
-```python
-class ConsumerContract:
-    def define_contract(self):
-        """Define consumer contract"""
-        return {
-            'service': {
-                'name': 'order-service',
-                'version': '1.0.0'
-            },
-            'endpoints': {
-                '/orders': {
-                    'post': {
-                        'request': {
-                            'content_type': 'application/json',
-                            'schema': {
-                                'order_id': 'string',
-                                'items': 'array',
-                                'total': 'number'
-                            }
-                        },
-                        'response': {
-                            'status': 201,
-                            'schema': {
-                                'order_id': 'string',
-                                'status': 'string'
-                            }
-                        }
-                    }
-                }
-            }
-        }
-```
+**How it works — Consumer contract:** the consuming team publishes exactly what it depends on (fields, types, semantics); the provider's CI runs those expectations on every change, so breaking a consumer breaks the provider's build — not production.
 
 ### 2. Provider Verification
-```python
-class ProviderVerification:
-    async def verify_contract(self, contract):
-        """Verify provider contract"""
-        try:
-            # Setup test environment
-            env = await self.setup_environment()
-            
-            # Load contract
-            loaded = self.load_contract(contract)
-            
-            # Run verification
-            results = await self.run_verification(loaded)
-            
-            # Generate report
-            return await self.generate_report(results)
-            
-        except Exception as e:
-            await self.handle_verification_error(e)
-```
+**How it works — Provider verification:** the provider's CI replays every consumer contract against the real service; a change that breaks any expectation fails the build — compatibility is enforced before release, not discovered after.
 
 ## Implementation Patterns
 
 ### 1. Contract Definition
-```python
-class ContractDefinition:
-    def define_api_contract(self):
-        """Define API contract"""
-        return {
-            'openapi': '3.0.0',
-            'info': {
-                'title': 'Order API',
-                'version': '1.0.0'
-            },
-            'paths': {
-                '/orders': {
-                    'get': {
-                        'parameters': [
-                            {
-                                'name': 'status',
-                                'in': 'query',
-                                'schema': {
-                                    'type': 'string',
-                                    'enum': ['pending', 'completed']
-                                }
-                            }
-                        ],
-                        'responses': {
-                            '200': {
-                                'description': 'Success',
-                                'content': {
-                                    'application/json': {
-                                        'schema': {
-                                            'type': 'array',
-                                            'items': {
-                                                '$ref': '#/components/schemas/Order'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-```
+**How it works — Contract definition:** the interface is written down as a versioned artifact (OpenAPI, protobuf, Pact) — request/response shapes, error codes, semantics — and both sides code against it; the contract, not a conversation, is the source of truth.
 
 ### 2. Test Implementation
-```python
-class ContractTest:
-    async def implement_tests(self):
-        """Implement contract tests"""
-        try:
-            # Generate test cases
-            tests = self.generate_tests()
-            
-            # Setup mock server
-            server = await self.setup_mock_server()
-            
-            # Run tests
-            results = await self.run_tests(tests, server)
-            
-            # Validate results
-            await self.validate_results(results)
-            
-        except Exception as e:
-            await self.handle_test_error(e)
-```
+**How it works — consumer-driven contracts:** the consumer publishes its exact expectations (endpoints, fields, types) as a contract file; the provider's CI verifies every expectation against the real service — a breaking change fails the provider build before either team ships.
 
 ## Contract Validation
 
 ### 1. Schema Validation
-```python
-class SchemaValidator:
-    def validate_schema(self, schema, data):
-        """Validate against schema"""
-        return {
-            'validation': {
-                'type': 'json_schema',
-                'version': 'draft-07'
-            },
-            'rules': {
-                'additionalProperties': False,
-                'required': ['id', 'type'],
-                'properties': {
-                    'id': {'type': 'string'},
-                    'type': {'enum': ['order', 'refund']}
-                }
-            },
-            'extensions': {
-                'formats': True,
-                'patterns': True
-            }
-        }
-```
+**How it works — Schema validator:** Define the shape from the access patterns first, apply the change incrementally with a rollback path, and verify both old and new readers work during the transition window.
 
 ### 2. Behavior Validation
-```python
-class BehaviorValidator:
-    async def validate_behavior(self, service):
-        """Validate service behavior"""
-        try:
-            # Define scenarios
-            scenarios = self.define_scenarios()
-            
-            # Setup test data
-            data = await self.setup_test_data()
-            
-            # Execute scenarios
-            results = await self.execute_scenarios(scenarios, data)
-            
-            # Verify behavior
-            return self.verify_behavior(results)
-            
-        except Exception as e:
-            await self.handle_validation_error(e)
-```
+**How it works — Behavior validator:** compare the request's behavior (velocity, device, history) against the account's baseline; deviations step up authentication or block — fraud defense before the transaction commits.
 
 ## Common Use Cases
 
 ### 1. Microservice Integration
-```python
-class ServiceIntegration:
-    async def test_integration(self):
-        """Test service integration"""
-        try:
-            # Define contracts
-            contracts = self.define_contracts()
-            
-            # Setup services
-            services = await self.setup_services()
-            
-            # Run integration tests
-            results = await self.run_integration_tests(
-                contracts,
-                services
-            )
-            
-            # Validate integration
-            await self.validate_integration(results)
-            
-        except Exception as e:
-            await self.handle_integration_error(e)
-```
+**How it works — Service integration:** prefer events for decoupling, explicit APIs for queries, and anti-corruption layers at legacy boundaries — every integration point is versioned and owned, not an implicit database read.
 
 ### 2. API Evolution
-```python
-class APIEvolution:
-    async def manage_evolution(self):
-        """Manage API evolution"""
-        try:
-            # Version contracts
-            contracts = await self.version_contracts()
-            
-            # Test compatibility
-            compatibility = await self.test_compatibility()
-            
-            # Update documentation
-            await self.update_documentation()
-            
-            # Notify stakeholders
-            await self.notify_stakeholders()
-            
-        except Exception as e:
-            await self.handle_evolution_error(e)
-```
+**How it works — API evolution:** Keep the contract explicit — resource, method, versioning, pagination, error shape — and evolve it without breaking existing clients; additive changes only, deprecations announced with a sunset date.
 
 ## Trade-offs
 
@@ -261,6 +111,36 @@ class APIEvolution:
 **Contract breadth vs maintenance:** Exhaustive contracts catch more but require updating for every intentional change.
 
 > **⚠️ When NOT to adopt contract testing:** single-team services where integration tests are cheap, stable public APIs with rare changes, and early prototypes where contracts would churn daily.
+
+## Edge Cases to Consider
+
+- Consumers depending on unspecified behavior — contracts force it explicit
+- Multiple consumer versions live simultaneously — matrix verification
+- Queued messages from old producers to new consumers
+- Contracts drifting from docs — generate both from one source
+
+
+## Common Pitfalls
+
+1. Contracts that mirror implementation instead of interaction needs
+2. Verification ignored on red — the pipeline is the policy or nothing is
+3. No ownership of shared schemas
+4. Giant contracts nobody updates — start minimal, grow with usage
+
+
+## FAQ
+
+**Q1: Contract testing vs integration testing?**
+
+A: Integration tests run real services together — slow, brittle, but end-to-end. Contract tests verify each provider against each consumer's expectations in isolation — fast and targeted. Use contracts widely, integration tests sparingly.
+
+**Q2: Who owns the contract?**
+
+A: The consumer writes what it needs; the provider verifies and can negotiate. Ownership is shared, but the consumer's requirements are the starting point in consumer-driven testing.
+
+**Q3: How does this stop breaking changes?**
+
+A: The provider's CI runs every consumer contract; a change that breaks any consumer fails the build before deploy — incompatibility becomes a compile-time-ish error, not a production call.
 
 ## Interview Tips
 
@@ -283,6 +163,14 @@ class APIEvolution:
 - Version control
 - Clear documentation
 - Change management
+
+## Advanced Topics
+
+1. Pact broker with can-i-deploy release gates
+2. Async message contracts alongside HTTP pacts
+3. OpenAPI-diff breaking-change detection in CI
+4. Contract-first codegen with multi-language clients
+
 
 ## Further Reading
 - [Pact Documentation](https://docs.pact.io/)

@@ -1,13 +1,21 @@
-# API Security Patterns
+# API Security in System Design 📌
 
 ## Table of Contents
+
 - [Introduction](#introduction)
+- [Prerequisites & Related Topics](#prerequisites--related-topics)
+- [Pattern Recognition Guide](#pattern-recognition-guide)
 - [Authentication Patterns](#authentication-patterns)
 - [Authorization Patterns](#authorization-patterns)
 - [Data Protection](#data-protection)
 - [Common Use Cases](#common-use-cases)
 - [Trade-offs](#trade-offs)
+- [Edge Cases to Consider](#edge-cases-to-consider)
+- [Common Pitfalls](#common-pitfalls)
+- [FAQ](#faq)
 - [Interview Tips](#interview-tips)
+- [Advanced Topics](#advanced-topics)
+- [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -20,212 +28,72 @@ API security patterns provide standardized approaches to securing API endpoints 
 4. **Access Control**
 5. **Audit Trail**
 
+## Prerequisites & Related Topics
+
+- Builds on: [Authentication & Authorization](../system-basics/auth.md), [API Design](../system-basics/api-design.md)
+- Used in: [OAuth & OIDC](oauth-openid.md), [DDoS Prevention](ddos-prevention.md), [Rate Limiting](../architecture/rate-limiting.md)
+- Techniques often combined: token scopes, schema validation, WAF rules, mTLS for internal hops
+- See also: [OWASP API Security Top 10](https://owasp.org/API-Security/) — the canonical risk list
+
+
+## Pattern Recognition Guide
+
+### 🎯 When to Use API Security
+
+**Keywords in requirements**: "secure API", "token validation", "input validation", "authorization", "BOLA", "API abuse", "rate limit"
+**Reach for this when**:
+- Every public or partner-facing API from day one
+- Machine-to-machine APIs needing scoped, auditable access
+- Third-party integrations with per-client credentials and quotas
+- Regulated endpoints requiring audit trails of every access
+
+### 🔑 Approach Indicators
+
+| Approach | Signals | Best For |
+|----------|---------|----------|
+| Token + scope checks | per-request identity and grants | the baseline for all APIs |
+| Schema validation | types, ranges, required fields | every ingestion point |
+| Per-client rate limits | fairness and abuse control | public and partner APIs |
+| mTLS | strong service identity | internal high-value paths |
+
+### ❌ When NOT to Use
+
+- Security only at the gateway — services must re-check authorization
+- Obfuscation as control (secret endpoints, hidden IDs) — IDs are not secrets
+- Rolling your own token format or crypto
+
+
 ## Authentication Patterns
 
 ### 1. JWT Authentication
-```python
-class JWTAuthenticator:
-    def __init__(self):
-        self.secret_key = os.getenv('JWT_SECRET')
-        self.algorithm = 'HS256'
-        
-    def generate_token(self, user_data):
-        """Generate JWT token"""
-        payload = {
-            'sub': user_data['id'],
-            'name': user_data['name'],
-            'roles': user_data['roles'],
-            'exp': datetime.utcnow() + timedelta(hours=1)
-        }
-        
-        return jwt.encode(
-            payload,
-            self.secret_key,
-            algorithm=self.algorithm
-        )
-        
-    def validate_token(self, token):
-        """Validate JWT token"""
-        try:
-            payload = jwt.decode(
-                token,
-                self.secret_key,
-                algorithms=[self.algorithm]
-            )
-            return payload
-        except jwt.ExpiredSignatureError:
-            raise TokenExpired()
-        except jwt.InvalidTokenError:
-            raise InvalidToken()
-```
+**How it works — JWT authenticator:** the filter validates the token's signature, expiry, and audience before the handler sees the request, and exposes the verified claims as the request identity — one chokepoint, uniformly enforced.
 
 ### 2. API Key Authentication
-```python
-class APIKeyAuthenticator:
-    def validate_api_key(self, api_key, request):
-        """Validate API key"""
-        # Get stored key
-        stored_key = await self.key_store.get_key(api_key)
-        if not stored_key:
-            return False
-            
-        # Check if key is active
-        if not stored_key.is_active:
-            return False
-            
-        # Validate scope
-        if not self.validate_scope(stored_key, request):
-            return False
-            
-        # Update usage metrics
-        await self.update_metrics(stored_key, request)
-        
-        return True
-```
+**How it works — Apikey authenticator:** hash-lookup the key, check its scopes against the requested operation, apply the key's rate-limit tier, and attribute usage to the key owner — one uniform path for every programmatic client.
 
 ## Authorization Patterns
 
 ### 1. Role-Based Access Control
-```python
-class RBACAuthorizer:
-    def check_permission(self, user, resource, action):
-        """Check RBAC permissions"""
-        # Get user roles
-        roles = self.get_user_roles(user)
-        
-        # Get required permissions
-        required = self.get_required_permissions(
-            resource,
-            action
-        )
-        
-        # Check permissions
-        for role in roles:
-            permissions = self.get_role_permissions(role)
-            if required.issubset(permissions):
-                return True
-                
-        return False
-```
+**How it works — RBAC authorizer:** resolve roles → permissions → decision in one lookup and cache the role→permission map (it changes rarely); the check must stay O(1) on the hot path.
 
 ### 2. Attribute-Based Access Control
-```python
-class ABACAuthorizer:
-    def evaluate_policy(self, request, resource):
-        """Evaluate ABAC policy"""
-        # Get attributes
-        user_attrs = self.get_user_attributes(request.user)
-        resource_attrs = self.get_resource_attributes(resource)
-        env_attrs = self.get_environmental_attributes()
-        
-        # Evaluate policy
-        policy = self.get_applicable_policy(
-            resource_attrs['type']
-        )
-        
-        return policy.evaluate(
-            user_attrs,
-            resource_attrs,
-            env_attrs
-        )
-```
+**How it works — ABAC authorizer:** evaluate policy against attributes (department, resource owner, time, data sensitivity) at request time — far more expressive than roles, at the cost of policies that need testing discipline.
 
 ## Data Protection
 
 ### 1. Request Validation
-```python
-class RequestValidator:
-    def validate_request(self, request):
-        """Validate API request"""
-        # Validate headers
-        if not self.validate_headers(request.headers):
-            raise InvalidHeaders()
-            
-        # Validate content type
-        if not self.validate_content_type(request):
-            raise InvalidContentType()
-            
-        # Validate body
-        if not self.validate_body(request.body):
-            raise InvalidBody()
-            
-        # Validate parameters
-        if not self.validate_parameters(request.params):
-            raise InvalidParameters()
-```
+**How it works — Request validator:** schema-validate at the boundary — types, ranges, required fields, sizes — and reject with specific errors before the request touches business logic; validation downstream of the edge is already too late.
 
 ### 2. Response Security
-```python
-class ResponseSecurityHandler:
-    def secure_response(self, response):
-        """Apply security headers"""
-        headers = {
-            'X-Content-Type-Options': 'nosniff',
-            'X-Frame-Options': 'DENY',
-            'X-XSS-Protection': '1; mode=block',
-            'Content-Security-Policy': self.get_csp_policy(),
-            'Strict-Transport-Security': 'max-age=31536000'
-        }
-        
-        response.headers.update(headers)
-        return response
-```
+**How it works — Response security handler:** outbound hygiene: security headers (HSTS, CSP, X-Content-Type-Options), no sensitive data in response bodies or error messages, and error shapes that never leak stack traces or internal IDs.
 
 ## Common Use Cases
 
 ### 1. REST API Security
-```python
-class RESTSecurityMiddleware:
-    async def process_request(self, request):
-        """Secure REST API request"""
-        try:
-            # Authenticate request
-            user = await self.authenticate(request)
-            
-            # Authorize request
-            if not await self.authorize(user, request):
-                raise Unauthorized()
-                
-            # Validate request
-            self.validate_request(request)
-            
-            # Process request
-            response = await self.handle_request(request)
-            
-            # Secure response
-            return self.secure_response(response)
-        except Exception as e:
-            return self.handle_error(e)
-```
+**How it works — Restsecurity middleware:** per-request token validation, scope checks per route, and strict 401-vs-403 semantics — stateless JWT checks at the edge, with a denylist consulted for the token's short lifetime.
 
 ### 2. GraphQL Security
-```python
-class GraphQLSecurity:
-    def secure_schema(self, schema):
-        """Apply GraphQL security"""
-        return {
-            'query_depth_limit': 10,
-            'query_cost_limit': 1000,
-            'rate_limit': {
-                'window': 60,
-                'max_requests': 100
-            },
-            'introspection': False
-        }
-        
-    def validate_query(self, query):
-        """Validate GraphQL query"""
-        # Check depth
-        if self.get_query_depth(query) > self.depth_limit:
-            raise QueryTooDeep()
-            
-        # Check cost
-        if self.calculate_cost(query) > self.cost_limit:
-            raise QueryTooExpensive()
-            
-        # Validate operations
-        self.validate_operations(query)
-```
+**How it works — Graph qlsecurity:** the single endpoint needs GraphQL-specific defenses: depth and complexity limits against nested queries, cost analysis, persisted queries, and field-level authorization — introspection is not access control.
 
 ## Trade-offs
 
@@ -244,6 +112,36 @@ class GraphQLSecurity:
 **Security through obscurity vs standards:** Standard schemes (OAuth2) are audited and well-tooled; custom schemes are predictable only to their authors.
 
 > **⚠️ When NOT to rely on JWTs alone:** admin and high-value operations needing instant revocation, and zero-trust service meshes where per-request token checks pair with mTLS — a stolen long-lived JWT is a skeleton key.
+
+## Edge Cases to Consider
+
+- Valid token, other user's object ID — object-level checks catch BOLA
+- Mass assignment — mass-assignable DTOs overwriting fields like role
+- GraphQL resolvers skipping field-level auth
+- Long-lived API keys leaked in repos — short-lived tokens and scanning
+
+
+## Common Pitfalls
+
+1. AuthN without per-object AuthZ — the #1 API vulnerability
+2. Trusting client-supplied prices/quantities/roles
+3. Verbose errors handing attackers internal details
+4. No rate limits on auth and export endpoints
+
+
+## FAQ
+
+**Q1: What is the most common API vulnerability?**
+
+A: Broken object-level authorization: the token is valid but the request targets someone else's object. Every object access needs an ownership/entitlement check.
+
+**Q2: JWT validation — what actually must be checked?**
+
+A: Signature against a known issuer, expiry, audience, and then your own authorization rules. A valid token is authentication, never authorization.
+
+**Q3: Where do rate limits fit in API security?**
+
+A: As abuse control and blast-radius reduction: per-key quotas slow credential stuffing, scraping, and runaway clients before they become incidents.
 
 ## Interview Tips
 
@@ -266,6 +164,14 @@ class GraphQLSecurity:
 - Implement rate limiting
 - Use proper authentication
 - Regular security audits
+
+## Advanced Topics
+
+1. Field-level authorization for GraphQL/REST projections
+2. Signed request bodies for high-integrity endpoints
+3. API abuse detection from access-log analytics
+4. Automated API inventory vs shadow APIs
+
 
 ## Further Reading
 - [OWASP API Security](https://owasp.org/www-project-api-security/)
