@@ -171,7 +171,7 @@ A: Dead-letter it with the original payload plus validation error, keep the pipe
 
 ## Real-World Examples
 
-- **Uber:** trips/pricing analytics via streaming + batch, lambda-style, with dokładne gauges for freshness.
+- **Uber:** trips/pricing analytics via streaming + batch, lambda-style, with explicit gauges for freshness.
 - **E-commerce order events** → warehouse for BI, cache invalidation events for catalogs, training \fraud model.
 - **Change data capture** at scale (LinkedIn Databus/Debezium lineage) — database rows as streams for caches/search/analytics.
 

@@ -98,7 +98,7 @@ graph LR
 
 ## Architectural Roles
 
-- **Edetector**: threshold/sequence rules over windows → alerts.
+- **Detector**: threshold/sequence rules over windows → alerts.
 - **Rolling aggregator**: per-minute/per-5-min metrics feeding live dashboards (complements [Metrics](../observability/metrics.md)).
 - **Enricher**: join clickstream with profile/product data before routing downstream.
 - **Feature fabricator**: per-entity live features (user's avg order in last hour) for ML serving.
@@ -129,7 +129,7 @@ graph LR
 - State TTL vs legal retention requirements
 - Duplicate events after consumer rebalance — idempotent sinks required
 - Timezone-shifted session windows for global user bases
-- Task failover mid-window — checkpoint xi exactly-consistent state
+- Task failover mid-window — checkpoints restore exactly-consistent state
 
 ## Common Pitfalls
 

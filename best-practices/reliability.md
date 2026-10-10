@@ -122,7 +122,7 @@ Interview gold: state *which* features die first and why. "Checkout stays, recom
 | Over-provisioning | absorbs spikes, covers degradations | cost always paid | bursty profiles |
 | Graceful degradation | partial service beats none | user confusion, partial states to maintain | consumer products |
 
-**Redundancy vs complexity:** every redundant component introduces failover machinery, which becomes its own failure mode ("the failover Killer feature nobody tested").
+**Redundancy vs complexity:** every redundant component introduces failover machinery, which becomes its own failure mode — the failover nobody tested is the outage nobody expected.
 
 **Consistency vs availability during partition:** the [CAP theorem](../scalability/cap-theorem.md) lands here — decide *per operation*, not per system (sync writes for ledger, async for profile).
 
