@@ -110,7 +110,7 @@ sequenceDiagram
 **How it works — Password policy:** modern guidance: length over complexity, check against breached-password lists, rate-limit brute force, and store only adaptive hashes (argon2/bcrypt) — complexity rules make passwords worse, not better.
 
 ### 2. Rate Limiting
-**How it works — Rate limiter:** identify the caller (IP, user, API key), check their window/counter against the policy, and return 429 with retry-after headers when exceeded — enforce centrally (or with shared state) so the limit is global, not per-instance.
+**How it works — Auth rate limiting:** throttle login attempts, token refreshes, and password resets per identity (not just per IP) — lockouts back off exponentially and alerts fire on sustained mismatch spikes, the cheap detector for credential stuffing.
 
 ### 3. Session Management
 **How it works — Session manager:** sessions live server-side (or as signed tokens) with rotation on privilege change, absolute and idle expiry, and revocation on logout — the session store is the single place that decides who is "logged in".

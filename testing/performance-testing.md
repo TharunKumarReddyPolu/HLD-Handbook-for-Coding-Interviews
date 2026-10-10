@@ -82,10 +82,10 @@ Performance testing evaluates system behavior under various conditions to ensure
 ## Analysis Patterns
 
 ### 1. Metrics Analysis
-**How it works — Metrics analyzer:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Metrics analyzer:** during a run, capture load metrics (RPS, latency percentiles, error mix) together with system-under-test resource metrics; bottlenecks are read at the intersection of the two graphs.
 
 ### 2. Bottleneck Detection
-**How it works — Bottleneck detector:** Store the computed result under a stable key with a TTL sized to how stale the data may be; hits skip the expensive path, misses repopulate, and invalidation events cover the changes TTL alone would miss.
+**How it works — Bottleneck detector:** compare stress-run telemetry against baseline: the divergence point (first metric that walks off a cliff) names the bottleneck; children graphs confirm, averages mislead.
 
 ## Common Use Cases
 

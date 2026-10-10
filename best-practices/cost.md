@@ -66,7 +66,7 @@ Cost optimization involves strategies and practices to minimize expenses while m
 ## Resource Optimization
 
 ### 1. Auto Scaling
-**How it works — Auto scaler:** watch a load signal (CPU, request rate, queue depth), keep headroom above the target, and scale out before saturation — with cool-down periods so flapping doesn't churn instances and minimums that survive a zone loss.
+**How it works — Cost-aware autoscaling:** scale on the cheapest adequate signal (request rate over CPU), floor at measured minimum traffic not vanity spikes, and cap max-out with budget alarms so a runaway loop becomes a page, not a payday-sized bill.
 
 ### 2. Resource Pooling
 **How it works — shared resource pools:** baseline capacity is provisioned once and shared across environments with quotas per team, rather than every team owning an idle peak-sized stack — utilization rises, and the quota caps any single team's ability to consume the shared budget.
@@ -83,7 +83,7 @@ Cost optimization involves strategies and practices to minimize expenses while m
 **How it works — Storage optimizer:** tier by access pattern — hot data on fast storage, warm on standard, cold archived automatically by policy — and compress/dedupe at write time; the bill follows the tiering rules, not the total bytes.
 
 ### 3. Reserved Capacity
-**How it works — Capacity planner:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Capacity planner:** forecast demand from growth + seasonality, then reserve baseline capacity as committed-use/reserved instances and let autoscaling absorb the peak above the floor — reservations for the always-on layer, spot/ondemand for bursts.
 
 ## Performance vs Cost
 
@@ -96,7 +96,7 @@ Cost optimization involves strategies and practices to minimize expenses while m
 ## Monitoring and Analysis
 
 ### 1. Cost Monitoring
-**How it works — Cost monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Cost monitoring practice:** make spend a first-class SLO: review the top-10 movers weekly, alert on unit-cost regressions (cost per 1k requests), and tie every infra change to its measured cost delta — cache turns, replica counts, and retention windows are all cost knobs.
 
 ### 2. Usage Analysis
 **How it works — Usage analyzer:** instrument feature events (who, what, how often), roll them into per-feature cohorts, and read adoption and retention curves — usage data drives what to build next, not the loudest customer.

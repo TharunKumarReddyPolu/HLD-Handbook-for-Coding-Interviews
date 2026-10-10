@@ -74,7 +74,7 @@ Distributed tracing provides visibility into request flows across distributed sy
 ## Implementation Strategies
 
 ### 1. Middleware Integration
-**How it works — Tracing middleware:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Tracing middleware:** instrument once in a shared middleware/microservice wrapper: context extraction, span creation, and header propagation happen in one place, so individual handlers never touch tracing code and instrumentation stays uniform.
 
 ### 2. Service Instrumentation
 **How it works — Traced service:** each service auto-instruments its framework (server spans) and explicitly instruments expensive calls (DB, external APIs) with meaningful tags — traces are only as good as the annotations on them.

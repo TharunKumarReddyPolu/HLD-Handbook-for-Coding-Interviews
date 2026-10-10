@@ -69,7 +69,7 @@ Cloud cost optimization involves strategies and practices to maximize cloud reso
 **How it works — Resource optimizer:** match allocation to measured need — requests/limits from observed p99s, autoscaling on utilization, and periodic right-sizing — waste hides in defaults, not in workloads.
 
 ### 2. Cost Allocation
-**How it works — Cost allocator:** Attribute the spend to its owner via tags, track it daily, and alert on forecast overrun — cost control works when it's a monitored signal, not a monthly surprise.
+**How it works — Cost allocation:** tagging standards (team, service, environment, feature) enforced at deploy time turn billing exports into per-owner reports — untagged spend lands in an "ownerless" bucket that gets fixed, not ignored.
 
 ## Implementation Patterns
 
@@ -77,15 +77,15 @@ Cloud cost optimization involves strategies and practices to maximize cloud reso
 **How it works — Auto scaler:** watch a load signal (CPU, request rate, queue depth), keep headroom above the target, and scale out before saturation — with cool-down periods so flapping doesn't churn instances and minimums that survive a zone loss.
 
 ### 2. Reserved Capacity
-**How it works — Capacity manager:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Capacity manager:** right-size from real utilization percentiles (p95, not daily peak), reserve the permanent floor, and cap burst spend with autoscaling limits — measured headroom beats over-provisioning "just in case".
 
 ## Monitoring and Analysis
 
 ### 1. Cost Monitoring
-**How it works — Cost monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Cost monitor:** ingest billing exports continuously and slice by team/service/label; alert on spend rate vs budget mid-month so surprises arrive on day 3, not on the invoice.
 
 ### 2. Usage Analysis
-**How it works — Usage analyzer:** instrument feature events (who, what, how often), roll them into per-feature cohorts, and read adoption and retention curves — usage data drives what to build next, not the loudest customer.
+**How it works — Usage analyzer:** split resource consumption by team/service/feature with labels, identify the cost-per-feature trend, and let the biggest consumers present their own right-sizing case — cost data drives platform decisions, not anecdotes.
 
 ## Common Use Cases
 

@@ -7,6 +7,9 @@ This section covers the core building blocks every system design answer relies o
 - [Distributed Systems Basics](distributed-systems.md) - Core concepts: consistency, replication, latency, and failure handling
 - [Load Balancing](load-balancing.md) - Distributing traffic across servers with algorithms, layers, and health checks
 - [Caching](caching.md) - Cache-aside, write-through, eviction policies, and distributed caches
+- [Proxies](proxies.md) - Forward vs reverse proxies: TLS termination, caching, and shielding backends
+- [CDN & Content Delivery](cdn-content-delivery.md) - Edge caching, invalidation, and origin offload for global traffic
+- [Consistent Hashing](consistent-hashing.md) - The hash ring, virtual nodes, and elastic key placement
 - [Database Sharding](database-sharding.md) - Splitting data across nodes: shard keys, rebalancing, and hot spots
 - [Indexing](indexing.md) - B-tree, hash, and bitmap indexes, plus how to choose the right one
 - [API Design](api-design.md) - REST, GraphQL, gRPC, pagination, and versioning
@@ -18,7 +21,7 @@ This section covers the core building blocks every system design answer relies o
 ```
 Distributed Systems Basics
         │
-        ├──► Load Balancing ──► Caching
+        ├──► Load Balancing ──► Caching ──► Proxies ──► CDN & Content Delivery
         │
         ├──► API Design ──► Authentication & Authorization
         │

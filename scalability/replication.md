@@ -77,13 +77,13 @@ graph TD
     A --> F[Write Requests]
 ```
 
-**How it works — Master slave replication:** Keep a synchronized copy or snapshot that can take over; failover promotes the copy, and RTO/RPO requirements decide how synchronized "synchronized" must be.
+**How it works — Master-slave replication:** all writes go to the leader, which ships its change log to followers that apply it in order; reads spread across followers. Lag is the knob: async is fast but stale, sync/semi-sync bounds loss at latency cost.
 
 ### 2. Multi-Master Replication
-**How it works — Multi master replication:** Keep a synchronized copy or snapshot that can take over; failover promotes the copy, and RTO/RPO requirements decide how synchronized "synchronized" must be.
+**How it works — Multi-master replication:** every replica accepts writes and ships them to peers, so a datacenter outage writes locally — at the cost of conflicts needing vector clocks/LWW/CRDT resolution. Deploy it only when multi-region *write* availability is a real requirement.
 
 ### 3. Quorum-Based Replication
-**How it works — Quorum replication:** Keep a synchronized copy or snapshot that can take over; failover promotes the copy, and RTO/RPO requirements decide how synchronized "synchronized" must be.
+**How it works — Quorum replication:** with N copies, require W write acks and R read acks; when W + R > N every read overlaps a latest write. Tune R/W to slide between latency and staleness (e.g., N=3, W=2, R=2).
 
 ## Consistency Models
 
@@ -102,7 +102,7 @@ graph TD
 **How it works — Cdcreplication:** the database's replication log (binlog/WAL) is tailed and every row change becomes an event — no polling, no missed updates; caches, search indexes, and warehouses consume the stream with second-level lag.
 
 ### 2. State Machine Replication
-**How it works — State machine replication:** Keep a synchronized copy or snapshot that can take over; failover promotes the copy, and RTO/RPO requirements decide how synchronized "synchronized" must be.
+**How it works — State machine replication:** the trick is replicating the *log*, not the state — if every replica applies the same ordered operations from consensus (Raft/Paxos), they all end at the same state. Determinism of the apply step is the whole game.
 
 ## Conflict Resolution
 
@@ -115,7 +115,7 @@ graph TD
 ## Best Practices
 
 ### 1. Monitoring Replication
-**How it works — Replication monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Replication monitor:** replication lag per replica measured in seconds continuously; alert when lag exceeds the documented staleness budget — that number is exactly how stale a read may be.
 
 ### 2. Failure Detection
 **How it works — Failure detector:** nodes exchange heartbeats and a detector marks a peer suspect after k missed beats within a window — tuned so real failures are caught fast while GC pauses and network blips don't eject healthy nodes.

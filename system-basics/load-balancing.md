@@ -33,7 +33,7 @@ Load balancing is the process of distributing network traffic across multiple se
 ## Prerequisites & Related Topics
 
 - **Builds on**: DNS fundamentals, TCP/HTTP basics
-- **Used in**: CDN & Content Delivery, [API Design](api-design.md), [Microservices](../scalability/microservices.md), [Rate Limiting](../architecture/rate-limiting.md)
+- **Used in**: [CDN & Content Delivery](cdn-content-delivery.md), [API Design](api-design.md), [Microservices](../scalability/microservices.md), [Rate Limiting](../architecture/rate-limiting.md)
 - **Techniques often combined**: Health checks, session persistence, TLS termination, autoscaling
 - **See also**: Proxies (the entry point often *is* a reverse proxy)
 

@@ -67,10 +67,10 @@ Monitoring and logging are essential for understanding system behavior, troubles
 ## Monitoring Fundamentals
 
 ### 1. System Metrics
-**How it works — System monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — System monitor:** the baseline loop: collect host + service metrics, evaluate alert rules, render dashboards — everything else (tracing, SLO management) sits on top of this floor.
 
 ### 2. Application Metrics
-**How it works — App metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — App metrics:** in-process signals (request rates, error counts, handler latencies, pool utilization) exported per instance; labels make them sliceable by endpoint without exploding cardinality.
 
 ### 3. Health Checks
 **How it works — Health check:** a liveness endpoint answers "is the process alive" (cheap, always local) and a readiness endpoint answers "can I serve" (checks DB/dependencies); balancers and orchestrators route on readiness and restart on liveness.
@@ -78,10 +78,10 @@ Monitoring and logging are essential for understanding system behavior, troubles
 ## Logging Best Practices
 
 ### 1. Structured Logging
-**How it works — Structured logger:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
+**How it works — Log pipeline:** apps write structured events to stdout; a shipper tails, parses, and forwards them to a central store where an index makes trace-ID and service-wide search instant — retiered storage keeps that affordable.
 
 ### 2. Log Levels
-**How it works — Application logger:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
+**How it works — Application logger:** app code logs structured records (level, message, trace ID, contextual fields) via a shared logging library — no printf wedges: normalization happens at write time, not read time.
 
 ### 3. Log Aggregation
 ```mermaid
@@ -97,10 +97,10 @@ graph TD
 ## Metrics Collection
 
 ### 1. Prometheus Integration
-**How it works — Prometheus metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Prometheus metrics:** pull-based scraping of /metrics at fixed intervals, labels as the data model (service, route, instance), and PromQL for aggregation — the de-facto exposition format most exporters target.
 
 ### 2. Custom Metrics
-**How it works — Business metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Business metrics:** orders/min, signups/hour, payment success rate — derived from events or DB counters and watched alongside infra metrics, since "system green, revenue dropped" is a classic silent failure.
 
 ## Alerting Strategies
 
@@ -108,15 +108,15 @@ graph TD
 **Alert rules:** `HighCPUUsage`, `HighErrorRate` — each fires when its expression breaches the threshold for the configured duration.
 
 ### 2. Alert Management
-**How it works — Alert manager:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Alert management:** from requirement to on-call: define the symptom (SLO burn), set threshold + duration, route by severity (page for user-visible, ticket for else), and review — each step in one place so alerts stay trusted.
 
 ## Implementation Examples
 
 ### 1. Monitoring Dashboard
-**How it works — Dashboard metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Dashboard metrics:** panels bind query expressions, not raw values, so dashboards stay correct as data scales; golden-signal panels first, drill-down panels linked from them.
 
 ### 2. Log Analysis
-**How it works — Log analyzer:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
+**How it works — Log analyzer:** structured records enable query operators (filter by service, level, trace ID, latency bucket) — a well-sharded log store answers "show me all errors in checkout in the last 10 min" in seconds; JSON blobs do not.
 
 ## Trade-offs
 

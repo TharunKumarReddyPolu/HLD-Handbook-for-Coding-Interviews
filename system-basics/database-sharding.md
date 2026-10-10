@@ -84,7 +84,7 @@ Example Implementation:
 Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ### 2. Hash-Based Sharding
-**How it works — Sharded database:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Sharded database:** choose the shard key so your hottest query patters touch one shard — `user_id` puts a user's rows together and horizontal scaling follows; a bad key (constant, monotonic timestamp) funnels everything to one shard and shards nothing.
 
 ### 3. Directory-Based Sharding
 ```mermaid

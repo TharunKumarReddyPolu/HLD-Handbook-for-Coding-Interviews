@@ -66,7 +66,7 @@ Debugging distributed systems requires systematic approaches to identify and res
 ## Debug Approaches
 
 ### 1. Log Analysis
-**How it works — Log analyzer:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
+**How it works — Log analyzer:** start from one trace ID and walk outward: the incident window query pulls logs across services, patterns cluster around the first abnormal span, and hypothesis tests are queries against the same store.
 
 ### 2. Distributed Tracing
 **How it works — Distributed debugger:** reconstruct one request's journey from its propagated trace context — every hop's logs and spans share the ID — then compare actual path vs. expected to localize the failing component.
@@ -82,7 +82,7 @@ Debugging distributed systems requires systematic approaches to identify and res
 ## Tool Integration
 
 ### 1. Monitoring Integration
-**How it works — Monitoring integration:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Monitoring integration:** traces, logs, and metrics interlink by trace ID and shared labels, so one click moves from a slow span to its logs to the host metrics — integration makes debugging a flow, not archaeology.
 
 ### 2. Debug Interface
 **How it works — Debug interface:** the interface correlates a request's trace, its logs, and the metrics at that timestamp into one view — the "what broke" question becomes a single query, not three tools.

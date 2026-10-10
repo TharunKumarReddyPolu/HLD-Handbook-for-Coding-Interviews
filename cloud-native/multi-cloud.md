@@ -90,7 +90,7 @@ Multi-cloud strategies involve using multiple cloud providers to optimize for co
 ## Common Use Cases
 
 ### 1. Disaster Recovery
-**How it works — Disaster recovery:** Keep a synchronized copy or snapshot that can take over; failover promotes the copy, and RTO/RPO requirements decide how synchronized "synchronized" must be.
+**How it works — Disaster recovery:** pick RPO/RTO per tier: cheap cross-cloud backups restore in hours (low-tier systems), warm read replicas in the second cloud restore in minutes (tier-1), and active-active stays for the handful of systems that truly need seconds. Test each path by actually restoring.
 
 ### 2. Global Load Balancing
 **How it works — Global load balancer:** traffic is routed to the closest healthy region by DNS or anycast; regional failures remove a region from rotation within seconds — the first tier of both latency and availability.

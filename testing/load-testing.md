@@ -82,10 +82,10 @@ Load testing verifies system performance and reliability under expected and peak
 ## Analysis Patterns
 
 ### 1. Performance Metrics
-**How it works — Performance analyzer:** take the p95 request, walk its trace top-down (total → slowest span → its slowest child), and fix the deepest expensive hop first — averages lie, distributions and traces don't.
+**How it works — Load test analyzer:** read the run in layers — achieved RPS vs target, error rate at each step, latency percentiles as load ramps, and the resource graph at the breaking point — the first saturating resource (CPU, pool, connection) names your bottleneck.
 
 ### 2. Bottleneck Detection
-**How it works — Bottleneck detector:** Store the computed result under a stable key with a TTL sized to how stale the data may be; hits skip the expensive path, misses repopulate, and invalidation events cover the changes TTL alone would miss.
+**How it works — Bottleneck detector:** during the ramp, everything degrades together until one resource cracks first — connection pool exhaustion, CPU, lock waits — and that first-crack resource is the bottleneck; fix it, rerun, repeat.
 
 ## Common Use Cases
 

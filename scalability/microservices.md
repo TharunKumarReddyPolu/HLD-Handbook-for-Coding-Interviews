@@ -120,7 +120,7 @@ graph LR
 - API Versioning
 
 ### 2. Monitoring and Logging
-**How it works — Service monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Distributed monitoring:** each service emits the same RED metric convention and propagates trace context, so cross-service queries answer "which service burned the p99 budget" — fleet dashboards roll up, per-service dashboards slice down.
 
 ### 3. Testing Strategies
 **How it works — Service test:** Exercise the "Service test" scenario against a realistic environment and assert on the observable outcome — pass/fail criteria are defined before the run, not after.

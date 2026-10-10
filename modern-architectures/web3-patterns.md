@@ -76,7 +76,7 @@ Web3 architecture patterns focus on building decentralized applications (dApps) 
 **How it works — Web 3 integration:** the backend bridges two worlds — it indexes chain events into queryable stores and submits user-signed transactions to the chain; the blockchain is the settlement layer, the API remains the convenience layer.
 
 ### 2. Token Management
-**How it works — Token manager:** issues, refreshes, and revokes: short-lived access tokens, rotating refresh tokens, and a real revocation path for logout — the manager owns lifetimes so services only ever validate.
+**How it works — Wallet/session token manager:** per-session keys and nonce tracking guard replay; once private keys sign on-chain, wallets authenticate via short-lived signatures or session tokens that expire server-side — key custody stays user-owned, session tokens stay revocable.
 
 ## Integration Strategies
 
@@ -92,7 +92,7 @@ Web3 architecture patterns focus on building decentralized applications (dApps) 
 **How it works — De fi app:** the app is a thin client over smart contracts — the user signs transactions with their wallet, the chain executes the logic deterministically, and the UI reads state from an indexer rather than a backend it controls.
 
 ### 2. NFT Marketplace
-**How it works — NFT marketplace:** Write the transaction to the shared ledger, wait for consensus/quorum, and read back the deterministic result — trust comes from the protocol's economics and cryptography, not from any operator.
+**How it works — NFT marketplace:** off-chain index (metadata/signals) keeps UX fast while ownership moves on-chain; the paper trail — where the NFT lives — remains on-chain and trustless.
 
 ## Trade-offs
 

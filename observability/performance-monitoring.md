@@ -66,7 +66,7 @@ Performance monitoring provides insights into system behavior, resource utilizat
 ## Monitoring Components
 
 ### 1. Metric Collection
-**How it works — Metric collector:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Metric collector:** agents or pull-scrapers gather from every endpoint on a schedule, batch, and forward to storage — the collector also reports an exporter that went silent (silence itself is signal).
 
 ### 2. Performance Profiling
 **How it works — Performance profiler:** profile before optimizing — CPU samples, allocation profiles, and query plans turn "feels slow" into a ranked list of hot spots; the top of the list is the work, everything else is noise.
@@ -74,15 +74,15 @@ Performance monitoring provides insights into system behavior, resource utilizat
 ## Implementation Strategies
 
 ### 1. Real-time Monitoring
-**How it works — Real time monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Real time monitor:** sub-minute-resolution views on hot paths (live error rate, queue depth) for incident triage, backed by the slower downsampled series for history and comparisons.
 
 ### 2. Resource Monitoring
-**How it works — Resource monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Resource utilization view:** correlate the four saturations (CPU, memory, IO, network) with the latency percentiles on the same time axis — the p99 spike plus the CPU cliff at the same timestamp is the diagnosis, not a guess.
 
 ## Analysis Patterns
 
 ### 1. Performance Analysis
-**How it works — Performance analyzer:** take the p95 request, walk its trace top-down (total → slowest span → its slowest child), and fix the deepest expensive hop first — averages lie, distributions and traces don't.
+**How it works — Performance analyzer:** slice latency by endpoint and time window, compare against rolling baselines, then attribute regressions via traces or profiles — a p99 spike at 3 AM with latency-only graphs tells you nothing; the resource/tracing overlay tells you why.
 
 ### 2. Trend Analysis
 **How it works — Trend analyzer:** compare like windows (week over week, year over year) to strip seasonality, track the slope not the spike, and alert on sustained deviation — trends catch the slow leak that threshold alerts never see.
@@ -90,10 +90,10 @@ Performance monitoring provides insights into system behavior, resource utilizat
 ## Common Use Cases
 
 ### 1. Web Application Monitoring
-**How it works — Web app monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Web app monitor:** browser-side RUM: page load, time-to-interactive, front-end error rates collected from real users — server green with client red is a CDN/JS bug that only RUM sees.
 
 ### 2. Database Performance
-**How it works — Database monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Database monitor:** query latency percentiles, connection pool saturation, lock waits, and slow-query counts; DB metrics explain many app-level p99 spikes that app metrics alone cannot.
 
 ## Trade-offs
 

@@ -66,13 +66,13 @@ Performance optimization involves improving system efficiency, response time, an
 ## Performance Metrics
 
 ### 1. Response Time
-**How it works — Response time monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Response time monitor:** p50/p95/p99 per endpoint, sliced by route and region, compared to rolling baselines — average latency hides queues, which is why percentiles are the default lens.
 
 ### 2. Throughput
-**How it works — Throughput monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Throughput monitor:** requests/second per endpoint against known capacity ceilings; when throughput flatlines while latency climbs, the system is saturated, not throttled — different fix, different page.
 
 ### 3. Resource Utilization
-**How it works — Resource monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Resource monitor:** track the four saturations (CPU, memory, IO, network) per node and by pool; alert on sustained saturation, because saturation always becomes latency before it becomes an outage.
 
 ## Optimization Strategies
 

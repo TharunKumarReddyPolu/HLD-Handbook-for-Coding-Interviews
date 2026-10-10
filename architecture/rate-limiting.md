@@ -91,7 +91,7 @@ Rate limiting controls the rate of requests a client can make to a service to pr
 **How it works — Distributed rate limiter:** counters live in shared state (Redis) so all limiter instances enforce one global budget; the cost is a network round-trip per check — amortize with local token caches that sync periodically.
 
 ### 2. Consistent Hashing Approach
-**How it works — Sharded rate limiter:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Sharded rate limiter:** the limiter's counters are themselves sharded by key (user ID, API key) to a fixed set of counter nodes — each key lives on exactly one shard, so a key's counter stays consistent without cross-node locks. Rehashing when shards resize is the cost; sticky keys or consistent hashing keep hits local.
 
 ## Best Practices
 

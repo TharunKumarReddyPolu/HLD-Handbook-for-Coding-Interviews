@@ -80,12 +80,12 @@ graph TD
 ```
 
 ### 2. Non-Functional Requirements
-**How it works — System requirements:** convert the vague brief into numbers before designing — DAU, read/write ratio, p99 latency, consistency needs, availability target — every later component choice traces back to one of these.
+**How it works — System requirements:** DAU 10M, 50 catalog reads per order, 2 checkout writes per order, p99 reads <100 ms — catalog rides the cache at 95%+ hit rate, checkout bypasses it for consistency.
 
 ## Architecture Design
 
 ### 1. System Architecture
-**How it works — System architecture:** the case study's shape — edge (LB, CDN), stateless services, async workers, primary/replica storage — each choice answers a measured bottleneck; walk the request path when explaining it.
+**How it works — System architecture:** edge (CDN + WAF) → L7 LB → stateless web tier → domain services (catalog, cart, checkout) → per-service data stores; the checkout path is async via events where correctness allows, sync where it doesn't.
 
 ### 2. Data Model
 **`users` table:**
@@ -113,12 +113,12 @@ Primary key: `id`. Keep the schema description in interviews to keys and access 
 **How it works — Search service:** Index the corpus into an inverted or vector structure at write time, then serve queries by lookup-plus-scoring instead of scanning — relevance tuning happens on the index, not the data.
 
 ### 2. Order Processing
-**How it works — Order processor:** validate and persist the order, then execute the side effects as an orchestrated saga — reserve inventory, charge payment, trigger fulfillment — with each step idempotent and compensated on failure.
+**How it works — Order processor:** orders flow as events: validated ORDER_PLACED rides the queue, payment authorizes, inventory reserves, fulfillment kicks off — each step idempotent, so a replay catches up without double-charging anyone.
 
 ## Scaling Strategy
 
 ### 1. Database Sharding
-**How it works — Database sharding:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Database sharding:** orders shard by `customer_id` (or `order_id`); one row lands on exactly one shard, so a customer's order history is a single-shard query. Checkout writes touch inventory — kept on the same shard or made async via events — that's the design decision.
 
 ### 2. Caching Strategy
 **How it works — Cache strategy:** Store the computed result under a stable key with a TTL sized to how stale the data may be; hits skip the expensive path, misses repopulate, and invalidation events cover the changes TTL alone would miss.
@@ -126,7 +126,7 @@ Primary key: `id`. Keep the schema description in interviews to keys and access 
 ## Lessons Learned
 
 ### 1. Performance Optimization
-**How it works — Performance lessons:** the recurring wins — cache the hot read, add the missing index, make the fan-out async, batch the chatty calls — all came from measured traces, never from guessing; measure, fix the top span, re-measure.
+**How it works — Performance lessons:** flash-sale catalog reads hit the cache tier first (product pages, prices), checkout inventory reads/writes go through primary replicas with async fan-out — measured at each sale until load tests said otherwise.
 
 ### 2. Architecture Evolution
 **How it works — Architecture evolution:** the system grew monolith → service extraction at the first scaling pain → read replicas and caches → per-domain services; each step was pulled by a concrete bottleneck, never pushed by fashion.

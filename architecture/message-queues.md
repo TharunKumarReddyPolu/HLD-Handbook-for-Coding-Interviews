@@ -116,7 +116,7 @@ graph TD
 **How it works — persistence:** messages are written to disk (journal/fsync) before the ack returns, so a broker crash loses nothing acknowledged — the trade is latency vs. durability, and replication across brokers removes the single-disk dependency.
 
 ### 2. Error Handling
-**How it works — Error handler:** fail the operation, not the process — catch at the boundary, log with the trace ID, return a typed error to the caller, and retry only what's idempotent; partial side effects roll back via compensating actions.
+**How it works — Error handler:** consumers wrap processing in try/catch that classifies: transient → retry with backoff; permanent → dead-letter with payload + reason. Everything else (crash loops, partial writes) reveals itself in retry-count metrics.
 
 ## Best Practices
 

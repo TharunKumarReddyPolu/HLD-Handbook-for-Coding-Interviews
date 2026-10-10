@@ -82,7 +82,7 @@ Contract testing ensures that services maintain their agreed-upon interfaces and
 ## Contract Validation
 
 ### 1. Schema Validation
-**How it works — Schema validator:** Define the shape from the access patterns first, apply the change incrementally with a rollback path, and verify both old and new readers work during the transition window.
+**How it works — Schema validator:** provider and consumer agree on a shared contract artifact; CI runs both sides against it, so an incompatible change fails the provider's build before the consumer ever sees 500s.
 
 ### 2. Behavior Validation
 **How it works — Behavior validator:** compare the request's behavior (velocity, device, history) against the account's baseline; deviations step up authentication or block — fraud defense before the transaction commits.

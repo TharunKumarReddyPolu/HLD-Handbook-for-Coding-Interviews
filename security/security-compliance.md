@@ -77,12 +77,12 @@ Security compliance in design ensures systems meet regulatory requirements and s
 **How it works — Control implementation:** each compliance requirement maps to a technical control (encryption at rest, access reviews, retention jobs) with an owner and evidence generation — the auditor reads the evidence, engineering produces it once, automatically.
 
 ### 2. Compliance Monitoring
-**How it works — Compliance monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Compliance monitor:** control evidence — access reviews, config drift, encryption coverage, incident records — collected automatically on schedule, so audits pull reports instead of assembling screenshots.
 
 ## Control Implementation
 
 ### 1. Technical Controls
-**How it works — Technical controls:** each policy maps to an enforced mechanism — retention jobs for retention policy, IAM least-privilege for access policy, encryption for data protection — and each control produces its own audit evidence.
+**How it works — Technical controls:** every written control maps to an enforced mechanism — retention jobs for retention policy, IAM least-privilege for access policy, encryption for data protection — each control producing its own audit evidence.
 
 ### 2. Administrative Controls
 **How it works — Admin controls:** privileged actions live behind separate authorization (admin role + step-up auth + audit log), so a compromised user session still cannot grant itself admin or exfiltrate the user list.
@@ -90,7 +90,7 @@ Security compliance in design ensures systems meet regulatory requirements and s
 ## Common Use Cases
 
 ### 1. Financial Services
-**How it works — Financial compliance:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Financial compliance:** PCI DSS is scoped, not sprayed: card data lives in one tokenized, segmented zone with mandatory access controls and quarterly audits, while the rest of the estate stays out of scope — scope reduction is the ROI move.
 
 ### 2. Healthcare Systems
 **How it works — Healthcare compliance:** Map the requirement to a technical control (encryption, retention job, access review), generate the evidence automatically, and keep it queryable for the auditor's window.

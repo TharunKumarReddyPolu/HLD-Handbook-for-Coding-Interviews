@@ -58,7 +58,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 - Start every topic file with a Table of Contents linking to all H2 sections
 
 ### Architecture Diagrams
-```markdown
+```markdown-sample
 \```mermaid
 graph TD
     A[Client] --> B[Load Balancer]
@@ -131,9 +131,9 @@ diag(caching): add distributed cache diagram
 
 ### When Adding New Topics
 
-1. **Structure** — every topic file follows this template (already applied to all 64 topics):
+1. **Structure** — every topic file follows this template (already applied to all 71 topics):
 
-```markdown
+```markdown-sample
 # Topic Name
 
 ## Table of Contents
@@ -266,7 +266,7 @@ HLD-Handbook-for-Coding-Interviews/
 - Sequence diagrams
 
 Example:
-```markdown
+```markdown-sample
 \```mermaid
 sequenceDiagram
     Client->>API Gateway: Request

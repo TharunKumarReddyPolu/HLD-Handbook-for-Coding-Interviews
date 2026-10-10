@@ -66,7 +66,7 @@ Chaos Engineering is the discipline of experimenting on a system to build confid
 ## Chaos Principles
 
 ### 1. Steady State Hypothesis
-**How it works — Steady state monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Steady state monitor:** steady-state metrics (the ones that define "healthy") are watched live during injection with pre-agreed abort thresholds — the experiment ends on data, not on hope.
 
 ### 2. Real-world Events
 **How it works — chaos experiments:** define the steady state (p99 latency, error rate), inject one fault (kill a pod, add 100 ms latency, blackhole a dependency), and verify the steady state holds. If it doesn't, you found a resilience gap before production did.

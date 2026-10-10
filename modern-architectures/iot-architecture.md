@@ -69,12 +69,12 @@ IoT architecture designs systems that connect, manage, and process data from Int
 **How it works — Device manager:** Devices publish over lightweight protocols to a gateway that authenticates, buffers, and forwards — the cloud side consumes the stream and scales independently of device count.
 
 ### 2. Edge Processing
-**How it works — Edge processor:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
+**How it works — Edge processor:** at the gateway, commands decode, device auth verifies, protocol translation runs, andfleet-local rules execute (open the valve when pressure crosses X) — even if the internet is down, the factory keeps producing.
 
 ## Implementation Patterns
 
 ### 1. Data Collection
-**How it works — Data collector:** events are gathered at the boundary (SDK, agent, or pipeline tap), batched and shipped durably to the central store — collection is fire-and-forget so telemetry never blocks the hot path.
+**How it works — Data collector:** devices push telemetry in batches (MQTT/lightweight binary) to an ingest endpoint that stamps device/time metadata and forwards to a stream buffer — every byte of payload is a battery cost, so formats stay tight.
 
 ### 2. Device Communication
 **How it works — Device communication:** Devices publish over lightweight protocols to a gateway that authenticates, buffers, and forwards — the cloud side consumes the stream and scales independently of device count.

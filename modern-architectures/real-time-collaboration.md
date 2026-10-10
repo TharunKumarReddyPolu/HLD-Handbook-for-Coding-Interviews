@@ -73,7 +73,7 @@ Real-time collaboration systems enable multiple users to work together simultane
 ## Architecture Patterns
 
 ### 1. State Management
-**How it works — State manager:** state is classified first — ephemeral (in memory), session (Redis), durable (database) — and each lives in the cheapest layer that meets its durability and latency needs; components stay restartable at any moment.
+**How it works — Collaborative state manager:** client edits travel as operations (OT) or states (CRDT) that merge deterministically at every replica — no central editor exists, so any client can acknowledge and servers are optional for convergence.
 
 ### 2. Presence System
 **How it works — Presence system:** each client sends heartbeats; a user is "online" if any device beat within the window, and disconnects expire via TTL rather than explicit goodbyes — state is small and lives in Redis with pub/sub fanout to watchers.

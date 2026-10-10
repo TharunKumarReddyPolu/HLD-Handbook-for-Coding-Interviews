@@ -74,7 +74,7 @@ Effective logging is crucial for understanding system behavior, debugging issues
 ## Implementation Strategies
 
 ### 1. Log Levels
-**How it works — Application logger:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
+**How it works — Application logger:** a shared logging facade emits uniform JSON records; per-request context (trace ID, user role, service, route) is injected once in middleware so every downstream log line carries it.
 
 ### 2. Distributed Logging
 **How it works — Distributed logger:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.
@@ -90,7 +90,7 @@ Effective logging is crucial for understanding system behavior, debugging issues
 ## Common Use Cases
 
 ### 1. Application Monitoring
-**How it works — Application monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Application monitor:** structured app logs (JSON with level, trace ID, duration) shipped centrally; the first detector is often a log-pattern alert on a new error class, before metrics catch up.
 
 ### 2. Error Tracking
 **How it works — Error tracker:** exceptions ship to a central tracker with stack, release version, and user context; dedup by fingerprint, alert on new or spiking groups, and every alert links to the deploy that likely caused it.

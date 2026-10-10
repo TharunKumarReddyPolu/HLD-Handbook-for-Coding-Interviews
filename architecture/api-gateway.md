@@ -34,7 +34,7 @@ An API Gateway serves as a single entry point for client applications to access 
 - Builds on: [Load Balancing](../system-basics/load-balancing.md), [API Design](../system-basics/api-design.md)
 - Used in: [Microservices](../scalability/microservices.md), [Rate Limiting](rate-limiting.md), [Service Discovery](service-discovery.md)
 - Techniques often combined: JWT validation, rate limits, canary routing, request transformation
-- See also: Service Mesh — mesh handles east-west, gateway handles north-south
+- See also: [Service Mesh](../cloud-native/service-mesh.md) — mesh handles east-west, gateway handles north-south
 
 
 ## Pattern Recognition Guide
@@ -76,18 +76,18 @@ graph TD
     F --> G
 ```
 
-**How it works — Bffgateway:** Terminate the incoming connection at the edge component, apply cross-cutting policy (auth, limits, routing), and forward to the backend pool — clients see one stable address while pools change freely behind it.
+**How it works — BFF gateway:** one thin gateway per client type (web, mobile, TV) — each composes and reshapes backend calls into exactly the payload its client needs and owns that client's auth and rate-limit posture. With a new client you stand up a new BFF instead of etching the old one.
 
 ### 2. Aggregation Gateway
-**How it works — Aggregation gateway:** Terminate the incoming connection at the edge component, apply cross-cutting policy (auth, limits, routing), and forward to the backend pool — clients see one stable address while pools change freely behind it.
+**How it works — Aggregation gateway:** a client asks for one "dashboard" resource; the gateway fans out parallel calls to services, composes (and de-duplicates) the results into a single response. Failure policy per downstream: partial results with flags beat a full 500.
 
 ### 3. Protocol Translation Gateway
-**How it works — Protocol gateway:** Terminate the incoming connection at the edge component, apply cross-cutting policy (auth, limits, routing), and forward to the backend pool — clients see one stable address while pools change freely behind it.
+**How it works — Protocol translation gateway:** REST in, gRPC or WebSocket out — the gateway carries one public protocol while teams build services in whatever suits them. Also where legacy XML/SOAP callers get converted rather than rewritten.
 
 ## Core Features
 
 ### 1. Request Routing
-**How it works — Request router:** Terminate the incoming connection at the edge component, apply cross-cutting policy (auth, limits, routing), and forward to the backend pool — clients see one stable address while pools change freely behind it.
+**How it works — Request routing:** the gateway matches on host + path + method (sometimes headers) against a route table, then load-balances into the right service pool. It authenticates *before* routing so identity, not IP, drives decisions.
 
 ### 2. Authentication & Authorization
 **How it works — Authentication middleware:** extract credentials (bearer token or session cookie), validate signature and expiry, and attach the resolved identity to the request context — reject with 401 before any route logic runs.
@@ -101,10 +101,10 @@ graph TD
 **How it works — Kong:** declarative config defines services (upstreams) and routes; plugins attach cross-cutting behavior per route — auth (JWT/OAuth), rate limiting, caching, logging — without touching backend code. In interviews, frame it as "policy at the edge, configured not coded", with the caveat that very custom routing logic may justify a purpose-built gateway.
 
 ### 2. Custom Gateway Implementation
-**How it works — Custom gateway:** Terminate the incoming connection at the edge component, apply cross-cutting policy (auth, limits, routing), and forward to the backend pool — clients see one stable address while pools change freely behind it.
+**How it works — Custom gateway:** Envoy/NGINX-based gateways give you per-route config files (matches, retries, limits, headers) — code only appears as WASM plugins when declarative policy can't express the behavior. The trade: full control in exchange for owning the upgrade treadmill.
 
 ### 3. Circuit Breaker Integration
-**How it works — Circuit breaker gateway:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Circuit breaker gateway:** route-level breaker policy lives in the gateway config: failure thresholds per route, open-state timeouts, and fallback responses — configured once per route in declarative policy, not coded into each service.
 
 ## Security Aspects
 
@@ -112,7 +112,7 @@ graph TD
 **How it works — Apikey auth:** static keys identify machines, not humans — hashed at rest, scoped to minimal permissions, rotated on schedule, always over TLS; prefer short-lived tokens wherever the integration allows.
 
 ### 2. JWT Authentication
-**How it works — JWT authenticator:** the filter validates the token's signature, expiry, and audience before the handler sees the request, and exposes the verified claims as the request identity — one chokepoint, uniformly enforced.
+**How it works — Gateway JWT validation:** the gateway verifies signature, issuer, audience, and expiry *once at the edge* and forwards a canonical identity header — every backend trusts verified context and never re-parses tokens, eliminating N services × M token libraries.
 
 ### 3. OAuth Integration
 **How it works — OAuth handler:** implements the provider side of the flow — authorize endpoint, code exchange, refresh — validating redirect URIs exactly and issuing narrowly scoped, short-lived tokens; the handler is the trust boundary for every integration.
@@ -120,10 +120,10 @@ graph TD
 ## Best Practices
 
 ### 1. Error Handling
-**How it works — Error handler:** fail the operation, not the process — catch at the boundary, log with the trace ID, return a typed error to the caller, and retry only what's idempotent; partial side effects roll back via compensating actions.
+**How it works — Error handler:** unknown/invalid requests fail fast with structured errors and correct status codes at the edge; timeouts, retries, and rate-limit rejections are caught in policy, so backend failures never crash a route handler.
 
 ### 2. Monitoring & Logging
-**How it works — Gateway monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Gateway monitor:** the gateway sees every request: export per-route RED metrics and structured access logs carrying trace IDs — the single best vantage point for cross-service latency and error attribution.
 
 ## Trade-offs
 

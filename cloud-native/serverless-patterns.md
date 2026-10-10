@@ -85,7 +85,7 @@ graph LR
 **OpenAPI spec:** the machine-readable REST contract — paths, parameters, and response codes — consumed by docs and client generators.
 
 ### 2. Event-Driven Pattern
-**How it works — Order processor:** validate and persist the order, then execute the side effects as an orchestrated saga — reserve inventory, charge payment, trigger fulfillment — with each step idempotent and compensated on failure.
+**How it works — Order processor:** each order event triggers one function doing one step (validate → charge → reserve → notify) — short-lived, parallel, and billed per execution — with idempotency keys and a DLQ for the exit paths.
 
 ## Implementation Strategies
 

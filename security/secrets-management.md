@@ -82,7 +82,7 @@ Secrets management involves secure storage, distribution, and lifecycle manageme
 ## Security Controls
 
 ### 1. Encryption Management
-**How it works — Encryption manager:** centralizes key generation, storage (KMS/HSM), rotation, and audit; services request data-key operations instead of touching master keys — envelope encryption keeps key material off the data path.
+**How it works — Encryption manager:** secrets live encrypted at rest (KMS-backed), delivered to workloads at run time via identity (IAM roles), never baked into images, and rotated on schedule — anything readable from a laptop or git history is a breach on pause.
 
 ### 2. Audit Logging
 **How it works — Secret auditor:** Write the structured record at the moment the action happens — who, what, outcome — and ship it to the central store where retention and query tooling can make it useful later.

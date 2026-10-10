@@ -74,7 +74,7 @@ Data quality and validation ensure the reliability, accuracy, and consistency of
 ## Validation Strategies
 
 ### 1. Schema Validation
-**How it works — Schema validator:** Define the shape from the access patterns first, apply the change incrementally with a rollback path, and verify both old and new readers work during the transition window.
+**How it works — Schema validator:** records pass through a validation gate on arrival — required fields present, types match, values in range — and failures quarantine to a DLQ instead of silently transforming downstream tables.
 
 ### 2. Business Rules
 **How it works — Business rule validator:** rules live in a policy layer separate from the request path; each request is evaluated against them (eligibility, limits, compliance) and rejections cite the violated rule — auditable and changeable without deploys.
@@ -85,7 +85,7 @@ Data quality and validation ensure the reliability, accuracy, and consistency of
 **How it works — data profiling:** before trusting a dataset, compute column stats (null rate, cardinality, min/max, value distributions) and diff them against the last run — sudden drift flags upstream schema changes or broken producers before dashboards lie.
 
 ### 2. Quality Monitoring
-**How it works — Quality monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Quality monitor:** freshness, row-volume, null-rate, and distribution-drift checks run at each pipeline boundary; breaches quarantine the partition and page before downstream consumers silently trust bad rows.
 
 ## Common Use Cases
 

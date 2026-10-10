@@ -100,18 +100,18 @@ Primary key: `id`. Keep the schema description in interviews to keys and access 
 Primary key: `id`. Keep the schema description in interviews to keys and access patterns, not column lists.
 
 ### 3. Directory-Based Partitioning
-**How it works — Partition directory:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Partition directory:** a lookup service maps each partition to the node currently owning it — keys map to partitions, partitions map to whatever node holds them. It makes rebalancing trivial (update one map entry) but adds a metadata service that must be replicated and is on every hop's critical path.
 
 ## Partitioning Criteria
 
 ### 1. Range-Based Partitioning
-**How it works — Range partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Range partitioning:** keys are grouped by contiguous range (usernames A–F, timestamps per hour); each range goes to one node — great for range scans and sorting, risky when ranges skew (the "Z" names crowd onto one node) so boundaries get split on demand.
 
 ### 2. Hash-Based Partitioning
-**How it works — Hash partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Hash partitioning:** `hash(key) % N` (or a ring) decides placement — the spread is statistically even and skewed keys disappear, in exchange for losing range scans: adjacent keys almost never share a node.
 
 ### 3. List-Based Partitioning
-**How it works — List partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — List partitioning:** partition by explicit attribute values — region (EU/US/APAC), tenant, category — each list owning a node. Borders match the business, so a region's data lives in a region's nodes; skew happens exactly where the business expects it.
 
 ## Implementation Strategies
 
@@ -119,7 +119,7 @@ Primary key: `id`. Keep the schema description in interviews to keys and access 
 **How it works — Consistent hash ring:** hash servers and keys onto the same ring; each key belongs to the next server clockwise — adding or removing a server remaps only its neighboring arc (~1/N of keys), not the whole keyspace.
 
 ### 2. Dynamic Partitioning
-**How it works — Dynamic partitioner:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Dynamic partitioning:** the system starts with many small partitions and **splits** a partition when it outgrows a threshold (or merges underloaded neighbors) — placement maps partition→node separately from key→partition, so splits move data between map entries without repartitioning keys.
 
 ## Challenges and Solutions
 
@@ -127,7 +127,7 @@ Primary key: `id`. Keep the schema description in interviews to keys and access 
 **How it works — Distributed join:** prefer co-locating joined data on the same shard key; otherwise broadcast one small side to all partitions, or shuffle both sides by the join key — each option trades network volume for parallelism.
 
 ### 2. Rebalancing
-**How it works — Partition rebalancer:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Partition rebalancing:** move *partitions*, not keys: hash-range rebalancing spawns new shard boundaries; consistent hashing spreads the departing node's vnodes across survivors. Rebalance is rate-limited and double-writes until cutover so reads never serve stale owners.
 
 ## Best Practices
 
@@ -138,7 +138,7 @@ Primary key: `id`. Keep the schema description in interviews to keys and access 
 - Plan for growth
 
 ### 2. Monitoring
-**How it works — Partition monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Partition monitor:** per-partition size, request rate, and hot-key histograms watched continuously — skew is detected by comparing partition distributions, then fixed by splitting or salting.
 
 ## Trade-offs
 

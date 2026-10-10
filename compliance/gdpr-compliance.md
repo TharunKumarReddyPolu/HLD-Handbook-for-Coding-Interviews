@@ -66,7 +66,7 @@ GDPR compliance requires specific architectural considerations and technical con
 ## GDPR Requirements
 
 ### 1. Data Protection Principles
-**How it works — Data protection principles:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Data protection principles:** GDPR's pillars applied at design time: lawful basis + purpose limitation (collect only what on purpose), data minimization, storage limits, and privacy-by-default settings — documented per data domain, not retrofitted at audit time.
 
 ### 2. User Rights Management
 **How it works — User rights manager:** entitlements are data, not code — the subject's roles/attributes are resolved per request into allowed actions, and every grant/deny is logged — "who can see this?" is a query, not a code audit.
@@ -82,7 +82,7 @@ GDPR compliance requires specific architectural considerations and technical con
 ## Technical Controls
 
 ### 1. Data Protection
-**How it works — Data protection:** layered defenses: encryption at rest and in transit, access control at the data layer, and audit logging on every read of sensitive fields — protection follows the data, not just the perimeter.
+**How it works — GDPR data protection:** lawful basis per processing purpose, minimization enforced at collection, purpose-bound retention, and pseudonymization/encryption as technical measures — each with a DPIA trail showing when and why data flows were allowed.
 
 ### 2. Breach Notification
 **How it works — Breach notification:** an incident triggers the documented play — scope the exposure, notify the regulator within the legal window (72h for GDPR), then affected users — with evidence preserved from the audit trail.
@@ -93,7 +93,7 @@ GDPR compliance requires specific architectural considerations and technical con
 **How it works — User data manager:** profile and preference data is read-heavy and session-critical — cache aggressively, keep the authoritative store consistent, and version schema changes backward-compatibly so old clients never break.
 
 ### 2. Privacy by Design
-**How it works — Privacy by design:** Map the requirement to a technical control (encryption, retention job, access review), generate the evidence automatically, and keep it queryable for the auditor's window.
+**How it works — Privacy by design:** privacy defaults are on at intake: purpose tags, minimization checks in schema reviews, and erasure hooks wired into every consumer of a person record before it ships, not after.
 
 ## Trade-offs
 

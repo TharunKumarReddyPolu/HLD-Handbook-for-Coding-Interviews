@@ -74,7 +74,7 @@ DDoS prevention strategies protect systems from distributed denial of service at
 ## Implementation Patterns
 
 ### 1. Rate Limiting
-**How it works — Rate limiter:** identify the caller (IP, user, API key), check their window/counter against the policy, and return 429 with retry-after headers when exceeded — enforce centrally (or with shared state) so the limit is global, not per-instance.
+**How it works — DDoS rate limiting:** distinguish attack traffic from real users — aggressive per-IP/per-route limits with gradual penalties (delay → challenge → block) absorb volumetric floods, while allowlist-minded baselines keep legit bursty clients working. Stacked with the edge/CDN layer, the origin sees only a trickle.
 
 ### 2. Traffic Filtering
 **How it works — Traffic filter:** the edge classifies each request — bot score, geo, rate, signature — and routes it: humans to origin, suspected bots to a challenge, known-bad to a tarpit — dropping garbage before it costs compute.

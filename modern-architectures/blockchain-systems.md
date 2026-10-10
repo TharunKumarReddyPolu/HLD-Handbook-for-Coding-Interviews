@@ -76,7 +76,7 @@ Blockchain systems provide distributed, immutable ledgers with smart contract ca
 **How it works — Transaction processor:** group the read-check-write into one ACID transaction (or an idempotent saga across services); idempotency keys make client retries safe, and isolation levels decide what concurrent anomalies are possible.
 
 ### 2. State Management
-**How it works — State manager:** state is classified first — ephemeral (in memory), session (Redis), durable (database) — and each lives in the cheapest layer that meets its durability and latency needs; components stay restartable at any moment.
+**How it works — Ledger state manager:** each block references the previous block's hash and carries a Merkle root of the batch — so any tampering breaks the chain visibly and re-verification is O(log n) per proof — state is append-only and auditable by replay from genesis.
 
 ## Consensus Mechanisms
 
@@ -92,7 +92,7 @@ Blockchain systems provide distributed, immutable ledgers with smart contract ca
 **How it works — De fi platform:** core logic lives in immutable smart contracts (AMM pools, lending markets) that anyone can call permissionlessly; oracles feed external prices, and upgradeability — if any — is itself a governed, audited contract change.
 
 ### 2. NFT Marketplace
-**How it works — NFT marketplace:** Write the transaction to the shared ledger, wait for consensus/quorum, and read back the deterministic result — trust comes from the protocol's economics and cryptography, not from any operator.
+**How it works — NFT marketplace:** listings are escrowed by contract logic: the approved transfer is only granted if payment lands in the same block (atomic swap); royalties execute as transfer hooks, not marketplace courtesy.
 
 ## Trade-offs
 

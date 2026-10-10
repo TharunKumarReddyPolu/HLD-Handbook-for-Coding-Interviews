@@ -30,7 +30,7 @@ Edge computing brings computation and data storage closer to the location where 
 
 ## Prerequisites & Related Topics
 
-- Builds on: CDN & Content Delivery, [Caching](../system-basics/caching.md)
+- Builds on: [CDN & Content Delivery](../system-basics/cdn-content-delivery.md), [Caching](../system-basics/caching.md)
 - Used in: [IoT Architecture](iot-architecture.md), [Jamstack](#), [Real-Time Analytics](../data-engineering/real-time-analytics.md)
 - Techniques often combined: edge KV stores, geo-routing, stale-while-revalidate, regional failover
 - See also: [Cloudflare Workers docs](https://developers.cloudflare.com/workers/) — a representative edge runtime
@@ -69,7 +69,7 @@ Edge computing brings computation and data storage closer to the location where 
 **How it works — edge node:** compute deployed at CDN PoPs runs your code within ~50 ms of users; requests terminate at the nearest node, reading from regional caches/KV stores — origin is hit only for cache misses and writes, which is what moves latency from hundreds of ms to tens.
 
 ### 2. Edge Processing
-**How it works — Edge processor:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
+**How it works — Edge processor:** run lightweight compute as close to the source as possible — anomaly detection, filtering, and aggregation at PoP/gateway — and forward only deviations and deltas upstream; the cloud sees exceptions, not noise.
 
 ## Implementation Patterns
 

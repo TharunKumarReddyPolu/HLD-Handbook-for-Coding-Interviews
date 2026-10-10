@@ -77,7 +77,7 @@ A/B testing architecture enables controlled experiments to make data-driven deci
 **How it works — Feature flags:** Resolve the flag/config for this request from the central store (with a local cache for latency and a safe default if the store is down), then act on the resolved value — changes take effect without deploys.
 
 ### 2. Data Collection
-**How it works — Data collector:** events are gathered at the boundary (SDK, agent, or pipeline tap), batched and shipped durably to the central store — collection is fire-and-forget so telemetry never blocks the hot path.
+**How it works — Data collector:** each variant exposure and outcome event lands in one unified schema (experiment ID, variant, user, outcome, timestamp); misc jams between assignment and analytics break everything, so the event contract is versioned.
 
 ## Analysis Patterns
 
@@ -93,7 +93,7 @@ A/B testing architecture enables controlled experiments to make data-driven deci
 **How it works — UI experiment:** Resolve the flag/config for this request from the central store (with a local cache for latency and a safe default if the store is down), then act on the resolved value — changes take effect without deploys.
 
 ### 2. Feature Rollout
-**How it works — Feature rollout:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Feature rollout:** the flag is the deploy: code ships dark, then traffic shifts to cohorts (internal, 1%, 10%, 100%) while kill-switch and per-flag metrics watch error/latency deltas — rollback is a flip, not a redeploy.
 
 ## Trade-offs
 

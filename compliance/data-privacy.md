@@ -74,7 +74,7 @@ Data privacy patterns provide reusable solutions for implementing privacy requir
 ## Implementation Strategies
 
 ### 1. Privacy by Design
-**How it works — Privacy by design:** Map the requirement to a technical control (encryption, retention job, access review), generate the evidence automatically, and keep it queryable for the auditor's window.
+**How it works — Privacy by design:** PII is minimal by default: collect the least, pseudonymize anything stored for analytics, isolate user identity columns from behavioral data, and make "we deleted it" a code path instead of a manual ritual.
 
 ### 2. Access Control
 **How it works — Privacy access control:** Map the requirement to a technical control (encryption, retention job, access review), generate the evidence automatically, and keep it queryable for the auditor's window.

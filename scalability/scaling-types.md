@@ -186,7 +186,7 @@ graph LR
 **Infrastructure declaration:** the instance type shown here is the vertical-scaling lever; resize it (or add more instances behind a load balancer) as load grows.
 
 ### 2. Horizontal Scaling Implementation
-**Kubernetes `HorizontalPodAutoscaler` `app-scaler`**: adds or removes replicas from CPU/memory signals. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `HorizontalPodAutoscaler` `app-scaler`**: adds or removes replicas from CPU/memory (or custom) signals between min/max bounds — horizontal scaling as a control loop; pair with a cluster autoscaler so pods can land on *new* nodes too.
 
 ### 3. Database Scaling
 **Config lever:** raising memory/connection settings scales a single node vertically — effective until the hardware ceiling.
@@ -206,7 +206,7 @@ graph TD
 ```
 
 ### 2. Video Streaming Service
-**How it works — Auto scaler:** watch a load signal (CPU, request rate, queue depth), keep headroom above the target, and scale out before saturation — with cool-down periods so flapping doesn't churn instances and minimums that survive a zone loss.
+**How it works — Streaming autoscale:** a live event rate of x/second maps to demand: workers scale on queue depth/lag (a demand signal, not CPU), serving tiers on request rate and p99 — sized with a growth curve plus headroom, validated back-of-envelope before anyone opens a wallet.
 
 ## Common Pitfalls
 

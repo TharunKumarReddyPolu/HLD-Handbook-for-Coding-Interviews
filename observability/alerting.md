@@ -66,7 +66,7 @@ Effective alerting strategies help teams identify and respond to system issues p
 ## Alert Design
 
 ### 1. Alert Definition
-**How it works — Alert definition:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Alert definition:** each alert states, in one line, the symptom it detects, the threshold + duration, the severity, and the linked runbook — if a definition cannot answer "what will you do when this fires?", it is a log line, not an alert.
 
 ### 2. Threshold Configuration
 **How it works — Threshold manager:** alert thresholds come from measured baselines (normal range, seasonality) and are set to fire on deviation that matters — static thresholds for stable metrics, burn-rate or anomaly alerts for spiky ones.
@@ -74,26 +74,26 @@ Effective alerting strategies help teams identify and respond to system issues p
 ## Implementation Patterns
 
 ### 1. Alert Routing
-**How it works — Alert router:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Alert router:** severity plus labels decide the route: page (on-call, interrupt) for user-visible symptoms, ticket for degradations, chat notification for FYI — misrouted severity is how pages get muted.
 
 ### 2. Alert Correlation
-**How it works — Alert correlator:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Alert correlator:** if 30 alerts fire together, the correlator links them to a single change or dependency (deploy ID, shared DB) and chains them under one incident, so humans triage a cause, not a cascade.
 
 ## Alert Management
 
 ### 1. Alert Lifecycle
-**How it works — Alert lifecycle:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Alert lifecycle:** firing to acknowledged to resolved is tracked end to end; unresolved age and repeat-firing counts are themselves metrics, because an alert people ignore is worse than none.
 
 ### 2. Alert Aggregation
-**How it works — Alert aggregator:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Alert aggregator:** events from many rules funnel into one aggregator that dedups identical firings, groups by service, and enforces a per-recipient page cap — one incident produces one page, not forty.
 
 ## Common Use Cases
 
 ### 1. Service Health Monitoring
-**How it works — Service monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Service monitor:** per-service RED (rate, errors, duration) rolls up fleet-wide, with SLO burn rate as the paging condition — a service is "alerting" when it burns budget, not when any CPU graph flexes.
 
 ### 2. Infrastructure Alerts
-**How it works — Infrastructure alerts:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Infrastructure alerts:** node/disk/network alarms report resource causes; the paging rule stays with symptom alerts (SLO burn) — infrastructure pages route to capacity tickets before they interrupt a human.
 
 ## Trade-offs
 

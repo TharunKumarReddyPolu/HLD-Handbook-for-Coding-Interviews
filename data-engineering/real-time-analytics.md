@@ -77,7 +77,7 @@ Real-time analytics involves processing and analyzing data as it arrives, provid
 **How it works — Window processor:** events are assigned to windows (tumbling, sliding, session) by event time with watermarks bounding lateness; the aggregate per window is what downstream consumers treat as the stream's "rows".
 
 ### 2. State Management
-**How it works — State manager:** state is classified first — ephemeral (in memory), session (Redis), durable (database) — and each lives in the cheapest layer that meets its durability and latency needs; components stay restartable at any moment.
+**How it works — Streaming state manager:** windowed aggregates and per-key sessions live in a checkpointed state store (local KV + changelog); on restart, state restores from the checkpoint and processing resumes from recorded offsets — no lost or double-counted aggregates.
 
 ## Processing Patterns
 

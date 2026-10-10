@@ -12,7 +12,7 @@
 
 </div>
 
-**_Last-minute HLD notes for system design interviews: core concepts, scalability patterns, architecture diagrams, trade-off analysis, real-world case studies, and interview tips across 60+ topics._**
+**_Last-minute HLD notes for system design interviews: core concepts, scalability patterns, architecture diagrams, trade-off analysis, real-world case studies, and interview tips across 71 topics._**
 
 ---
 
@@ -88,6 +88,9 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 - [📌 Distributed Systems Basics](system-basics/distributed-systems.md) - Core concepts: consistency, replication, latency, and failure handling
 - [🔄 Load Balancing](system-basics/load-balancing.md) - Algorithms, layers, and health checks
 - [💾 Caching](system-basics/caching.md) - Strategies, eviction policies, and distributed caches
+- [🌐 Proxies](system-basics/proxies.md) - Forward vs reverse proxies: TLS, caching, and shielding
+- [🚀 CDN & Content Delivery](system-basics/cdn-content-delivery.md) - Edge caching, invalidation, and origin offload
+- [⚖️ Consistent Hashing](system-basics/consistent-hashing.md) - Hash rings, virtual nodes, and elastic key placement
 - [📊 Database Sharding](system-basics/database-sharding.md) - Shard keys, rebalancing, and hot spots
 - [🔍 Indexing](system-basics/indexing.md) - B-tree, hash, and bitmap indexes, plus how to choose the right one
 - [📡 API Design](system-basics/api-design.md) - REST, GraphQL, gRPC, and versioning
@@ -114,6 +117,9 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 ### 📊 Data Engineering
 
 - [🏢 Data Warehousing](data-engineering/data-warehousing.md) - Architecture patterns and dimensional modeling
+- [🛢️ Data Pipelines](data-engineering/data-pipeline.md) - Batch vs streaming, delivery semantics, recovery
+- [🌊 Stream Processing](data-engineering/stream-processing.md) - Event-time windows, state, and checkpointing
+- [🏞️ Data Lake & Lakehouse](data-engineering/data-lake.md) - Zones, table formats, and governed raw storage
 - [🔄 ETL vs ELT](data-engineering/etl-vs-elt.md) - Batch pipelines and transformation timing
 - [📐 Data Modeling](data-engineering/data-modeling.md) - Normalization, denormalization, and schemas
 - [🔬 OLAP vs OLTP](data-engineering/olap-vs-oltp.md) - Transactional vs analytical workloads
@@ -125,6 +131,7 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 - [🎮 Kubernetes Orchestration](cloud-native/kubernetes-orchestration.md) - Pods, deployments, and autoscaling
 - [🏗️ Cloud Design Patterns](cloud-native/design-patterns.md) - Proven cloud architecture patterns
 - [⚡ Serverless Patterns](cloud-native/serverless-patterns.md) - Functions, event sources, and limits
+- [🕸️ Service Mesh](cloud-native/service-mesh.md) - Sidecars, mTLS identity, and east-west traffic management
 - [🔒 Cloud Security Patterns](cloud-native/cloud-security.md) - IAM, network, and workload security
 - [💰 Cloud Cost Optimization](cloud-native/cost-optimization.md) - FinOps and right-sizing
 - [🌐 Multi-Cloud Strategies](cloud-native/multi-cloud.md) - Strategy components and provider trade-offs
@@ -184,6 +191,7 @@ This handbook is a curated guide to High Level Design (HLD) / System Design, des
 ### ✨ Best Practices
 
 - [📋 System Design Guidelines](best-practices/design-guidelines.md) - End-to-end design principles
+- [🛡️ Reliability & High Availability](best-practices/reliability.md) - Nines, failover, blast radius, graceful degradation
 - [🔍 Performance Optimization](best-practices/performance.md) - Optimization strategies for caching, databases, and connection pooling
 - [🔐 Security Best Practices](best-practices/security.md) - Best practices across identity, data, network, and monitoring
 - [💰 Cost Optimization](best-practices/cost.md) - Efficient systems without over-provisioning

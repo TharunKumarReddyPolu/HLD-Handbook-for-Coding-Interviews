@@ -79,7 +79,7 @@ sequenceDiagram
 **How it works — High availability system:** eliminate single points of failure — replicas across zones, automatic failover with a tested runbook, load balancers with health routing — and measure the result as availability nines, budgeting the residual downtime.
 
 ### 3. Partition Tolerance
-**How it works — Partition tolerant system:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Partition tolerant system:** "P" is not a choice — partitions *will* happen, so P is assumed and the real choice is C vs A per operation during a partition. Designing for P means defining, ahead of time, what each operation does when the other side of the partition is unreachable: wait (CP), serve stale/locally (AP), or degrade (partial).
 
 ## System Types
 
@@ -113,7 +113,7 @@ sequenceDiagram
 **How it works — Latency optimizer:** Move the compute or content to the location nearest the user; the origin is hit only for misses and writes, and each region's data stays within its regulatory boundary.
 
 ### 3. Partition Handling
-**How it works — Partition handler:** Route each record to its partition by the shard key, so most queries touch exactly one partition — and hot spots, cross-partition joins, and rebalancing are the costs you sign up for.
+**How it works — Partition handling:** when a partition splits the cluster, each side prevents split-brain: CP sides keep a majority quorum and refuse writes without it; AP sides keep accepting writes locally and converge later with conflict resolution (read-repair, anti-entropy, CRDTs). The choice is made *per operation* ahead of time.
 
 > **⚠️ When NOT to default to CP:** domains that tolerate brief staleness (feeds, recommendations, caches) — paying availability for consistency you don't need hurts users. Choose per data domain, not per company.
 

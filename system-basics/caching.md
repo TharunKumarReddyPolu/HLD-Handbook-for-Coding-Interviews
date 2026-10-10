@@ -33,7 +33,7 @@ Caching is a technique that stores copies of frequently accessed data in a faste
 ## Prerequisites & Related Topics
 
 - **Builds on**: hashing (key distribution), Consistent Hashing (cache clusters)
-- **Used in**: [Indexing](indexing.md) (covering indexes are read-path caching), [Database Sharding](database-sharding.md), CDN & Content Delivery
+- **Used in**: [Indexing](indexing.md) (covering indexes are read-path caching), [Database Sharding](database-sharding.md), [CDN & Content Delivery](cdn-content-delivery.md)
 - **Techniques often combined**: TTLs, cache-aside reads, invalidation events, stampede protection
 - **See also**: [Message Queues](../architecture/message-queues.md) (async invalidation fan-out)
 

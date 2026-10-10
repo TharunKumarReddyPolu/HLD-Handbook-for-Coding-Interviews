@@ -92,15 +92,15 @@ graph TD
 **How it works — Device trust:** Devices publish over lightweight protocols to a gateway that authenticates, buffers, and forwards — the cloud side consumes the stream and scales independently of device count.
 
 ### 2. Data Protection
-**How it works — Data protection:** layered defenses: encryption at rest and in transit, access control at the data layer, and audit logging on every read of sensitive fields — protection follows the data, not just the perimeter.
+**How it works — Zero-trust data protection:** data is classified and tagged, so encryption and access policy travel *with* the data rather than the network segment — a leaked token still can't read what identity isn't authorized for, and every read is logged against that same identity.
 
 ## Common Use Cases
 
 ### 1. Remote Access
-**How it works — Remote access gateway:** Terminate the incoming connection at the edge component, apply cross-cutting policy (auth, limits, routing), and forward to the backend pool — clients see one stable address while pools change freely behind it.
+**How it works — Remote access gateway:** remote access no longer lands on a flat VPN network — per-app brokers verify device posture and identity on every request, then proxy just that application. Access is scoped per app, not per network segment.
 
 ### 2. Application Access
-**How it works — Application gateway:** Terminate the incoming connection at the edge component, apply cross-cutting policy (auth, limits, routing), and forward to the backend pool — clients see one stable address while pools change freely behind it.
+**How it works — Application gateway:** each request carries a short-lived identity (user + workload); the gateway mints or verifies it, enforces authorization per application, and forwards with the identity attested — services reject anything without a valid attestation.
 
 ## Trade-offs
 

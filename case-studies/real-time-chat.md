@@ -80,12 +80,12 @@ graph TD
 ```
 
 ### 2. Non-Functional Requirements
-**How it works — System requirements:** convert the vague brief into numbers before designing — DAU, read/write ratio, p99 latency, consistency needs, availability target — every later component choice traces back to one of these.
+**How it works — System requirements:** 100 msg/s steady, 10× spikes in group chats, message delivery <300 ms p95, offline delivery guaranteed — these two numbers alone shaped this whole design.
 
 ## Architecture Design
 
 ### 1. System Architecture
-**How it works — System architecture:** the case study's shape — edge (LB, CDN), stateless services, async workers, primary/replica storage — each choice answers a measured bottleneck; walk the request path when explaining it.
+**How it works — System architecture:** persistent WebSocket gateways at the edge, fan-out services per conversation partition, a durable inbox per user for offline delivery, presence kept best-effort via gossip-style heartbeats.
 
 ### 2. Data Model
 **`users` table:**
@@ -125,7 +125,7 @@ Primary key: `id`. Keep the schema description in interviews to keys and access 
 ## Lessons Learned
 
 ### 1. Performance Optimization
-**How it works — Performance lessons:** the recurring wins — cache the hot read, add the missing index, make the fan-out async, batch the chatty calls — all came from measured traces, never from guessing; measure, fix the top span, re-measure.
+**How it works — Performance lessons:** read-local connections (proximity routing), a bounded fan-out with sync on join/roster, and batched message ACKs keep p95 well under the single regional max — chat under load is a queueing problem.
 
 ### 2. Reliability Improvements
 **How it works — Reliability lessons:** every incident taught the same economics — redundant components beat stronger components, tested failover beats assumed failover, and the runbook you actually rehearsed is the one that works at 3 AM.

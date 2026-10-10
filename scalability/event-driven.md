@@ -94,7 +94,7 @@ sequenceDiagram
 **How it works — event streaming:** a persistent, ordered, replayable log (Kafka-style) between producers and consumers — consumers track their own offsets, so they can be slow, restart, or join late without losing anything, and stream processing derives real-time aggregates from the log.
 
 ### 3. Command Query Responsibility Segregation (CQRS)
-**How it works — Order system:** the write path is one transactional create; the read path (history, status) is served from projections updated by order events — writes stay simple while reads scale independently.
+**How it works — Order system:** every order state change is an immutable event appended to a stream — downstream systems (email, analytics, inventory) subscribe independently, so adding a consumer never touches the checkout code.
 
 ## Implementation Strategies
 
@@ -121,7 +121,7 @@ sequenceDiagram
 **How it works — consumer error handling:** classify the failure — transient (retry with backoff and jitter), permanent (dead-letter with the original event and the error context), or poison (skip + alert after N retries) — and never let one bad event block the partition behind it.
 
 ### 2. Monitoring
-**How it works — Event monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Event monitor:** consumer lag, DLQ depth, schema-failure rates tracked per topic; lag growth pages before backups become feature-visible failures.
 
 ## Trade-offs
 

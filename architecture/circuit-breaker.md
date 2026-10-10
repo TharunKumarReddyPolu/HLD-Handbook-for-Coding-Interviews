@@ -79,26 +79,26 @@ The Circuit Breaker pattern prevents cascading failures by temporarily stopping 
 **How it works — Circuit breaker:** every call passes through the breaker, which counts failures against `failure_threshold`; crossing it opens the circuit, and after `reset_timeout` a half-open probe tests recovery — knobs that turn "retry harder" into bounded, automatic behavior.
 
 ### 2. Advanced Circuit Breaker
-**How it works — Advanced circuit breaker:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Advanced circuit breaker:** beyond open/closed, advanced breakers add HALF-OPEN trial sizing, failure-rate *and* latency-based thresholds (a slow dependency is as deadly as a failing one), and concurrent-call caps per route.
 
 ### 3. Distributed Circuit Breaker
-**How it works — Distributed circuit breaker:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Distributed circuit breaker:** per-instance breakers react fastest but each opens independently; a shared breaker state (cost: it must live somewhere fast) coordinates the fleet so one node slow-rolling does not get hammered by the rest.
 
 ## Monitoring & Recovery
 
 ### 1. Metrics Collection
-**How it works — Circuit metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Circuit metrics:** per-circuit request counts, failure rates, and state transitions exported as metrics — circuit-open-seconds is a first-class window on dependency health.
 
 ### 2. Health Monitoring
-**How it works — Circuit health monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Circuit health monitor:** fleet-wide view of breaker states with alerting on rapid open-rate; a breaker flapping open/closed every few seconds means the dependency is sick, the mesh is fine.
 
 ### 3. Recovery Strategies
-**How it works — Circuit recovery:** Keep a synchronized copy or snapshot that can take over; failover promotes the copy, and RTO/RPO requirements decide how synchronized "synchronized" must be.
+**How it works — Circuit recovery:** the breaker moves to HALF-OPEN and admits a small, controlled sample of real requests — not a flood. They succeed → circuit CLOSES (full traffic resumes); they fail → immediately back OPEN, protecting the recovering dependency from the retry stampede.
 
 ## Best Practices
 
 ### 1. Configuration Management
-**How it works — Circuit config:** Build once, promote the same artifact through environments, and shift traffic gradually — canary or blue/green — so a bad release is rolled back by a routing change, not a rebuild.
+**How it works — Circuit config:** thresholds should be per-dependency and derived from its measured normal (a cache tolerates 0.1% errors; a flaky API may not), expressed as config not code, and reloadable at runtime so tuning never requires a deploy.
 
 ### 2. Error Classification
 **How it works — Error classifier:** every failure maps to a class — retryable (timeout, 503), non-retryable (400, validation), or alertable (quota, circuit open) — and the class decides the handling, so retry logic is uniform instead of ad hoc.

@@ -78,7 +78,7 @@ graph LR
 **How it works — Ambassador:** a helper process sits beside the application and handles all communication with a remote service — retries, TLS, metrics — so the app talks to localhost and the networking logic is swappable without touching business code.
 
 ### 2. Sidecar Pattern
-**Kubernetes `Pod` `app-with-sidecar`**: the smallest schedulable unit. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `Pod` `app-with-sidecar`**: the pod is the unit of scheduling — an app container plus a sidecar sharing network and volumes; the sidecar (proxy, log shipper, auth agent) rides along in every replica without the app knowing.
 
 ## Availability Patterns
 
@@ -91,7 +91,7 @@ graph LR
 ## Data Management Patterns
 
 ### 1. CQRS Pattern
-**How it works — Order system:** the write path is one transactional create; the read path (history, status) is served from projections updated by order events — writes stay simple while reads scale independently.
+**How it works — Order system:** a saga keeps distributed order logic consistent without a global transaction — local commits emit events, compensating actions undo earlier steps when a later step can't complete (reserve inventory → charge; if payment fails, release).
 
 ### 2. Event Sourcing
 **How it works — Event store:** events are immutable, append-only records keyed by aggregate; state is rebuilt by replaying, and the log itself is the audit trail — the sequence of events *is* the truth.

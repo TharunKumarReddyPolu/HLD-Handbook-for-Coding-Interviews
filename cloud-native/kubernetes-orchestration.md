@@ -78,10 +78,10 @@ graph TD
 ```
 
 ### 2. Kubernetes Objects
-**Kubernetes `Pod` `nginx-pod`**: the smallest schedulable unit. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `Pod` `nginx-pod`**: the smallest schedulable unit — one or more containers sharing network/storage. Ephemeral by design: a restarted pod is a new pod, so identity and data must live outside it.
 
 ### 3. Deployment Patterns
-**Kubernetes `Deployment` `web-app`** — 3 replicas: rolls out stateless replicas behind a Service. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `Deployment` `web-app`** — 3 replicas: declares a desired replica count and pod template; the controller rolls updates pod by pod (max-surge/max-unavailable) and replaces crashed pods, keeping the live state converging to what's declared.
 
 ## Architecture Components
 
@@ -94,21 +94,21 @@ graph TD
 ## Implementation Patterns
 
 ### 1. Service Discovery
-**Kubernetes `Service` `web-service`**: gives pods a stable virtual IP and DNS name. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `Service` `web-service`**: a stable virtual IP + DNS name fronting a set of pods chosen by label — pod IPs churn, the Service DNS record does not, which is how callers stay decoupled from pod churn.
 
 ### 2. Configuration Management
-**Kubernetes `ConfigMap` `app-config`**: injects non-secret configuration as env vars or files. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `ConfigMap` `app-config`**: injects non-secret configuration as env vars or mounted files; changes propagate to pods without a rebuild — secrets belong in Secret objects (still base64, so pair with an external secret manager for real secrecy).
 
 ### 3. State Management
-**Kubernetes `StatefulSet` `web`** — 3 replicas: gives replicas stable identities and ordered rollout. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `StatefulSet` `web`** — 3 replicas: gives each replica a stable ordinal identity (`web-0`, `web-1`), ordered rollout/teardown, and per-replica storage that survives restarts — the primitive behind databases and brokers in K8s.
 
 ## Common Use Cases
 
 ### 1. Microservices Deployment
-**Kubernetes `Deployment` `auth-service`** — 3 replicas: rolls out stateless replicas behind a Service. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `Deployment` `auth-service`** — 3 replicas: stateless services fit Deployments perfectly — scale by changing a number, roll by changing the template, and any pod can serve any request.
 
 ### 2. Batch Processing
-**Kubernetes `Job` `batch-job`**: runs a workload to completion once. In interviews, sketch the object relationships (Deployment → ReplicaSet → Pod → Service) instead of the manifest.
+**Kubernetes `Job` `batch-job`**: runs pods to completion once (or on a CronJob schedule), retrying failures up to a backoff limit — the right primitive for migrations, nightly digests, and one-off cleanups.
 
 ## Trade-offs
 

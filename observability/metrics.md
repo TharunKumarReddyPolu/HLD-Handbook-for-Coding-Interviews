@@ -66,18 +66,18 @@ Metrics provide quantitative measurements of system behavior and performance ove
 ## Types of Metrics
 
 ### 1. System Metrics
-**How it works — System metrics collector:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — System metrics collector:** host/agent-level metrics — CPU per core, memory, disk IO, network saturation — feed USE-method views; application dashboards link down to these when a latency spike needs a cause.
 
 ### 2. Application Metrics
-**How it works — Application metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Application metrics:** request rate, error rate, duration percentiles, plus queue depths and cache hit ratios per endpoint — labels carry service and route, never user IDs (cardinality poison).
 
 ## Collection Strategies
 
 ### 1. Push vs Pull
-**How it works — Metrics exporter:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Metrics exporter:** each process exposes a /metrics endpoint of counters and gauges in a standard format; client libraries provide histograms for latency so percentile math stays correct under fan-in.
 
 ### 2. Aggregation
-**How it works — Metrics aggregator:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Metrics aggregator:** writer fan-in: exporters feed one aggregation layer that dedups, downsamples, and batch-writes into the store — aggregates like p95 are computed here, not at query time.
 
 ## Analysis Patterns
 
@@ -85,15 +85,15 @@ Metrics provide quantitative measurements of system behavior and performance ove
 **How it works — Time series analyzer:** metrics are stored as (timestamp, value) series with downsampling and retention tiers; queries aggregate over windows, and seasonality-aware baselines separate signal from daily rhythm.
 
 ### 2. Alerting
-**How it works — Alert manager:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Alert manager:** receives threshold/SLO-burn rule firings, applies silences and routing, and dedups repeats — it is the boundary between "signal detected" and "human interrupted".
 
 ## Common Use Cases
 
 ### 1. Performance Monitoring
-**How it works — Performance monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Performance monitor:** continuous collection of RED per endpoint plus p95/p99 slicing by route; regressions are detected against rolling baselines rather than absolute thresholds alone.
 
 ### 2. Resource Usage
-**How it works — Resource monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Resource metrics:** system-level signals (CPU idle, memory usage, disk IO wait, network saturation) exported from node agents — the USE-method layer your application dashboards drill into when a latency spike needs a cause.
 
 ## Trade-offs
 

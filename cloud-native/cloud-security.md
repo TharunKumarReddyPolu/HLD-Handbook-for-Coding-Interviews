@@ -74,10 +74,10 @@ Cloud security patterns provide standardized approaches to securing cloud infras
 ## Implementation Patterns
 
 ### 1. Data Protection
-**How it works — Data protection:** layered defenses: encryption at rest and in transit, access control at the data layer, and audit logging on every read of sensitive fields — protection follows the data, not just the perimeter.
+**How it works — Cloud data protection:** encryption kerms at every layer (S3/KMS at rest, TLS in transit, field-level for PII), governed by key policies in the KMS the IAM can't touch — plus data classification labels driving which services may ever read which data.
 
 ### 2. Security Monitoring
-**How it works — Security monitor:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Security monitor:** control-plane audit logs, authz denials, and egress flows stream into a SIEM; detections key on behavior anomalies (new grant, unusual region) rather than single log lines.
 
 ## Security Controls
 
@@ -85,7 +85,7 @@ Cloud security patterns provide standardized approaches to securing cloud infras
 **How it works — Compliance controls:** Map the requirement to a technical control (encryption, retention job, access review), generate the evidence automatically, and keep it queryable for the auditor's window.
 
 ### 2. Technical Controls
-**How it works — Technical controls:** each policy maps to an enforced mechanism — retention jobs for retention policy, IAM least-privilege for access policy, encryption for data protection — and each control produces its own audit evidence.
+**How it works — Technical controls:** IAM roles bound to workloads (not people), network policies default-deny by namespace, encryption in KMS, and audit logs fed to a SIEM — each policy's enforcement point produces its own audit trail.
 
 ## Common Use Cases
 

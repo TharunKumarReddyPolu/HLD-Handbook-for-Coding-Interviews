@@ -8,6 +8,9 @@ This section covers how data moves, is stored, and is transformed at scale — a
 - [ETL vs ELT](etl-vs-elt.md) - Where transformation happens and why it changes your architecture
 - [Data Modeling](data-modeling.md) - Normalization, denormalization, and choosing schemas for access patterns
 - [OLAP vs OLTP](olap-vs-oltp.md) - Transactional vs analytical workloads and their storage engines
+- [Data Pipelines](data-pipeline.md) - Moving data reliably: batch vs streaming, delivery semantics, and recovery
+- [Stream Processing](stream-processing.md) - Event-time windows, state, checkpointing, and joins on live data
+- [Data Lake & Lakehouse](data-lake.md) - Zones, table formats, and governed raw storage at scale
 - [Data Quality & Validation](data-quality.md) - Quality dimensions, validation strategies, and monitoring
 - [Real-time Analytics](real-time-analytics.md) - Ingestion, stream processing, and windowing for live data
 
@@ -16,7 +19,9 @@ This section covers how data moves, is stored, and is transformed at scale — a
 ```
 OLAP vs OLTP ──► Data Modeling ──► Data Warehousing
                                        │
-                    ETL vs ELT ──► Real-time Analytics
+   Data Pipelines ──► ETL vs ELT ──► Real-time Analytics
+                                       │
+             Stream Processing ──► Data Lake & Lakehouse
                                        │
                               Data Quality & Validation
 ```

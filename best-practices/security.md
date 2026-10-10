@@ -78,7 +78,7 @@ Security best practices are essential for protecting systems, data, and users fr
 ## Data Security
 
 ### 1. Encryption
-**How it works — Encryption manager:** centralizes key generation, storage (KMS/HSM), rotation, and audit; services request data-key operations instead of touching master keys — envelope encryption keeps key material off the data path.
+**How it works — Encryption manager:** centralize crypto in one audited library/managed KMS: key custody, rotation schedules, and algorithm choices live there, while applications never touch raw keys — and rotation is an operation, not a migration.
 
 ### 2. Data Masking
 **How it works — Data masker:** sensitive fields are replaced at the point of egress — deterministic pseudonymization preserves joins, hashing breaks re-identification, redaction drops the field — and masking runs before data leaves production, never after.
@@ -106,7 +106,7 @@ Security best practices are essential for protecting systems, data, and users fr
 **How it works — Intrusion detector:** signatures catch known attacks, anomaly models flag deviations from baseline traffic; alerts land with context (source, target, rule) and feed the incident process — detection is a tripwire, not a fix.
 
 ### 3. Security Metrics
-**How it works — Security metrics:** Collect the signal on a schedule, evaluate it against the defined threshold or SLO, and route any breach to the right channel with enough context to act without digging.
+**How it works — Security metrics:** auth logs, admin activity, and WAF/DDoS counters aggregated centrally; alert thresholds on credential-abuse and privilege-change patterns, reviewed in the same cycle as the rest of ops.
 
 ## Common Vulnerabilities
 
