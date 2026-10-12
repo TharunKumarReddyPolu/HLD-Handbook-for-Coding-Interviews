@@ -28,6 +28,15 @@ Load testing verifies system performance and reliability under expected and peak
 4. **Scalability Testing**
 5. **Risk Mitigation**
 
+Generate realistic load against a production-like env, read saturation, declare capacity.
+
+```mermaid
+graph TD
+    G["Load generators (ramp, spike, soak profiles)"] --> T["Target env (prod-like data + config)"]
+    T --> M["Capture: latency percentiles, errors, saturation"]
+    M --> V["Verdict: ceiling, bottleneck tier, headroom"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Performance Monitoring](../observability/performance-monitoring.md), [Scaling Types](../scalability/scaling-types.md)

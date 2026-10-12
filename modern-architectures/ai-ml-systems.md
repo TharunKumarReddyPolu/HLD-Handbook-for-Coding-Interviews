@@ -28,6 +28,17 @@ AI/ML system design focuses on building scalable and efficient architectures for
 4. **Monitoring**
 5. **Feedback Loop**
 
+The loop that matters in ML interviews: train, serve, observe, retrain.
+
+```mermaid
+graph TD
+    F["Feature pipeline"] --> T["Training + eval (offline)"]
+    T --> R[("Model registry (versioned)")]
+    R --> S["Serving: online inference + fallbacks"]
+    S --> M["Monitor: drift, latency, business metrics"]
+    M -->|"retrain trigger"| F
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: Data Pipelines, [Caching](../system-basics/caching.md), [Real-Time Analytics](../data-engineering/real-time-analytics.md)

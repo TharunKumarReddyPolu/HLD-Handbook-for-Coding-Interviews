@@ -28,6 +28,18 @@ IoT architecture designs systems that connect, manage, and process data from Int
 4. **Data Analytics**
 5. **Security Integration**
 
+The IoT funnel: millions of tiny messages in, few trustworthy insights out.
+
+```mermaid
+graph TD
+    S["Sensors / actuators"] --> G["Gateway: batch, filter, local rules"]
+    G --> B["Message broker (per-device topics)"]
+    B --> P["Stream processor: dedupe + windows"]
+    P --> H[("Hot store: recent state")]
+    P --> C[("Cold store: history")]
+    H --> APP["Control + dashboards"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Message Queues](../architecture/message-queues.md), [Stream Processing](../data-engineering/real-time-analytics.md)

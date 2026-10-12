@@ -28,6 +28,16 @@ Chaos Engineering is the discipline of experimenting on a system to build confid
 4. **Team Readiness**
 5. **Risk Mitigation**
 
+Break it on purpose, with a hypothesis and a ceiling on damage.
+
+```mermaid
+flowchart TD
+    H["Hypothesis: steady state defined (SLO holds)"] --> B["Blast radius capped: one AZ, % traffic, kill switch"]
+    B --> F["Inject fault: kill pod, add latency, drop packets"]
+    F --> O["Observe: does steady state hold?"]
+    O --> L["Learn: fix weakness, codify regression test"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Circuit Breaker](../architecture/circuit-breaker.md), [Monitoring](../system-basics/monitoring.md)

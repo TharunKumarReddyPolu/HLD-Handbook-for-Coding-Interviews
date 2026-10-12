@@ -28,6 +28,20 @@ Distributed tracing provides visibility into request flows across distributed sy
 4. **Error Tracking**
 5. **Service Dependencies**
 
+One request, one trace ID, propagated on every hop.
+
+```mermaid
+sequenceDiagram
+    participant G as Gateway (starts trace)
+    participant A as Service A
+    participant B as Service B
+    G->>A: Request + traceparent header
+    A->>A: Span: auth + route
+    A->>B: Call with same trace ID
+    B-->>A: Span: DB query
+    A-->>G: Response (trace assembled by collector)
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Logging](logging-practices.md), [Metrics](metrics.md)

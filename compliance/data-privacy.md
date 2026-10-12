@@ -28,6 +28,16 @@ Data privacy patterns provide reusable solutions for implementing privacy requir
 4. **Data Protection**
 5. **Privacy by Design**
 
+Privacy by design as a pipeline: know the data, keep only what you need, prove it.
+
+```mermaid
+flowchart TD
+    C["Classify: PII/PHI inventory + data map"] --> M["Minimize: collect only required fields"]
+    M --> E["Protect: encrypt at rest, TLS in transit, tokenize identifiers"]
+    E --> O["Consent: purpose-bound + revocable"]
+    O --> R["Retain then delete: TTLs + auditable purge"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [GDPR](gdpr-compliance.md), [Data Modeling](../data-engineering/data-modeling.md)

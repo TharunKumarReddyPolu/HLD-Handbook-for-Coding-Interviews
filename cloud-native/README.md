@@ -5,7 +5,8 @@ This section covers building and running systems on modern cloud platforms — t
 ## Topics in This Section
 
 - [Container Orchestration with Kubernetes](kubernetes-orchestration.md) - Pods, deployments, services, and autoscaling
-- [Cloud Design Patterns](design-patterns.md) - Proven patterns from the major cloud providers' frameworks- [Serverless Design Patterns](serverless-patterns.md) - Functions, event sources, cold starts, and limits
+- [Cloud Design Patterns](design-patterns.md) - Proven patterns from the major cloud providers' frameworks
+- [Serverless Design Patterns](serverless-patterns.md) - Functions, event sources, cold starts, and limits
 - [Service Mesh](service-mesh.md) - Sidecars, mTLS identity, and east-west traffic management
 - [Cloud Security Patterns](cloud-security.md) - IAM, network segmentation, and workload security
 - [Cloud Cost Optimization](cost-optimization.md) - Right-sizing, autoscaling economics, and FinOps

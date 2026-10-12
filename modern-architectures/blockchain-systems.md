@@ -28,6 +28,18 @@ Blockchain systems provide distributed, immutable ledgers with smart contract ca
 4. **Security**
 5. **Smart Contracts**
 
+How a transaction becomes trusted state: gossip, order, execute, replicate.
+
+```mermaid
+graph TD
+    T["Signed transaction"] --> M["Mempool (gossip)"]
+    M --> C["Consensus: order + validate"]
+    C --> B["New block appended"]
+    B --> L1[("Ledger replica A")]
+    B --> L2[("Ledger replica B")]
+    B --> L3[("Ledger replica C")]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Consensus](../system-basics/distributed-systems.md), cryptography basics

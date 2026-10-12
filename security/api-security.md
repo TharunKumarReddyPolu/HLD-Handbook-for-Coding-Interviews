@@ -28,6 +28,19 @@ API security patterns provide standardized approaches to securing API endpoints 
 4. **Access Control**
 5. **Audit Trail**
 
+Every API call passes three gates before touching business logic.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant G as API gateway
+    participant S as Service
+    C->>G: Request + OAuth token
+    G->>G: Validate token, check scopes, rate-limit
+    G->>S: Forward with caller identity
+    S-->>C: Response (errors sanitized)
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Authentication & Authorization](../system-basics/auth.md), [API Design](../system-basics/api-design.md)

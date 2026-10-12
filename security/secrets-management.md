@@ -28,6 +28,18 @@ Secrets management involves secure storage, distribution, and lifecycle manageme
 4. **Automated Rotation**
 5. **Compliance**
 
+Services never see long-lived credentials: authenticate, fetch short-lived, rotate.
+
+```mermaid
+sequenceDiagram
+    participant S as Service (role identity)
+    participant V as Secrets manager
+    S->>V: Authenticate with role + attest identity
+    V-->>S: Short-lived credential + lease
+    S->>S: Use, then renew or re-fetch
+    V->>V: Auto-rotate underlying secret
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Authentication & Authorization](../system-basics/auth.md), encryption basics

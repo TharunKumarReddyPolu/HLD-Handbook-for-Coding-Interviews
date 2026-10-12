@@ -28,6 +28,16 @@ Performance monitoring provides insights into system behavior, resource utilizat
 4. **Capacity Planning**
 5. **User Experience**
 
+See what users feel: real-user timing plus synthetic probes against SLOs.
+
+```mermaid
+graph TD
+    R["RUM: real-user latency by route/region"] --> C["Collector + aggregation (p50/p95/p99)"]
+    Y["Synthetic probes: scripted journeys"] --> C
+    C --> S["SLO dashboard: latency + error budget"]
+    S --> A["Page on budget burn, ticket on drift"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Metrics](metrics.md), [Distributed Tracing](distributed-tracing.md)

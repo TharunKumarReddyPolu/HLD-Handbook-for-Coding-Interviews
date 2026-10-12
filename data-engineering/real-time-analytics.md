@@ -28,6 +28,16 @@ Real-time analytics involves processing and analyzing data as it arrives, provid
 4. **Continuous Monitoring**
 5. **Business Agility**
 
+Canonical live-analytics path: events, windows, serving store, dashboard.
+
+```mermaid
+graph TD
+    E["Event sources"] --> B["Durable log (Kafka/Pulsar)"]
+    B --> S["Stream processor: event-time windows + dedupe"]
+    S --> V[("Serving store (low-latency aggregates)")]
+    V --> D["Live dashboards + alerts"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: Stream Processing concepts, [Message Queues](../architecture/message-queues.md)

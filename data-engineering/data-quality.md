@@ -28,6 +28,17 @@ Data quality and validation ensure the reliability, accuracy, and consistency of
 4. **Consistent Processing**
 5. **Regulatory Compliance**
 
+Quality gates in a pipeline: bad rows quarantined, never silently dropped.
+
+```mermaid
+flowchart TD
+    I["Ingest raw events"] --> V["Validate: schema, nulls, ranges, dupes"]
+    V -->|pass| P["Publish clean partition"]
+    V -->|fail| Q["Quarantine + alert with samples"]
+    P --> M["Monitor: freshness, volume, distribution drift"]
+    Q --> F["Fix source or rule, replay"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: Data Pipelines concepts, schema design

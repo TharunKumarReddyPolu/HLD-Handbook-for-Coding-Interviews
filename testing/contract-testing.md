@@ -28,6 +28,15 @@ Contract testing ensures that services maintain their agreed-upon interfaces and
 4. **Faster Development**
 5. **Service Independence**
 
+Consumer and provider agree in CI, not in production: contracts versioned like code.
+
+```mermaid
+graph TD
+    C["Consumer writes pact (expected requests/responses)"] --> B[("Contract broker (versioned)")]
+    B --> P["Provider verifies pact in CI"]
+    P -->|"green"| D["Deploy independently with confidence"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [API Design](../system-basics/api-design.md), [Integration Testing](integration-testing.md)

@@ -28,6 +28,16 @@ Performance testing evaluates system behavior under various conditions to ensure
 4. **Risk Mitigation**
 5. **User Experience**
 
+Performance as a gate: baseline, profile the hotspot, prove the fix in CI.
+
+```mermaid
+flowchart TD
+    B["Baseline: benchmark critical paths"] --> P["Profile under load: find the hottest span/query"]
+    P --> O["Optimize one bottleneck"]
+    O --> R["Re-run: same workload, compare p95 + cost"]
+    R --> G["Guardrail in CI: fail on regression"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Metrics](../observability/metrics.md), [Performance Monitoring](../observability/performance-monitoring.md)

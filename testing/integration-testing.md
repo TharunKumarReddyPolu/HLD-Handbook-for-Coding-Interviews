@@ -28,6 +28,17 @@ Integration testing in microservices verifies the interaction between different 
 4. **Dependency Verification**
 5. **System Reliability**
 
+Test the seams: real dependencies where cheap, faithful doubles where not.
+
+```mermaid
+graph TD
+    H["Test harness"] --> S["Service under test"]
+    S --> D1["Real DB in container"]
+    S --> D2["Wiremock/double for external API"]
+    S --> Q["Message broker (test instance)"]
+    H --> V["Assert across the seam, not the mock"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Contract Testing](contract-testing.md), unit testing discipline

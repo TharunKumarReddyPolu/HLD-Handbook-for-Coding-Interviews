@@ -28,6 +28,16 @@ Cloud cost optimization involves strategies and practices to maximize cloud reso
 4. **Performance Optimization**
 5. **Business Alignment**
 
+The FinOps loop: measure, then buy flexibility before you buy capacity.
+
+```mermaid
+flowchart TD
+    M["Measure: cost per request + utilization by service"] --> R["Right-size: requests/limits matched to p95 usage"]
+    R --> A["Autoscale: HPA/VPA + scale-to-zero where idle"]
+    A --> C["Commit smartly: spot for batch, savings plans for baseload"]
+    C --> V["Review weekly: waste report + anomaly alerts"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Scaling Types](../scalability/scaling-types.md), utilization metrics

@@ -28,6 +28,19 @@ Real-time collaboration systems enable multiple users to work together simultane
 4. **Presence Management**
 5. **Conflict Resolution**
 
+Two cursors, one document: operations flow through a central orderer.
+
+```mermaid
+sequenceDiagram
+    participant A as Client A
+    participant S as Collaboration server
+    participant B as Client B
+    A->>S: Op (insert at pos 5) over WebSocket
+    S->>S: Transform against concurrent ops (OT/CRDT)
+    S->>B: Broadcast transformed op
+    S->>S: Persist op log + snapshot
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [WebSocket patterns](../case-studies/real-time-chat.md), [Caching](../system-basics/caching.md)

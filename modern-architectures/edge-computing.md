@@ -28,6 +28,16 @@ Edge computing brings computation and data storage closer to the location where 
 4. **Reliability**
 5. **Autonomous Operation**
 
+Push work outward: decide at the edge, reconcile in the region, learn in the cloud.
+
+```mermaid
+graph TD
+    D["Devices / users"] --> E["Edge PoP: cache + lightweight compute"]
+    E -->|"cache miss / heavy job"| R["Regional cloud"]
+    R --> O["Central cloud: training, global state"]
+    O -.->|"models, config, invalidations"| E
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [CDN & Content Delivery](../system-basics/cdn-content-delivery.md), [Caching](../system-basics/caching.md)

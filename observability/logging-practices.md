@@ -28,6 +28,15 @@ Effective logging is crucial for understanding system behavior, debugging issues
 4. **Performance Analysis**
 5. **Security Monitoring**
 
+Logs as a pipeline: structured at the source, aggregated centrally, sampled sensibly.
+
+```mermaid
+graph TD
+    A["App: structured JSON (trace ID, user, outcome)"] --> G["Agent/sidecar ships + batches"]
+    G --> C[("Central store (hot recent, cold archive)")]
+    C --> Q["Query + dashboards + log-based alerts"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Distributed Tracing](distributed-tracing.md), [Monitoring](../system-basics/monitoring.md)

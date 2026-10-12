@@ -28,6 +28,16 @@ Cloud security patterns provide standardized approaches to securing cloud infras
 4. **Compliance**
 5. **Risk Mitigation**
 
+Defense in depth for cloud workloads: identity first, then network, then data.
+
+```mermaid
+graph TD
+    I["Workforce + workload identities (IAM roles)"] --> P["Policy check (least privilege)"]
+    P --> N["VPC: public LB subnet + private app + isolated data subnets"]
+    N --> W["Hardened workload (no SSH, read-only FS, image scanning)"]
+    W --> K[("KMS-encrypted data + TLS everywhere")]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Authentication & Authorization](../system-basics/auth.md), networking basics

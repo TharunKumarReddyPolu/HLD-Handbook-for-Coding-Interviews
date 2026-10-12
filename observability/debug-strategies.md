@@ -28,6 +28,16 @@ Debugging distributed systems requires systematic approaches to identify and res
 4. **Issue Prevention**
 5. **Knowledge Sharing**
 
+A systematic loop beats log-diving: scope, correlate, hypothesize, reproduce.
+
+```mermaid
+flowchart TD
+    Y["Symptom + time window"] --> T["Scope with traces: which service, which span is slow/failing"]
+    T --> C["Correlate: logs + metrics + deploys on the same window"]
+    C --> H["Hypothesis: one cause, one test"]
+    H --> R["Reproduce in staging, fix, verify signal clears"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Distributed Tracing](distributed-tracing.md), [Logging](logging-practices.md)

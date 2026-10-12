@@ -28,6 +28,16 @@ Security compliance in design ensures systems meet regulatory requirements and s
 4. **Audit Readiness**
 5. **Trust Building**
 
+Compliance as a loop, not a binder: controls, evidence, audit, fix.
+
+```mermaid
+flowchart TD
+    C["Controls mapped to framework (SOC2/ISO)"] --> E["Continuous evidence: logs, configs, tickets"]
+    E --> A["Audit: sample + test"]
+    A --> R["Remediate gaps, track to closure"]
+    R --> C
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Cloud Security](../cloud-native/cloud-security.md), [Data Privacy](../compliance/data-privacy.md)

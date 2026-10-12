@@ -34,6 +34,15 @@ Understanding the differences between Online Analytical Processing (OLAP) and On
    - OLTP: Simple, frequent queries
    - OLAP: Complex, aggregated queries
 
+The standard split: row store serves the app, change feed builds the columnar side.
+
+```mermaid
+graph TD
+    APP["App traffic"] --> O1[("OLTP: row store, normalized, indexed for point reads/writes")]
+    O1 -->|"CDC / nightly ETL"| O2[("OLAP: columnar, denormalized, partitioned for scans")]
+    O2 --> BI["BI + ad-hoc analytics"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Data Modeling](data-modeling.md), storage engine basics

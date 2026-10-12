@@ -28,6 +28,21 @@ GDPR compliance requires specific architectural considerations and technical con
 4. **Data Minimization**
 5. **Breach Notification**
 
+How an erasure request flows through a compliant system.
+
+```mermaid
+sequenceDiagram
+    participant U as Data subject
+    participant A as App API
+    participant S as Downstream services
+    participant L as Audit log
+    U->>A: Erasure request (Art. 17)
+    A->>S: Fan out delete by subject ID
+    S-->>A: Confirm + tombstone caches/backups
+    A->>L: Record request, scope, completion
+    A-->>U: Confirm within 30 days
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Data Privacy by Design](data-privacy.md), [Security Compliance](../security/security-compliance.md)

@@ -28,6 +28,15 @@ DDoS prevention strategies protect systems from distributed denial of service at
 4. **Business Continuity**
 5. **Customer Trust**
 
+Absorb at the edge so the origin never sees the flood.
+
+```mermaid
+graph TD
+    A["Internet traffic (mixed legit + attack)"] --> E["Edge: anycast + WAF + rate limits + bot checks"]
+    E -->|"clean traffic only"| L["Load balancer"]
+    L --> O["Origin (autoscaled, shielded, cached)"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Load Balancing](../system-basics/load-balancing.md), CDN

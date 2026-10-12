@@ -28,6 +28,18 @@ Multi-cloud strategies involve using multiple cloud providers to optimize for co
 4. **Risk Mitigation**
 5. **Service Selection**
 
+A realistic multi-cloud shape: one control plane, provider-local data, DNS-level failover.
+
+```mermaid
+graph TD
+    G["Global DNS + health checks"] --> A["Cloud A (primary region)"]
+    G --> B["Cloud B (secondary region)"]
+    A --> PA["Shared control plane (deploy, config, policy)"]
+    B --> PA
+    A --> DA[("Data resident in A")]
+    B --> DB[("Data resident in B")]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Kubernetes](kubernetes-orchestration.md), [IAM](../system-basics/auth.md) concepts

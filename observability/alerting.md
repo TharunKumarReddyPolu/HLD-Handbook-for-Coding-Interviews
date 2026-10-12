@@ -28,6 +28,15 @@ Effective alerting strategies help teams identify and respond to system issues p
 4. **Issue Prioritization**
 5. **Team Efficiency**
 
+From signal to action: only pages that need a human at 3am should page.
+
+```mermaid
+flowchart TD
+    S["SLO burn-rate / threshold breach"] --> R["Route by severity: page vs ticket vs log"]
+    R --> O["On-call with runbook link + blast radius"]
+    O --> F["Mitigate, then postmortem + tune alert"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Metrics](metrics.md), SLO concepts

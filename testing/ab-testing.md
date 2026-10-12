@@ -28,6 +28,17 @@ A/B testing architecture enables controlled experiments to make data-driven deci
 4. **Feature Validation**
 5. **Continuous Improvement**
 
+Split, measure, decide: guardrail metrics can veto a winning headline metric.
+
+```mermaid
+graph TD
+    T["Eligible traffic"] --> C["Control (current)"]
+    T --> X["Experiment (variant)"]
+    C --> M["Compare: primary + guardrail metrics"]
+    X --> M
+    M --> D["Ship, iterate, or kill on significance"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Feature flags](../cloud-native/design-patterns.md), event analytics

@@ -23,6 +23,19 @@
 
 Reliability is the property that a system does what users expect, *when* they expect it — even while parts of it are failing. **High availability** is its headline metric: the fraction of time the service actually works. Interviews probe whether you can design a system that fails *gracefully and partially*, instead of staying upright until one bad afternoon ends it. The core move is to stop thinking "it works" and start thinking "which failures can we survive, and how?"
 
+Below is the shape interviewers expect: redundant serving paths plus a practiced failover story.
+
+```mermaid
+graph TD
+    C["Clients"] --> LB["Load balancer + health checks"]
+    LB --> A["Active pool (AZ-1)"]
+    LB --> S["Standby pool (AZ-2)"]
+    A --> DB1[("Primary DB")]
+    S --> DB2[("Replica DB")]
+    DB1 -->|"async replication"| DB2
+    A -.->|"failover on failed checks"| S
+```
+
 ## Prerequisites & Related Topics
 
 - **Builds on**: [Distributed Systems](../system-basics/distributed-systems.md), [Replication](../scalability/replication.md)

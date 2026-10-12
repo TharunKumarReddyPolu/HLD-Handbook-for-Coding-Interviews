@@ -28,6 +28,17 @@ Web3 architecture patterns focus on building decentralized applications (dApps) 
 4. **Trustless Operation**
 5. **Token Economics**
 
+A dApp call end to end: sign locally, execute on chain, read via indexer.
+
+```mermaid
+graph TD
+    U["User + wallet (signs locally)"] --> D["dApp frontend"]
+    D --> R["RPC provider"]
+    R --> SC["Smart contract (execute + emit events)"]
+    SC --> IDX["Indexer builds queryable views"]
+    IDX --> D
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Blockchain Systems](blockchain-systems.md), [API Design](../system-basics/api-design.md)

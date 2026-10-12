@@ -28,6 +28,15 @@ Metrics provide quantitative measurements of system behavior and performance ove
 4. **SLA Tracking**
 5. **Business Insights**
 
+The standard metrics pipeline: instrument once, reuse for dashboards and alerts.
+
+```mermaid
+graph TD
+    S["Services expose RED + USE metrics"] --> T[("Time-series DB (scrape or push)")]
+    T --> D["Dashboards: per-service RED, fleet USE"]
+    T --> A["Alerts: burn-rate + saturation"]
+```
+
 ## Prerequisites & Related Topics
 
 - Builds on: [Monitoring](../system-basics/monitoring.md) concepts
